@@ -1,0 +1,42 @@
+node_modules/
+*.iml
+.idea/
+*.log*
+.DS_STORE
+coverage/
+.env
+.env.*
+!.env.example
+dist/
+.yarnrc
+TODO
+nohup.out
+*.orig
+.npmrc
+
+# Vite
+.vite/
+dev-dist/
+
+# TanStack Start scratch and Nitro output. `.tanstack/tmp` holds nothing but empty directories
+# today, which git would not have committed anyway — the entry is here so it stays uncommitted
+# once it holds something. `src/routeTree.gen.ts` is deliberately NOT ignored: `yarn build` runs
+# `tsc --noEmit` before vite ever generates it, so a clone without it fails to type-check.
+.tanstack/
+.output/
+
+# Stryker
+reports/
+.stryker-tmp/
+.env*.bak
+
+# TLS certs for the https dev server. Never committed — the key is a private key.
+certs/
+
+# GitNexus index storage. The committed part is .gitnexusrc at the repo root.
+.gitnexus/
+
+# Qodana — scan results (SARIF + report), written by .githooks/pre-commit and pre-push.
+# They pass --results-dir .qodana/results so the SARIF is readable from the repo root
+# after a failed gate, rather than under ~/.cache/JetBrains/Qodana/<project-hash>/.
+.qodana/

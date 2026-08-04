@@ -1,0 +1,38 @@
+# Hand-maintained slice of `marketplace-dev-user-authenticated-authorization` (port 4031, path
+# `/user-authenticated-authorization`). A copy of what the resolvers build, not the contract — see the
+# header of `public-resource.graphql`.
+#
+# One mutation, and it is the whole page-reload story: the access token lives in a module-level `let`
+# that a reload wipes, and `refresh` re-mints it from the signed httpOnly cookie the browser still has.
+#
+# ⚠️ The root types are literally named `QueriesApi` / `MutationsApi` here, and `logout.graphql` and
+# `user-authenticated-resource.graphql` name theirs the same. That is why codegen has one project per
+# endpoint and must never be handed a merged schema: a merge collides `refresh`, `logout` and `me` onto
+# one type, and a document could then be written that type-checks while no single server can answer it.
+
+schema {
+	query: QueriesApi
+	mutation: MutationsApi
+}
+
+type QueriesApi {
+	helloRefresh: Hello2Type!
+}
+
+type Hello2Type {
+	txt: String!
+}
+
+type MutationsApi {
+	"""
+	refresh token
+	"""
+	refresh: RefreshType!
+}
+
+# `status` false with a non-empty `accessToken` never happens, but both are checked at the call site
+# anyway — a refresh that answers a blank token is a session that is over, whatever the flag says.
+type RefreshType {
+	status: Boolean!
+	accessToken: String!
+}

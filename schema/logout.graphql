@@ -1,0 +1,28 @@
+# Hand-maintained slice of `marketplace-dev-authenticated-logout` (port 4030, path `/logout`). A copy of
+# what the resolvers build, not the contract — see the header of `public-resource.graphql`.
+#
+# All three apps share this one service, and that is correct rather than a shortcut:
+# `authorizationLogoutHandler` resolves the bearer token straight out of Redis and deletes
+# `${REDIS_KEY}${refreshToken}` and `${REDIS_KEY}${accessToken}` by token content. It never opens a
+# collection and never asks which model minted the session, so it is tier-agnostic by construction.
+# No `logoutUser` mutation exists or is needed.
+
+schema {
+	query: QueriesApi
+	mutation: MutationsApi
+}
+
+type QueriesApi {
+	helloLogout: Hello2Type!
+}
+
+type Hello2Type {
+	txt: String!
+}
+
+type MutationsApi {
+	"""
+	logout
+	"""
+	logout: Boolean!
+}

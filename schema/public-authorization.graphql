@@ -1,0 +1,48 @@
+# Hand-maintained slice of `marketplace-dev-public-authorization` (port 4028, path
+# `/public-authorization`). A copy of what the resolvers build, not the contract — see the header of
+# `public-resource.graphql`.
+#
+# The service serves all three tiers from one process: `login` binds the `ShopOwner` model,
+# `loginAdmin` the `Admin` model and `loginUser` the `User` model. This app must only ever send
+# `loginUser`; the other two are declared here because they exist on the endpoint, and leaving them out
+# would make this file diverge from the schema codegen validates against for no gain.
+
+schema {
+	query: QueriesPublic
+	mutation: MutationsPublic
+}
+
+type QueriesPublic {
+	authPublicHello: Hello2Type!
+}
+
+type Hello2Type {
+	txt: String!
+}
+
+type MutationsPublic {
+	# ⚠️ Neither of these takes a `turnstileToken`, and `loginUser` does. Not an inconsistency in this
+	# slice — it is the resolvers': the two shipped panels that call these mint no token, so gating them
+	# is a coordinated frontend change nobody has made. See the header of loginUser.mts on 4028.
+	login(email: String!, password: String!, rememberMe: Boolean!): LoginAppType!
+	loginAdmin(email: String!, password: String!, rememberMe: Boolean!): LoginAppType!
+
+	"""
+	Log a customer in
+	"""
+	loginUser(email: String!, password: String!, rememberMe: Boolean!, turnstileToken: String): LoginUserType!
+}
+
+# The ShopOwner/Admin answer, carrying the onboarding fields those tiers need.
+type LoginAppType {
+	accessToken: String!
+	onboardingStep: String!
+	onboardingDone: Boolean!
+}
+
+# The customer answer is the access token and nothing else — there is no onboarding gate on this tier,
+# and no `waitApprov`: a customer self-serves. The refresh token never appears in either payload; it is
+# set as a signed httpOnly cookie by the same resolver.
+type LoginUserType {
+	accessToken: String!
+}

@@ -1,0 +1,226 @@
+# Hand-maintained slice of `marketplace-dev-public-resource` (port 4027, path `/public-resource`).
+#
+# ⚠️ This is a COPY, not the contract. No service on this platform has an SDL file — all nine build
+# their schema programmatically with graphql-js, so the resolvers under
+# `BEs/dev/marketplace-dev-public-resource/src/graphQLApi/` are the only source of truth. This file
+# exists because graphql-codegen needs a schema to type documents against, and it drifts the moment
+# a resolver changes. Re-read the resolver before adding or editing any operation here.
+#
+# Transcribed from `printSchema()` run against the live resolver modules, so it started out exact.
+#
+# This is the one endpoint the SSR loaders talk to. It has no auth middleware at all — that is what
+# makes server-side rendering of the public pages possible without ever handling a visitor's token.
+
+schema {
+	query: QueriesPublic
+	mutation: MutationsPublic
+}
+
+type QueriesPublic {
+	publicHelloNoArgs: HelloType!
+	publicHelloArgs(name: String!): HelloType!
+
+	"""
+	Get published companies, paginated, optionally filtered by city
+	"""
+	companies(limit: Int, offset: Int, city: String): GraphQLPublicCompanyPage!
+
+	"""
+	Get one published company by its slug, or null
+	"""
+	companyBySlug(slug: String!): GraphQLPublicCompany
+
+	"""
+	Get published companies inside a bounding box, or within a radius of a point
+	"""
+	companiesNearby(bbox: GraphQLInputBoundingBox, near: GraphQLInputNearPoint, limit: Int): GraphQLPublicCompanyNearbyResult!
+
+	"""
+	Get published items of one company, or of one category across every company
+	"""
+	items(companySlug: String, idCategory: ID, limit: Int, offset: Int): GraphQLPublicItemPage!
+
+	"""
+	Get one published item by its company slug and its own slug, or null
+	"""
+	itemBySlug(companySlug: String!, slug: String!): GraphQLPublicItemHit
+
+	"""
+	Get the whole item category tree, flat
+	"""
+	itemCategories: [GraphQLPublicItemCategory!]!
+
+	"""
+	Full-text search over published companies and items, optionally within a radius
+	"""
+	search(q: String!, near: GraphQLInputNearPoint, limit: Int): GraphQLPublicSearchResult!
+
+	"""
+	Get crawlable paths of one kind, keyset paginated by _id
+	"""
+	sitemapEntries(kind: GraphQLSitemapKind!, afterId: ID, limit: Int): GraphQLSitemapPage!
+}
+
+type HelloType {
+	txt: String!
+}
+
+# `totalIsExact` is not decoration. The resolver caps the `countDocuments` it is willing to run, so on a
+# large result set `total` is the cap and this flag is false — render "1000+" rather than a wrong number.
+type GraphQLPublicCompanyPage {
+	nodes: [GraphQLPublicCompany!]!
+	total: Int!
+	totalIsExact: Boolean!
+	hasMore: Boolean!
+}
+
+type GraphQLPublicCompany {
+	_id: ID!
+	publicName: String!
+	slug: String!
+	description: String
+	address: GraphQLPublicCompanyAddress!
+}
+
+type GraphQLPublicCompanyAddress {
+	street: String!
+	postalCode: String!
+	city: String!
+	province: String!
+	position: GraphQLPublicPosition!
+}
+
+type GraphQLPublicPosition {
+	type: String!
+	coordinates: [Float!]!
+}
+
+# `truncated` says the `limit` was reached and more companies exist inside the viewport. The map uses it
+# to keep the "zoom in to see more" hint honest instead of guessing from `nodes.length === limit`.
+type GraphQLPublicCompanyNearbyResult {
+	nodes: [GraphQLPublicCompanyNearby!]!
+	truncated: Boolean!
+}
+
+# `distanceMeters` is null for a bbox query — `$geoWithin` computes no distance. Only the `near` form
+# ($geoNear) fills it in.
+type GraphQLPublicCompanyNearby {
+	_id: ID!
+	publicName: String!
+	slug: String!
+	position: GraphQLPublicPosition!
+	distanceMeters: Float
+}
+
+input GraphQLInputBoundingBox {
+	minLng: Float!
+	minLat: Float!
+	maxLng: Float!
+	maxLat: Float!
+}
+
+input GraphQLInputNearPoint {
+	lng: Float!
+	lat: Float!
+	radiusMeters: Float!
+}
+
+type GraphQLPublicItemPage {
+	nodes: [GraphQLPublicItemHit!]!
+	total: Int!
+	totalIsExact: Boolean!
+	hasMore: Boolean!
+}
+
+# Denormalised on the way out: `companySlug` and `companyPublicName` are joined in by the resolver so a
+# search result can link to `/shop/:companySlug/item/:slug` without a second round trip per row.
+type GraphQLPublicItemHit {
+	_id: ID!
+	idCategory: ID!
+	name: String!
+	description: String!
+	slug: String!
+	companySlug: String!
+	companyPublicName: String!
+}
+
+# Flat, not nested. `idParent` absent = a top-level category; present = a subcategory, and the tree is
+# two levels deep by construction (the Admin resolver rejects a third).
+type GraphQLPublicItemCategory {
+	_id: ID!
+	idParent: ID
+	name: String!
+	slug: String!
+	position: Int!
+}
+
+type GraphQLPublicSearchResult {
+	companies: [GraphQLPublicCompany!]!
+	items: [GraphQLPublicItemHit!]!
+}
+
+# Keyset pagination, not offset: `nextAfterId` is null on the last page. A sitemap generator walking
+# 500K rows with `skip` degrades quadratically; `_id > afterId` does not.
+type GraphQLSitemapPage {
+	nodes: [GraphQLSitemapEntry!]!
+	nextAfterId: ID
+}
+
+type GraphQLSitemapEntry {
+	path: String!
+}
+
+enum GraphQLSitemapKind {
+	"""
+	/shop/:slug
+	"""
+	COMPANY
+
+	"""
+	/shop/:companySlug/item/:slug
+	"""
+	ITEM
+
+	"""
+	/category/:slug and /category/:parentSlug/:slug
+	"""
+	CATEGORY
+}
+
+type MutationsPublic {
+	publicMutArgs(name: String!): String!
+	publicMutNoArgs: String!
+
+	"""
+	send reset password link
+
+	⚠️ The SHOP OWNER's pair, kept in this slice only because the service exposes it. The link it mails is
+	built on APP_DOMAIN, the operator origin — this app must never call it. Use userResetPwd.
+	"""
+	resetPwd(email: String!): Boolean!
+
+	"""
+	changes the user's password — the shop owner's half of the pair above. Use userUpdatePwd.
+	"""
+	updatePwd(email: String!, hash: String!, password: String!): Boolean!
+
+	"""
+	Register a new customer and send the activation link
+	"""
+	userRegister(email: String!, password: String!, repeatPassword: String!, turnstileToken: String): Boolean!
+
+	"""
+	Send a customer password-reset link
+	"""
+	userResetPwd(email: String!, turnstileToken: String): Boolean!
+
+	"""
+	Confirm a customer's password reset
+	"""
+	userUpdatePwd(email: String!, hash: String!, password: String!, turnstileToken: String): Boolean!
+
+	"""
+	Re-send the customer activation link
+	"""
+	userVerifyEmailResend(email: String!, turnstileToken: String): Boolean!
+}

@@ -1,0 +1,90 @@
+# Committed placeholder template. Copy to `.env` (git-ignored) and fill in the real values.
+# Never commit `.env`: the pre-commit hook refuses it, and a value printed to a terminal in this
+# workspace is written in plaintext to the session transcript and cannot be un-sent.
+
+# Dev server port. Read by vite.config.ts via `loadEnv`, so this file is the single place the port
+# is written — the same invariant every backend service holds. 3043 is the operator app and 3044 the
+# shop-owner one; this is the third and last frontend.
+PORT=3045
+
+# ── GraphQL endpoints, as the BROWSER sees them ───────────────────────────────
+# Paths, not URLs. The app and the services are served from one origin (nginx in production, the
+# vite proxy table in development), because the refresh token is a signed httpOnly cookie: a
+# cross-origin request would need `SameSite=None` on the cookie plus a CORS allow-list on every
+# service to carry it. Same origin makes `credentials: 'include'` sufficient on its own.
+#
+# The paths are the `ENDPOINT` constants exported by each service's src/index.mts. Changing one here
+# without changing it there produces a 404, not a GraphQL error.
+#
+# ⚠️ The two authenticated paths are the **User** tier's (4031 / 4032). Since the Phase 0 tier fix a
+# session minted for one tier is rejected by another with a 403, so pointing either line at
+# `/authenticated-*` (the ShopOwner tier) now fails closed instead of quietly working. `/logout` is
+# shared by all three tiers on purpose: that resolver deletes Redis keys by token content and never
+# asks which collection minted them.
+VITE_GRAPHQL_ENDPOINT_PUBLIC_RESOURCE=/public-resource
+VITE_GRAPHQL_ENDPOINT_PUBLIC_AUTHORIZATION=/public-authorization
+VITE_GRAPHQL_ENDPOINT_USER_AUTHENTICATED_AUTHORIZATION=/user-authenticated-authorization
+VITE_GRAPHQL_ENDPOINT_USER_AUTHENTICATED_RESOURCE=/user-authenticated-resource
+VITE_GRAPHQL_ENDPOINT_LOGOUT=/logout
+
+# ── GraphQL endpoint, as the SSR SERVER sees it ───────────────────────────────
+# ⚠️ Deliberately NOT `VITE_`-prefixed, and that is the whole point: a `VITE_` variable is inlined
+# into the client bundle, and this one names an internal address. The server skips nginx and talks
+# straight to public-resource on the loopback interface — one less hop, and it keeps working when the
+# public hostname does not resolve from inside the network.
+#
+# The port must match `PORT` in `BEs/dev/marketplace-dev-public-resource/env`, and the path must
+# match the `ENDPOINT` constant that service exports.
+PUBLIC_RESOURCE_URL=http://127.0.0.1:4027/public-resource
+
+# ── Public site identity ──────────────────────────────────────────────────────
+# Absolute origin this site is served from. Canonical links, `og:url`, the sitemap and robots.txt all
+# need an absolute URL — a crawler treats a relative canonical as no canonical at all, and two
+# hostnames serving the same pages then compete with each other in the index. No trailing slash
+# (src/env.ts strips them anyway).
+#
+# ⚠️ This is the **customer** domain, and it is not the shop-owner one. The activation and
+# password-reset links are built on `APP_DOMAIN_USER` in
+# `BEs/dev/marketplace-dev-public-resource/.env`, which has to name this same host — a link built on
+# the other domain lands a customer on a panel that cannot complete their flow.
+VITE_SITE_URL=http://127.0.0.1:3045
+
+# ── Cloudflare Turnstile ──────────────────────────────────────────────────────
+# The PUBLIC half of the key pair. It is meant to be seen — it is rendered into the widget's markup —
+# which is why it may live in a `VITE_` variable at all. The secret half is `TURNSTILE_SECRET` in the
+# two backend services' `.env` and must never appear in this repo.
+#
+# Empty disables the widget entirely, which is what a developer machine wants: with no secret
+# configured server-side the guards pass a missing token through outside production, so the two
+# halves agree on "off".
+VITE_TURNSTILE_SITE_KEY=
+
+# ── Map (MapLibre + Protomaps) ────────────────────────────────────────────────
+# Both are served as static files by nginx from this same origin — see docs/nginx/map.conf. The
+# PMTiles archive is read with HTTP range requests, so the location block serving it must not gzip it
+# and must answer `Accept-Ranges: bytes`.
+VITE_MAP_STYLE_URL=/map/style.json
+VITE_PMTILES_URL=/map/basemap.pmtiles
+
+# ── Geocoding (on-premises Nominatim) ─────────────────────────────────────────
+# ⚠️ Root-relative on purpose, so the request is same-origin and nginx proxies it. The instance has no
+# rate limiting of its own, and one exposed on the public internet is a free geocoding API for
+# everyone who finds it. Setup is docs/nominatim/README.md.
+#
+# It must NOT be pointed at https://nominatim.openstreetmap.org: that service allows at most one
+# request per second and forbids bulk querying, and enforcement is an IP block rather than a throttle.
+VITE_NOMINATIM_URL=/nominatim
+
+# ── Sentry ────────────────────────────────────────────────────────────────────
+# Leave the DSN empty to disable reporting entirely (src/instrument.ts skips init without one).
+# The real DSN is a secret: it lives in .env only.
+VITE_SENTRY_DSN=
+VITE_SENTRY_ENVIRONMENT=development
+
+# ── Qodana Ultimate Plus ──────────────────────────────────────────────────────
+# Project token from https://qodana.cloud (project settings → token).
+# Required by the local pre-merge gate to run the paid `jetbrains/qodana-js:2026.2`
+# linter and to enable coverage / license-audit / taint inspections.
+# Per repository: create a `marketplace-user` project of its own. Reusing another repo's token files
+# this repo's reports under that project and corrupts its baseline.
+QODANA_TOKEN=

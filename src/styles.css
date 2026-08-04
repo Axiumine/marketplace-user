@@ -1,0 +1,88 @@
+@import 'tailwindcss';
+
+/*
+ * The Marketplace palette, byte-for-byte the same tokens as `marketplace-admin` and
+ * `marketplace-shopowner`. It is one product, and a customer who registers here and a shop owner who
+ * serves them must not see two different brands.
+ *
+ * What is *not* copied from the panels: their `account-*` status utilities (deleted / disabled /
+ * waiting for approval are shopOwner states, and no customer-facing page renders one) and the toast
+ * countdown keyframes (this app reports form outcomes inline — see `FormStatus.tsx`).
+ */
+@theme {
+	--color-primary: #ffd615;
+	--color-secondary: #fcd48e;
+	--color-third: #ba5c16;
+	--color-pomodoro: #fe2616;
+
+	--color-palette-white: #fdffff;
+	--color-palette-bg: #0e0e13;
+	--color-palette-bg1: #f5f5f5;
+	--color-palette-bg2: #eae8ff;
+	--color-palette-bg3: #333333;
+
+	--color-app-ok: #008a19;
+	--color-app-warning: #ffdd00;
+	--color-app-error: #d90d0d;
+
+	--color-tip: #888888;
+
+	--radius-box: 10px;
+}
+
+/*
+ * The map island's own height, as a CSS variable rather than a Tailwind class.
+ *
+ * ⚠️ This is a Core Web Vitals fix, not styling. MapLibre is dynamically imported and mounts after
+ * hydration, so the container is empty in the server HTML and empty during the first paint. Without a
+ * height reserved up front, the whole page below it jumps down the moment the map appears — which is
+ * exactly what Cumulative Layout Shift measures. The container carries this height from the first byte
+ * and the map fills it in later, shifting nothing.
+ */
+:root {
+	--map-height: 420px;
+}
+
+@media (min-width: 768px) {
+	:root {
+		--map-height: 560px;
+	}
+}
+
+html,
+body {
+	height: 100%;
+}
+
+body {
+	background-color: var(--color-palette-bg1);
+	color: var(--color-palette-bg);
+	font-family:
+		system-ui,
+		-apple-system,
+		'Segoe UI',
+		Roboto,
+		sans-serif;
+}
+
+/*
+ * Skip link — visible only while focused.
+ *
+ * A catalogue page opens with a header, a search field and a category bar, so a keyboard or
+ * screen-reader visitor otherwise tabs through the whole navigation on every single page before
+ * reaching a result. Hiding it with `display: none` would remove it from the tab order and defeat the
+ * purpose, hence the off-screen position.
+ */
+.skip-link {
+	position: absolute;
+	left: -9999px;
+	top: 0;
+	z-index: 100;
+}
+
+.skip-link:focus {
+	left: 0;
+	padding: 0.5rem 1rem;
+	background-color: var(--color-palette-bg);
+	color: var(--color-palette-white);
+}

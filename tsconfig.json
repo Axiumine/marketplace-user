@@ -1,0 +1,38 @@
+{
+	"compilerOptions": {
+		"target": "ES2023",
+		"lib": ["ES2023", "DOM", "DOM.Iterable"],
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"jsx": "react-jsx",
+		"types": ["vite/client", "vitest/globals", "@testing-library/jest-dom"],
+
+		"strict": true,
+		"noUncheckedIndexedAccess": true,
+		"noImplicitOverride": true,
+		"noFallthroughCasesInSwitch": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"exactOptionalPropertyTypes": true,
+		"verbatimModuleSyntax": true,
+		"isolatedModules": true,
+		"erasableSyntaxOnly": true,
+
+		"skipLibCheck": true,
+		"resolveJsonModule": true,
+		"allowImportingTsExtensions": true,
+		"noEmit": true,
+
+		// Relative, and no `baseUrl`: TypeScript 7 removes `baseUrl`, and a non-relative target needs it.
+		// These mirror the two aliases in vite.config.ts and vitest.config.ts — all three must agree.
+		"paths": {
+			"@/*": ["./src/*"],
+			"@gql/*": ["./src/gql/*"]
+		}
+	},
+	// `src` covers `src/routeTree.gen.ts`, which the router generator writes and which every route file
+	// is typed against. It is generated, so it is excluded from coverage, lint and mutation — but it must
+	// stay inside the type-check, or `createFileRoute('/shop/$slug')` loses its path literal union and
+	// every route id becomes `string`.
+	"include": ["src", "test", "codegen.ts", "vite.config.ts", "vitest.config.ts", "vitest.polyfill.ts", "vitest.setup.ts"]
+}

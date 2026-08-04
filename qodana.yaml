@@ -1,0 +1,89 @@
+#-------------------------------------------------------------------------------#
+#               Qodana analysis is configured by qodana.yaml file               #
+#             https://www.jetbrains.com/help/qodana/qodana-yaml.html            #
+#-------------------------------------------------------------------------------#
+version: '1.0'
+
+# Full Ultimate inspection set: code quality + SAST / taint dataflow.
+# Ultimate & Ultimate Plus features unlock via QODANA_TOKEN (see .env, run via ./qodana.sh).
+profile:
+  name: qodana.recommended
+
+# Qodana for JS/TS — Ultimate-tier linter (no community JS variant exists).
+# Docker images go under `image:`; `linter:` is for the linter *name* and makes the
+# CLI warn "has image value, please use --image param".
+# Tag must be a real image tag: only 2026.2, 2026.1, 2025.3, 2025.2 and latest are published.
+# 2026.1.x / 2026.2.x are *CLI* versions (the CLI advertises them in its own update banner)
+# and do NOT exist as image tags — pinning one makes the pull fail and the scan never run.
+image: jetbrains/qodana-js:2026.2
+
+# ── SCA: third-party license audit (Ultimate Plus) ────────────────────────────
+# Scans Yarn deps and surfaces license conflicts as problems. The project is
+# proprietary (package.json "UNLICENSED"), so Qodana's default compatibility
+# matrix already flags copyleft dependencies.
+raiseLicenseProblems: true
+
+# `keys` is THIS project's license, `allowed` the dependency licenses accepted
+# against it. The default matrix for a proprietary project flags every copyleft
+# dep as a Critical — correct for shipped software, wrong here: this SPA is never
+# distributed as a package, it is served as a bundle from our own nginx, so the
+# GPL's distribution trigger is never pulled. Accepted by the project owner.
+#
+# `keys` must carry the key Qodana derives, NOT the package.json string: it maps
+# "UNLICENSED" to PROPRIETARY-LICENSE, and the finding text says so verbatim —
+# "…is in the prohibited licenses list with project license 'PROPRIETARY-LICENSE'".
+# Putting "UNLICENSED" here matches no project and the rule silently does nothing.
+#
+# MPL-2.0 covers lightningcss, which arrives as `vite -> lightningcss` and again
+# under tailwindcss. Build-time only: never imported by src/, never present on a
+# running host. MPL is per-file copyleft and triggers on distributing *modified*
+# covered files, which we neither modify nor distribute.
+#
+# CC0-1.0 covers type-fest, whose package.json declares "(MIT OR CC0-1.0)" — a dual
+# license, ours to choose from. Qodana records BOTH keys and checks the CC0 one against
+# the PROPRIETARY-LICENSE ruleset, where CC0-1.0 appears neither in `allowed` nor in
+# `prohibited`: the verdict is "Uncategorized". The CLI does not count that as a problem,
+# but Qodana Cloud counts it in the license inventory as one suspicious license — which is
+# how a terminal can report 0 while the dashboard does not. CC0-1.0 is a public-domain
+# dedication: it grants strictly more than MIT and asks nothing back.
+licenseRules:
+  - keys: ['PROPRIETARY-LICENSE']
+    allowed:
+      ['PROPRIETARY-LICENSE', 'GPL-3.0-or-later', 'GPL-3.0-only', 'LGPL-3.0-or-later', 'LGPL-3.0-only', 'MPL-2.0', 'CC0-1.0']
+
+# Vulnerable-dependency check (SCA) and taint/SAST run automatically as part of
+# the recommended profile on the Ultimate linter — no extra key required.
+
+# ── Quality gate: 100% test coverage required on every metric (see COVERAGE.md) ─
+# If coverage is below 100%, the fix is to add tests or delete dead code until it
+# returns to 100% — never lower these numbers.
+#
+# severityThresholds is what makes the *inspection* results binding. Without it the
+# scan prints "✗ Found N new problems" and still exits 0, so the coverage condition
+# below would be the only thing that could fail a run — and vitest already enforces
+# that, leaving the scan with nothing of its own to block on.
+#
+# critical/high only. Moderate stays advisory on purpose: the standing DuplicatedCode
+# notes are test boilerplate the mutation gate needs spelled out explicitly, and
+# folding them into a shared helper to green a scan would weaken assertions to satisfy
+# a linter.
+failureConditions:
+  severityThresholds:
+    critical: 0
+    high: 0
+  testCoverageThresholds:
+    total: 100 # whole project
+    fresh: 100 # new / changed code
+
+# ── Disabled inspections ──────────────────────────────────────────────────────
+# src/gql/ is graphql-codegen output, rewritten wholesale by `yarn codegen`. Every
+# finding in it is unfixable by hand: the only way to change the file is to change
+# the generator config. It is excluded from eslint, prettier, coverage and Stryker
+# for the same reason, so leaving it inspected here would be the one gate reporting
+# problems nobody can act on.
+#
+# Scoped to that path, NOT disabled globally.
+exclude:
+  - name: All
+    paths:
+      - src/gql

@@ -1,0 +1,129 @@
+# Hand-maintained slice of `marketplace-dev-user-authenticated-resource` (port 4032, path
+# `/user-authenticated-resource`). A copy of what the resolvers build, not the contract — see the header
+# of `public-resource.graphql`.
+#
+# The whole private area is this one query and these six mutations.
+#
+# ⚠️ **No mutation here takes a user id, and none ever should.** The resolvers read the owner from
+# `ctx.state.user._id` — the Redis session behind the access token. Adding an id to a variable set would
+# mean asking the backend to accept from a browser the one thing the session already proves. The address
+# ids that *are* passed are subdocument ids, checked against the caller's own `addresses` array by
+# `throwIfUserDontOwnAddress` before any write.
+
+schema {
+	query: QueriesApi
+	mutation: MutationsApi
+}
+
+type QueriesApi {
+	"""
+	the signed-in customer own account
+	"""
+	me: GraphQLUserMe!
+}
+
+type GraphQLUserMe {
+	_id: ID!
+	email: String!
+	personalData: GraphQLUserPersonalData
+	addresses: [GraphQLUserAddress!]!
+	defaultAddress: ID
+	registeredAt: DateTime!
+}
+
+# Nullable on purpose: registration is email + password only, so a freshly confirmed account has none.
+# The private area's first screen is the one that fills it in.
+type GraphQLUserPersonalData {
+	firstName: String!
+	lastName: String!
+	birth: GraphQLUserBirth
+	contacts: GraphQLUserContacts
+}
+
+type GraphQLUserBirth {
+	date: DateTime!
+}
+
+type GraphQLUserContacts {
+	mobile: String
+	landline: String
+	email: String
+}
+
+type GraphQLUserAddress {
+	_id: ID!
+	street: String!
+	postalCode: String!
+	city: String!
+	province: String!
+	label: String
+	position: GraphQLUserPosition
+}
+
+type GraphQLUserPosition {
+	type: String!
+	coordinates: [Float!]!
+}
+
+type MutationsApi {
+	userAddressAdd(address: GraphQLInputUserAddress!): OnlyIdType!
+	userAddressUpdate(_id: ID!, address: GraphQLInputUserAddress!): Boolean!
+
+	"""
+	Deleting the default address unsets `defaultAddress` in the same update — the collection
+	validator rejects a pointer at an address that is no longer in the array.
+	"""
+	userAddressDel(_id: ID!): Boolean!
+
+	"""
+	One atomic `$set` of the top-level pointer. There is no 'clear all, then set one' step, because
+	the default is not a flag on an element.
+	"""
+	userDefaultAddressSet(_id: ID!): Boolean!
+
+	userPersonalDataUpdate(personalData: GraphQLInputUserPersonalData!): Boolean!
+	userUpdatePwd(passwordOld: String!, passwordNew: String!): Boolean!
+}
+
+type OnlyIdType {
+	_id: ID!
+}
+
+# ⚠️ `position` here declares `coordinates` alone — the resolver stamps `type: 'Point'` server-side, so
+# the client must NOT send it. This is the opposite of `marketplace-shopowner`'s
+# `GraphQLInputCompanyPosition`, which requires it because no stamp exists on that tier. Checked against
+# `validateAddress` in the 4032 resolvers; do not "align" the two.
+input GraphQLInputUserAddress {
+	street: String!
+	postalCode: String!
+	city: String!
+	province: String!
+	label: String
+	position: GraphQLInputUserAddressPosition
+}
+
+input GraphQLInputUserAddressPosition {
+	coordinates: [Float!]!
+}
+
+input GraphQLInputUserPersonalData {
+	firstName: String!
+	lastName: String!
+	birth: GraphQLInputUserBirth
+	contacts: GraphQLInputUserContacts
+}
+
+# `Date` in, `DateTime` out. The input takes `YYYY-MM-DD` — what an `<input type="date">` produces — and
+# the query answers a full ISO-8601 timestamp. Both are mapped to `string` in codegen.ts.
+input GraphQLInputUserBirth {
+	date: Date!
+}
+
+input GraphQLInputUserContacts {
+	mobile: String
+	landline: String
+	email: String
+}
+
+scalar DateTime
+scalar Date
