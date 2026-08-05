@@ -23,7 +23,7 @@ import { serve } from 'srvx/node'
 import handler from './dist/server/server.js'
 
 /*
- * ⚠️ Binds the loopback interface, unlike the seven backend services, which bind the wildcard.
+ * ⚠️ Binds the loopback interface, unlike the nine backend services, which bind the wildcard.
  *
  * That asymmetry is deliberate rather than an oversight. Their integration suites fetch
  * `http://127.0.0.1:<port>` and need the wildcard; nothing here is tested over the network, and this

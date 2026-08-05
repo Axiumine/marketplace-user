@@ -2,7 +2,7 @@
 
 The customer app (`User` tier) for Marketplace: the public, indexed site **and** the private account
 area, in one codebase. Read the parent workspace's
-`/media/nvme/websites/fullstack-marketplace-blueprint/CLAUDE.md` first — this is one of thirteen repos
+`/media/nvme/websites/fullstack-marketplace-blueprint/CLAUDE.md` first — this is one of fourteen sub-repos
 and almost nothing here is changeable on its own. `README.md` carries the strategy and every rejected
 alternative; `COVERAGE.md` carries the gate policy.
 
@@ -148,6 +148,10 @@ This project is indexed by GitNexus as **marketplace-user**. Use the GitNexus MC
 | `gitnexus://repo/marketplace-user/clusters` | All functional areas |
 | `gitnexus://repo/marketplace-user/processes` | All execution flows |
 | `gitnexus://repo/marketplace-user/process/{name}` | Step-by-step execution trace |
+
+## Cross-Repo Groups
+
+This repository is listed under GitNexus **group(s): marketplace-platform** (see `~/.gitnexus/groups/`). For cross-repo analysis, use MCP tools `impact`, `query`, and `context` with `repo` set to `@<groupName>` or `@<groupName>/<memberPath>` (paths match keys in that group’s `group.yaml`). Use `group_list` / `group_sync` for membership and sync. From the project root: `node .gitnexus/run.cjs group list`, `node .gitnexus/run.cjs group sync <name>`, `node .gitnexus/run.cjs group impact <name> --target <symbol> --repo <group-path>` (the `.gitnexus/run.cjs` path is repo-root-relative).
 
 ## CLI
 
