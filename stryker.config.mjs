@@ -8,11 +8,6 @@
  * and the survivor it appears to fix is usually a load-time mutant that needs a dynamic `await import()`
  * inside `beforeEach` instead.
  *
- * ⚠️ **This repo has no `test/` directory yet**, per the standing "skip all tests" instruction — the same
- * posture as `marketplace-shopowner`. The harness is wired and the threshold is 100; a commit here needs
- * `--no-verify` until the tests exist. That is the intended state and the way out is to write them, never
- * to lower the number or drop the gate.
- *
  * @type {import('@stryker-mutator/api/core').PartialStrykerOptions}
  */
 export default {

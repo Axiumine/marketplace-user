@@ -1,3 +1,5 @@
+import { isFiniteNumber } from '@/lib/number'
+
 /**
  * GeoJSON positions, narrowed to the pair MapLibre wants.
  *
@@ -18,14 +20,17 @@
  * with a map of the wrong place.
  */
 export const toLngLat = (coordinates: readonly number[] | null | undefined): readonly [number, number] | undefined => {
-	const [lng, lat] = coordinates ?? []
+	if (coordinates === null || coordinates === undefined) return undefined
 
-	// The `typeof` pair is what narrows: under `noUncheckedIndexedAccess` a destructure of `number[]` yields
-	// `number | undefined`, and `Number.isFinite` is typed `(value: unknown) => boolean` rather than as a
-	// type guard, so it narrows nothing on its own. It is still called, second, because JSON carries no
-	// `NaN` but a resolver computing a centroid can, and `NaN` is a `number` that cannot be plotted.
-	if (typeof lng !== 'number' || typeof lat !== 'number') return undefined
-	if (!Number.isFinite(lng) || !Number.isFinite(lat)) return undefined
+	const [lng, lat] = coordinates
+
+	// One check, not two. This used to be a `typeof lng !== 'number'` pair followed by a
+	// `Number.isFinite` pair, and the first pair was unreachable in the only sense that matters:
+	// `Number.isFinite` does not coerce, so every value the `typeof` test rejected was rejected a line
+	// later anyway. It existed to narrow `number | undefined` for the compiler, which `isFiniteNumber`
+	// now does — see src/lib/number.ts. A branch no input can distinguish is a branch no test can cover
+	// and no mutant can be killed on.
+	if (!isFiniteNumber(lng) || !isFiniteNumber(lat)) return undefined
 
 	return [lng, lat]
 }

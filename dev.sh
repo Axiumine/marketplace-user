@@ -23,7 +23,9 @@ sudo mount --bind /var/ram/marketplace-user/node_modules node_modules  # <--- ad
 . ~/.profile
 . ~/.bashrc
 
-nvm use v24.18.0
+# Version comes from .nvmrc, so it is stated once per repo and cannot drift from
+# engines.node the way a hard-coded literal here silently would.
+nvm use
 node --version
 yarn install
 yarn run dev

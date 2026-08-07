@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { useMutation } from 'urql'
 import { z } from 'zod'
 
-import { messageOf } from '@/api/errors'
+import { dataOf, messageOf } from '@/api/errors'
 import { UserUpdatePwdDocument } from '@/api/operations/userResource/mutations'
 import { FormStatus } from '@/components/ui/FormStatus'
 import { SubmitButton } from '@/components/ui/SubmitButton'
@@ -52,17 +52,16 @@ export const ChangePasswordForm = () => {
 		handleSubmit,
 		reset,
 		formState: { errors, isSubmitting }
-	} = useForm<Values>({
-		resolver: zodResolver(schema),
-		defaultValues: { passwordOld: '', password: '', repeatPassword: '' }
-	})
+	} = useForm<Values>({ resolver: zodResolver(schema) })
 
 	const onSubmit = handleSubmit(async (values) => {
 		setStatus(undefined)
 
 		const result = await submit({ passwordOld: values.passwordOld, passwordNew: values.password }, CTX_ACCOUNT_WRITE)
 
-		if (result.error !== undefined || result.data === undefined) {
+		// `dataOf` and not a bare `result.error` test: a `{"data": null}` envelope carries no error at all, and
+		// reporting a password change that never happened clears the three fields that prove what was typed.
+		if (dataOf(result) === undefined) {
 			setStatus({ tone: 'error', message: messageOf(result.error) })
 			return
 		}
@@ -100,7 +99,13 @@ export const ChangePasswordForm = () => {
 				error={errors.repeatPassword?.message}
 			/>
 
-			<FormStatus tone={status?.tone ?? 'error'} message={status?.message} />
+			{/*
+			 * ⚠️ Rendered only once there is a status, rather than always with an invented fallback tone. The
+			 * tone of a status that does not exist is not a thing — a `?? 'error'` here reads as "failures by
+			 * default", which is both wrong and unobservable, since `FormStatus` renders nothing without a
+			 * message anyway. The live region it needs is the `<form>` around it, which never unmounts.
+			 */}
+			{status !== undefined && <FormStatus tone={status.tone} message={status.message} />}
 
 			<div>
 				<SubmitButton busy={isSubmitting} busyLabel="Saving…">

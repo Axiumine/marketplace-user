@@ -3,6 +3,7 @@ import { z } from 'zod'
 
 import { CompaniesDocument } from '@/api/operations/publicResource/queries'
 import { runQuery } from '@/api/run'
+import { Breadcrumbs } from '@/features/catalogue/Breadcrumbs'
 import { EmptyState } from '@/features/catalogue/EmptyState'
 import { Pagination } from '@/features/catalogue/Pagination'
 import { ShopGrid } from '@/features/catalogue/ShopGrid'
@@ -45,6 +46,21 @@ const searchSchema = z.object({
 })
 
 export type ShopsSearch = z.infer<typeof searchSchema>
+
+/**
+ * The trail, written once and read twice — by the `BreadcrumbList` in the head and by the `<nav>` in the
+ * page. `Breadcrumbs` says in its own header that the two must agree; the way to make them agree is not
+ * to have two lists. A route that keeps a separate copy for the crawler tells it one thing and the
+ * visitor another, and nothing here would notice.
+ *
+ * It does not depend on the page number: a paginated slice of one listing is the same place in the
+ * hierarchy as its first page, and putting `page 3` in the trail invites a crawler to treat it as a
+ * level of its own.
+ */
+const CRUMBS = [
+	{ name: 'Home', path: '/' },
+	{ name: 'Shops', path: '/shops' }
+]
 
 const loader = async ({ context, deps }: { context: RouterContext; deps: { page: number } }) => {
 	const page = pageNumber(deps.page)
@@ -90,10 +106,7 @@ const head = ({ loaderData }: { loaderData?: LoaderData }) => {
 			...(next === undefined ? [] : [{ rel: 'next', href: absoluteUrl(next) }])
 		],
 		scripts: jsonLdScripts(
-			breadcrumbJsonLd([
-				{ name: 'Home', path: '/' },
-				{ name: 'Shops', path: '/shops' }
-			]),
+			breadcrumbJsonLd(CRUMBS),
 			// The offset makes the ItemList positions global rather than per page, so page 3 declares
 			// positions 49–72. Restarting at 1 on every page tells a crawler it is looking at three
 			// different lists that all begin with a first result.
@@ -111,6 +124,8 @@ const Shops = () => {
 
 	return (
 		<div className="mx-auto max-w-6xl px-4 py-8">
+			<Breadcrumbs crumbs={CRUMBS} />
+
 			<h1 className="text-3xl font-semibold text-palette-bg">All shops</h1>
 			<p className="mt-2 text-slate-600">{formatTotal(companies.total, companies.totalIsExact)} shops published.</p>
 

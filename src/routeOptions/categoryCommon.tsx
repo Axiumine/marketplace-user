@@ -105,19 +105,23 @@ export const loadCategory = async ({
  * front of it, and a subcategory requested with the wrong parent or with none. `to` + `params` rather
  * than `href`, so the target is a route the type checker knows and the redirect stays an internal
  * navigation instead of a full document load.
+ *
+ * `redirect({ throw: true })` is deliberately *not* used: the option makes `redirect` throw the object
+ * itself, which is exactly what the `throw` in front of the call already does. Passing both is a token
+ * no behaviour depends on — flipping it to `false` changed nothing any test could see — so it is the
+ * `throw` statement that stays and the option that goes.
  */
 export const assertCanonicalCategoryUrl = (result: CategoryLoaderResult, currentPath: string) => {
 	if (result.basePath === currentPath) return
 
 	if (result.parent === undefined) {
-		throw redirect({ to: '/category/$slug', params: { slug: result.category.slug }, statusCode: 301, throw: true })
+		throw redirect({ to: '/category/$slug', params: { slug: result.category.slug }, statusCode: 301 })
 	}
 
 	throw redirect({
 		to: '/category/$slug/$childSlug',
 		params: { slug: result.parent.slug, childSlug: result.category.slug },
-		statusCode: 301,
-		throw: true
+		statusCode: 301
 	})
 }
 

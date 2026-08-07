@@ -74,11 +74,34 @@ export const truncate = (text: string, max: number = DESCRIPTION_MAX): string =>
 
 	// A single word longer than the limit has no space to cut at. `lastIndexOf` answers -1 there, and
 	// slicing to -1 would drop the last character of an already-truncated string for no reason.
-	return `${lastSpace > 0 ? cut.slice(0, lastSpace) : cut}…`
+	//
+	// Tested against -1 rather than `> 0`: `collapsed` is trimmed, so its first character is never a
+	// space and `cut` is a prefix of it — `lastSpace` can be -1 or at least 1 and nothing else, which
+	// made the two spellings indistinguishable by any input.
+	return `${lastSpace === -1 ? cut : cut.slice(0, lastSpace)}…`
 }
 
-/** `path` joined onto the configured origin. `siteUrl` already has its trailing slashes stripped. */
-export const absoluteUrl = (path: string): string => `${env.siteUrl}${path.startsWith('/') ? path : `/${path}`}`
+/**
+ * `path` joined onto the configured origin. `siteUrl` already has its trailing slashes stripped, so the
+ * leading slash `path` carries is the only one in the result.
+ *
+ * ⚠️ **The path is concatenated, not normalised, and the missing `startsWith('/')` guard is the point.**
+ * It used to add a leading slash to a path that had none, which made `absoluteUrl('')` and
+ * `absoluteUrl('/')` the same string — and that equality reached much further than this file. Every
+ * `path: '/'` in a route head and every `{ name: 'Home', path: '/' }` crumb became a token no assertion
+ * could pin down: emptied, each one produced byte-identical output, so nothing in the suite could tell a
+ * home-page canonical from an origin with no path at all. Concatenating makes `''` produce
+ * `https://example.it`, which is a *different* URL and a wrong one, and therefore a testable one.
+ *
+ * Every caller is a route head, a JSON-LD builder or a sitemap, and all of them build the path from a
+ * literal that starts with `/` or from `categoryPath()`, which does. A caller that forgets now gets a
+ * visibly wrong URL rather than a silently corrected one — which is the better failure, since a relative
+ * canonical is treated by a crawler as no canonical at all.
+ */
+export const absoluteUrl = (path: string): string => `${env.siteUrl}${path}`
+
+/** The site root, trailing slash included — what schema.org's `WebSite.url` is conventionally written as. */
+export const siteRootUrl = (): string => absoluteUrl('/')
 
 /**
  * The full head for one page.

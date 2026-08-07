@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { useMutation } from 'urql'
 import { z } from 'zod'
 
-import { messageOf } from '@/api/errors'
+import { dataOf, messageOf } from '@/api/errors'
 import { UserPersonalDataUpdateDocument } from '@/api/operations/userResource/mutations'
 import { FormStatus } from '@/components/ui/FormStatus'
 import { SubmitButton } from '@/components/ui/SubmitButton'
@@ -117,10 +117,12 @@ export const PersonalDataForm = () => {
 			CTX_ACCOUNT_WRITE
 		)
 
+		// `dataOf` and not a bare `result.error` test: a `{"data": null}` envelope carries no error at all, and
+		// reading that as a save tells the customer their details are stored when nothing reached the database.
 		setStatus(
-			result.error === undefined && result.data !== undefined
-				? { tone: 'ok', message: 'Your details have been saved.' }
-				: { tone: 'error', message: messageOf(result.error) }
+			dataOf(result) === undefined
+				? { tone: 'error', message: messageOf(result.error) }
+				: { tone: 'ok', message: 'Your details have been saved.' }
 		)
 	})
 
@@ -167,7 +169,13 @@ export const PersonalDataForm = () => {
 				error={errors.contactEmail?.message}
 			/>
 
-			<FormStatus tone={status?.tone ?? 'error'} message={status?.message} />
+			{/*
+			 * ⚠️ Rendered only once there is a status, rather than always with an invented fallback tone. The
+			 * tone of a status that does not exist is not a thing — a `?? 'error'` here reads as "failures by
+			 * default", which is both wrong and unobservable, since `FormStatus` renders nothing without a
+			 * message anyway. The live region it needs is the `<form>` around it, which never unmounts.
+			 */}
+			{status !== undefined && <FormStatus tone={status.tone} message={status.message} />}
 
 			<div>
 				<SubmitButton busy={isSubmitting} busyLabel="Saving…">

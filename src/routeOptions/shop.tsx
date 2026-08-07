@@ -33,6 +33,17 @@ const searchSchema = z.object({
 
 export type ShopSearch = z.infer<typeof searchSchema>
 
+/**
+ * The trail, written once and read twice — by the `BreadcrumbList` in the head and by the `<nav>` in the
+ * page. `Breadcrumbs` says in its own header that the two must agree; the way to make them agree is not to
+ * have two lists. Duplicating them is how a route ends up telling a crawler one path and a visitor another.
+ */
+const crumbsFor = (company: { readonly publicName: string; readonly slug: string }) => [
+	{ name: 'Home', path: '/' },
+	{ name: 'Shops', path: '/shops' },
+	{ name: company.publicName, path: `/shop/${company.slug}` }
+]
+
 const loader = async ({
 	context,
 	params,
@@ -63,10 +74,12 @@ const loader = async ({
 type LoaderData = Awaited<ReturnType<typeof loader>>
 
 const head = ({ loaderData }: { loaderData?: LoaderData }) => {
-	const company = loaderData?.company
-	if (company === undefined) return headFor({ title: 'Shop', description: '', path: '/shops' })
+	// The whole object is the guard, not `loaderData?.company`: the loader throws `notFound()` on a missing
+	// shop, so a `loaderData` that exists always carries one and the per-field fallbacks below would be
+	// branches no request can take.
+	if (loaderData === undefined) return headFor({ title: 'Shop', description: '', path: '/shops' })
 
-	const page = loaderData?.page ?? 1
+	const { company, page } = loaderData
 	const basePath = `/shop/${company.slug}`
 	const path = page === 1 ? basePath : `${basePath}?page=${String(page)}`
 	const where = `${company.address.street}, ${company.address.postalCode} ${company.address.city}`
@@ -80,7 +93,7 @@ const head = ({ loaderData }: { loaderData?: LoaderData }) => {
 		noIndex: page > 1
 	})
 
-	const { prev, next } = pageLinks(basePath, page, loaderData?.items.hasMore ?? false)
+	const { prev, next } = pageLinks(basePath, page, loaderData.items.hasMore)
 
 	return {
 		...seo,
@@ -91,13 +104,9 @@ const head = ({ loaderData }: { loaderData?: LoaderData }) => {
 		],
 		scripts: jsonLdScripts(
 			storeJsonLd(company),
-			breadcrumbJsonLd([
-				{ name: 'Home', path: '/' },
-				{ name: 'Shops', path: '/shops' },
-				{ name: company.publicName, path: basePath }
-			]),
+			breadcrumbJsonLd(crumbsFor(company)),
 			itemListJsonLd(
-				(loaderData?.items.nodes ?? []).map((item) => `/shop/${company.slug}/item/${item.slug}`),
+				loaderData.items.nodes.map((item) => `/shop/${company.slug}/item/${item.slug}`),
 				offsetOf(page)
 			)
 		)
@@ -111,16 +120,11 @@ const Shop = () => {
 	// `undefined` covers both "the company has no position" and "it has one that is not a plottable pair".
 	// Both render the page without a map, which is the right outcome for each.
 	const center = toLngLat(company.address.position?.coordinates)
+	const description = company.description ?? ''
 
 	return (
 		<div className="mx-auto max-w-6xl px-4 py-8">
-			<Breadcrumbs
-				crumbs={[
-					{ name: 'Home', path: '/' },
-					{ name: 'Shops', path: '/shops' },
-					{ name: company.publicName, path: `/shop/${company.slug}` }
-				]}
-			/>
+			<Breadcrumbs crumbs={crumbsFor(company)} />
 
 			<h1 className="mt-4 text-3xl font-semibold text-palette-bg">{company.publicName}</h1>
 
@@ -130,9 +134,9 @@ const Shop = () => {
 				{company.address.postalCode} {company.address.city} ({company.address.province})
 			</address>
 
-			{company.description !== null && company.description !== undefined && company.description !== '' && (
-				<p className="mt-4 max-w-3xl text-slate-700">{company.description}</p>
-			)}
+			{/* Coalesced to a string first: `description` is nullable on the wire *and* optional in the type, so
+			    testing it three ways spells out two branches that no request can tell apart. One comparison. */}
+			{description !== '' && <p className="mt-4 max-w-3xl text-slate-700">{description}</p>}
 
 			{center !== undefined && (
 				<div className="mt-6">

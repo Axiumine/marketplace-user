@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { env } from '@/env'
 
@@ -49,7 +49,15 @@ declare global {
  */
 let scriptPromise: Promise<void> | undefined
 
-const loadScript = (): Promise<void> => {
+/**
+ * Exported for the tests, and only for them — the component below is the sole production caller.
+ *
+ * What the export buys is the rejection: the component catches it and renders a fixed sentence, so from
+ * outside there is no way to tell a load failure apart from any other, and no way to observe that a
+ * failure clears the cache so the next mount retries. That retry is the reason the cache is a promise at
+ * all, and it is worth a test of its own.
+ */
+export const loadScript = (): Promise<void> => {
 	scriptPromise ??= new Promise<void>((resolve, reject) => {
 		const existing = document.getElementById(SCRIPT_ID)
 		if (existing !== null) {
@@ -89,12 +97,32 @@ export interface TurnstileProps {
 }
 
 export const Turnstile = ({ onToken }: TurnstileProps) => {
-	const container = useRef<HTMLDivElement>(null)
+	/**
+	 * State with a callback ref, not `useRef`.
+	 *
+	 * A ref is filled in after the effect has already run, so the effect would have to read
+	 * `container.current` at a point where React guarantees nothing about it having been re-run — the null
+	 * case would then only ever be reachable by a teardown that also set `cancelled`, which is to say never
+	 * on its own. Making the node state re-runs the effect the moment it exists, which is both the honest
+	 * dependency and the one that leaves a mounted-but-detached widget impossible rather than merely
+	 * unlikely.
+	 */
+	const [container, setContainer] = useState<HTMLDivElement | null>(null)
 	const [failed, setFailed] = useState(false)
 	const siteKey = env.turnstileSiteKey
 
 	useEffect(() => {
-		if (siteKey === '') return
+		/*
+		 * ⚠️ No `siteKey === ''` here, and its absence is deliberate. The component returns `null` below
+		 * when there is no key, so the box this effect renders into is never mounted and `container` is
+		 * never anything but null — a key check in front of it is a second guard on a door only the first
+		 * one can open. It also cannot be tested: both branches produce the same DOM, the same absence of a
+		 * script tag and the same absence of a widget.
+		 *
+		 * `container` is state rather than a ref precisely so this guard is meaningful: the first render
+		 * has no box, and the effect that follows it really does see null.
+		 */
+		if (container === null) return
 
 		let widgetId: string | undefined
 		let cancelled = false
@@ -109,9 +137,9 @@ export const Turnstile = ({ onToken }: TurnstileProps) => {
 
 			// The effect can have been torn down while the script was in flight; rendering into the
 			// unmounted node would leak a widget nothing can ever remove.
-			if (cancelled || container.current === null || globalThis.turnstile === undefined) return
+			if (cancelled || globalThis.turnstile === undefined) return
 
-			widgetId = globalThis.turnstile.render(container.current, {
+			widgetId = globalThis.turnstile.render(container, {
 				sitekey: siteKey,
 				callback: onToken,
 				// An expired token is worse than no token: the form would send a string the server rejects,
@@ -132,13 +160,13 @@ export const Turnstile = ({ onToken }: TurnstileProps) => {
 			cancelled = true
 			if (widgetId !== undefined) globalThis.turnstile?.remove(widgetId)
 		}
-	}, [siteKey, onToken])
+	}, [siteKey, onToken, container])
 
 	if (siteKey === '') return null
 
 	return (
 		<div>
-			<div ref={container} />
+			<div ref={setContainer} />
 			{failed && (
 				<p role="alert" className="text-xs text-app-error">
 					The verification widget could not load. Check your connection and reload the page.

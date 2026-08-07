@@ -31,3 +31,9 @@ skills-lock.json
 # hand-wrapped paragraph in CLAUDE.md, COVERAGE.md and README.md onto a single line. The
 # prose in this repo is wrapped deliberately and is meant to stay readable in a diff.
 *.md
+
+# The vendored Semgrep registry packs are upstream bytes, refreshed by `semgrep/vendor/refresh.sh`
+# and reviewed as a diff. Formatting them would rewrite thousands of lines the moment prettier ran,
+# and every later refresh would then read as a rule change when nothing about the rules moved.
+# `semgrep/custom.yml` is ours and stays formatted.
+semgrep/vendor/

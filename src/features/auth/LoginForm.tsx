@@ -6,7 +6,7 @@ import { useMutation } from 'urql'
 import { z } from 'zod'
 
 import { CTX_PUBLIC_AUTHORIZATION } from '@/api/endpoints'
-import { messageOf } from '@/api/errors'
+import { dataOf, messageOf } from '@/api/errors'
 import { LoginUserDocument } from '@/api/operations/publicAuthorization/loginUser'
 import { setAccessToken } from '@/api/tokenStore'
 import { setSession } from '@/auth/session'
@@ -49,24 +49,25 @@ export const LoginForm = () => {
 		register,
 		handleSubmit,
 		formState: { errors, isSubmitting }
-	} = useForm<Values>({
-		resolver: zodResolver(schema),
-		defaultValues: { email: '', password: '', rememberMe: false }
-	})
+	} = useForm<Values>({ resolver: zodResolver(schema) })
 
 	const onSubmit = handleSubmit(async (values) => {
 		setFailure(undefined)
 
 		const result = await login({ ...values, turnstileToken: turnstile.read() }, CTX_PUBLIC_AUTHORIZATION)
 
-		if (result.error !== undefined || result.data === undefined) {
+		// `dataOf` and not a bare `result.error` test: a `{"data": null}` envelope carries no error at all,
+		// and signing someone in on one would set an empty session and bounce them off the account page.
+		const data = dataOf(result)
+
+		if (data === undefined) {
 			setFailure(messageOf(result.error))
 			return
 		}
 
 		// Order matters: the token has to be readable before anything navigates, or the first private
 		// query fires without an `Authorization` header and bounces straight back to this page.
-		setAccessToken(result.data.loginUser.accessToken)
+		setAccessToken(data.loginUser.accessToken)
 		setSession(values.email)
 
 		await navigate({ to: '/account' })

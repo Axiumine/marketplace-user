@@ -39,7 +39,6 @@ const byPosition = (a: FlatCategory, b: FlatCategory): number => a.position - b.
  */
 export const nestCategories = (flat: readonly FlatCategory[]): readonly CategoryNode[] => {
 	const tops = flat.filter((category) => category.idParent === undefined || category.idParent === null)
-	const known = new Set(tops.map((category) => category._id))
 
 	const childrenOf = (id: string): readonly CategoryNode[] =>
 		flat
@@ -47,10 +46,10 @@ export const nestCategories = (flat: readonly FlatCategory[]): readonly Category
 			.sort(byPosition)
 			.map((category) => ({ ...category, children: [] }))
 
-	return tops
-		.filter((category) => known.has(category._id))
-		.sort(byPosition)
-		.map((category) => ({ ...category, children: childrenOf(category._id) }))
+	// `tops` and every `childrenOf` result are arrays this function just built, so sorting them in place
+	// never reorders the caller's array — which is the urql document cache's, shared with every other
+	// component holding that query.
+	return tops.sort(byPosition).map((category) => ({ ...category, children: childrenOf(category._id) }))
 }
 
 /** The `/category/:slug` or `/category/:parentSlug/:slug` path a category lives at. */
@@ -72,8 +71,10 @@ export const findCategory = (
 	const category = flat.find((candidate) => candidate.slug === slug)
 	if (category === undefined) return undefined
 
-	if (category.idParent === undefined || category.idParent === null) return { category }
-
+	// No `idParent === null` short-circuit before the lookup. `_id` is required and non-null on every
+	// category the API can answer with, so a nullish `idParent` matches nothing and the same
+	// `{ category }` comes back either way — a branch that changes only how fast the answer is reached
+	// is a branch no test can distinguish and no mutant can be killed on.
 	const parent = flat.find((candidate) => candidate._id === category.idParent)
 	return parent === undefined ? { category } : { category, parent }
 }

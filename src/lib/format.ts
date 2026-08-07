@@ -10,9 +10,32 @@
  * passes in Rome and fails in CI, one hour out, which reads as a formatter bug.
  */
 
+import { isFiniteNumber } from '@/lib/number'
+
 const LOCALE = 'it-IT'
 
-const DATE = new Intl.DateTimeFormat(LOCALE, { day: '2-digit', month: '2-digit', year: 'numeric' })
+/**
+ * ⚠️ **No options, deliberately** — `{ day: '2-digit', month: '2-digit', year: 'numeric' }` used to be
+ * spelled out here and was removed because it is a no-op, not because the shape it asked for is wrong.
+ * With no date-time component at all the spec fills in numeric year, month and day, and `it-IT` renders
+ * numeric month and day padded: `resolvedOptions()` comes back byte-identical either way, and formatting
+ * every 37th day from year 1 to 2300 produced zero differing strings. Two spellings of one formatter is
+ * a token nothing can observe, so it is the shorter one that stays.
+ *
+ * What holds the output in place is the assertions, not the options — `test/lib/format.test.ts` pins
+ * `02/01/2026` and `01/02/2026` as literals, so a CLDR update that moved Italy off `dd/MM/y` breaks the
+ * build rather than the account page.
+ */
+const DATE = new Intl.DateTimeFormat(LOCALE)
+
+/**
+ * ⚠️ **`new Date(null)` is 1970-01-01, not Invalid Date.** It is the one absent value the `Date`
+ * constructor coerces into a real instant, so a missing `birth.date` would render as `01/01/1970` — a
+ * date a customer could reasonably believe was theirs. `undefined` and `''` are both Invalid Date
+ * already, so mapping every absent shape to `NaN` here is what lets the two formatters below carry a
+ * single guard instead of one branch per shape, two of which no input could ever distinguish.
+ */
+const absentAsInvalidDate = (iso: string | null | undefined): string | number => iso ?? Number.NaN
 
 /**
  * An ISO-8601 string from the API, as `DD/MM/YYYY`.
@@ -23,17 +46,13 @@ const DATE = new Intl.DateTimeFormat(LOCALE, { day: '2-digit', month: '2-digit',
  * because one field is.
  */
 export const formatDate = (iso: string | null | undefined): string => {
-	if (iso === null || iso === undefined || iso === '') return '—'
-
-	const date = new Date(iso)
+	const date = new Date(absentAsInvalidDate(iso))
 	return Number.isNaN(date.getTime()) ? '—' : DATE.format(date)
 }
 
 /** `YYYY-MM-DD`, which is what an `<input type="date">` reads and writes. Not localised on purpose. */
 export const toDateInputValue = (iso: string | null | undefined): string => {
-	if (iso === null || iso === undefined || iso === '') return ''
-
-	const date = new Date(iso)
+	const date = new Date(absentAsInvalidDate(iso))
 	return Number.isNaN(date.getTime()) ? '' : date.toISOString().slice(0, 10)
 }
 
@@ -48,7 +67,9 @@ const KILOMETRES = new Intl.NumberFormat(LOCALE, { minimumFractionDigits: 1, max
  * distance is claiming the shop is where the customer is standing.
  */
 export const formatDistance = (metres: number | null | undefined): string | null => {
-	if (metres === null || metres === undefined || !Number.isFinite(metres)) return null
+	// `isFiniteNumber` alone, not preceded by a null/undefined pair: `Number.isFinite` does not coerce,
+	// so both of those fail it already and the pair was a branch no input could distinguish.
+	if (!isFiniteNumber(metres)) return null
 
 	return metres < 1000 ? `${METRES.format(metres)} m` : `${KILOMETRES.format(metres / 1000)} km`
 }

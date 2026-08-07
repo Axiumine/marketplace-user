@@ -87,13 +87,19 @@ const toFeatureCollection = (pins: readonly Pin[]): FeatureCollection => ({
 })
 
 export const ShopMap = ({ center, zoom, initialPins = [] }: ShopMapProps) => {
-	const containerRef = useRef<HTMLDivElement | null>(null)
+	/*
+	 * The box MapLibre mounts into, held in state rather than in a ref.
+	 *
+	 * A ref would be read once, on the effect run that follows the first commit, and nothing would re-run
+	 * the effect if the element arrived later. State makes the arrival a render: the first pass has no box
+	 * and builds no map, the second has one and builds it. Exactly one map either way.
+	 */
+	const [container, setContainer] = useState<HTMLDivElement | null>(null)
 	const mapRef = useRef<maplibregl.Map | null>(null)
 	const client = useClient()
 	const [truncated, setTruncated] = useState(false)
 
 	useEffect(() => {
-		const container = containerRef.current
 		if (container === null) return
 
 		registerPmtilesProtocol()
@@ -151,8 +157,12 @@ export const ShopMap = ({ center, zoom, initialPins = [] }: ShopMapProps) => {
 			)
 		}
 
+		// `clearTimeout` is spelled without a guard on purpose, here and in the teardown below. It accepts
+		// `undefined` and does nothing with it, so `if (timer !== undefined)` is a branch whose two sides are
+		// indistinguishable from outside — untestable by construction, and the kind of check that reads as if
+		// it were protecting against something.
 		const scheduleLoad = () => {
-			if (timer !== undefined) clearTimeout(timer)
+			clearTimeout(timer)
 			timer = setTimeout(() => void load(), SETTLE_MS)
 		}
 
@@ -263,18 +273,19 @@ export const ShopMap = ({ center, zoom, initialPins = [] }: ShopMapProps) => {
 
 		return () => {
 			disposed = true
-			if (timer !== undefined) clearTimeout(timer)
+			clearTimeout(timer)
 			map.remove()
 			mapRef.current = null
 		}
-		// The map is created once and mutated through its own API afterwards. Re-running this on a prop
-		// change would tear down and rebuild a WebGL context, losing the visitor's current pan and zoom.
+		// The map is created once, on the render that brings the box, and mutated through its own API
+		// afterwards. Re-running this on a prop change would tear down and rebuild a WebGL context, losing
+		// the visitor's current pan and zoom.
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
+	}, [container])
 
 	return (
 		<div className="relative">
-			<div ref={containerRef} style={{ height: 'var(--map-height)' }} className="w-full rounded-box" />
+			<div ref={setContainer} style={{ height: 'var(--map-height)' }} className="w-full rounded-box" />
 			{truncated && (
 				<p className="absolute right-2 bottom-2 rounded-box bg-white/90 px-2 py-1 text-xs text-slate-600">
 					Showing the first {MAX_PINS} shops in view — zoom in for the rest

@@ -6,7 +6,7 @@ import { useMutation } from 'urql'
 import { z } from 'zod'
 
 import { CTX_PUBLIC_RESOURCE } from '@/api/endpoints'
-import { messageOf } from '@/api/errors'
+import { dataOf, messageOf } from '@/api/errors'
 import { UserUpdatePwdDocument } from '@/api/operations/publicResource/mutations'
 import { FormStatus } from '@/components/ui/FormStatus'
 import { SubmitButton } from '@/components/ui/SubmitButton'
@@ -51,7 +51,7 @@ export const ResetConfirmForm = ({ email, hash }: ResetConfirmFormProps) => {
 		register,
 		handleSubmit,
 		formState: { errors, isSubmitting }
-	} = useForm<Values>({ resolver: zodResolver(schema), defaultValues: { password: '', repeatPassword: '' } })
+	} = useForm<Values>({ resolver: zodResolver(schema) })
 
 	const onSubmit = handleSubmit(async (values) => {
 		setFailure(undefined)
@@ -61,7 +61,9 @@ export const ResetConfirmForm = ({ email, hash }: ResetConfirmFormProps) => {
 			CTX_PUBLIC_RESOURCE
 		)
 
-		if (result.error !== undefined || result.data === undefined) {
+		// `dataOf` and not a bare `result.error` test: a `{"data": null}` envelope carries no error at all, and
+		// announcing a password that was never changed sends someone to a login that will refuse them.
+		if (dataOf(result) === undefined) {
 			setFailure(messageOf(result.error))
 			return
 		}

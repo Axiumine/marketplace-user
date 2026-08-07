@@ -1,4 +1,4 @@
-import { absoluteUrl, SITE_NAME } from '@/lib/seo'
+import { absoluteUrl, SITE_NAME, siteRootUrl } from '@/lib/seo'
 
 /**
  * schema.org structured data, as plain objects.
@@ -165,7 +165,7 @@ export const websiteJsonLd = (): JsonLd => ({
 	'@context': 'https://schema.org',
 	'@type': 'WebSite',
 	name: SITE_NAME,
-	url: absoluteUrl('/'),
+	url: siteRootUrl(),
 	potentialAction: {
 		'@type': 'SearchAction',
 		target: { '@type': 'EntryPoint', urlTemplate: `${absoluteUrl('/search')}?q={search_term_string}` },
