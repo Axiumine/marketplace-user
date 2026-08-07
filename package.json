@@ -26,6 +26,8 @@
 		"test:watch": "TZ=UTC vitest",
 		"test:cov": "TZ=UTC vitest run --coverage",
 		"test:mutation": "TZ=UTC stryker run",
+		"semgrep": "docker run --rm --network none -e HOME=/tmp -u \"$(id -u):$(id -g)\" -v \"$PWD\":/src -w /src semgrep/semgrep:1.172.0 semgrep scan --metrics=off --disable-version-check --config semgrep/ src",
+		"semgrep:ci": "docker run --rm --network none -e HOME=/tmp -u \"$(id -u):$(id -g)\" -v \"$PWD\":/src -w /src semgrep/semgrep:1.172.0 semgrep scan --metrics=off --disable-version-check --error --sarif --output semgrep.sarif --config semgrep/ src",
 		"update": "yarn upgrade-interactive --latest --network-timeout 100000",
 		"prepare": "git config core.hooksPath .githooks || true"
 	},

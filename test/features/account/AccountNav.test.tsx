@@ -1,0 +1,148 @@
+import { screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { describe, expect, it } from 'vitest'
+
+import { getAccessToken } from '@/api/tokenStore'
+import { getSession } from '@/auth/session'
+import { AccountNav } from '@/features/account/AccountNav'
+
+import type { GraphQLReplies } from '../../helpers/graphql'
+import { stubGraphQL } from '../../helpers/graphql'
+import { CUSTOMER_EMAIL, renderWithRouter } from '../../helpers/render'
+
+/** Signing out lands on `/`, whose loader asks for these two. */
+const REPLIES: GraphQLReplies = {
+	Companies: { data: { companies: { nodes: [], total: 0 } } },
+	ItemCategories: { data: { itemCategories: [] } },
+	Logout: { data: { logout: true } }
+}
+
+const mount = async (path = '/account') => {
+	const stub = stubGraphQL(REPLIES)
+	const result = await renderWithRouter(<AccountNav />, { token: 'access-token', session: CUSTOMER_EMAIL, path })
+
+	return { ...result, stub, user: userEvent.setup() }
+}
+
+describe('AccountNav links', () => {
+	it('links to the three account screens', async () => {
+		await mount()
+
+		expect(screen.getByRole('link', { name: 'Profile' })).toHaveAttribute('href', '/account')
+		expect(screen.getByRole('link', { name: 'Addresses' })).toHaveAttribute('href', '/account/addresses')
+		expect(screen.getByRole('link', { name: 'Password' })).toHaveAttribute('href', '/account/password')
+	})
+
+	it('is a labelled landmark of its own', async () => {
+		await mount()
+
+		expect(screen.getByRole('navigation', { name: 'Account' })).toBeInTheDocument()
+	})
+
+	/*
+	 * `activeProps` rather than a manual `useMatch` comparison: the router sets `aria-current="page"` for
+	 * us, and styling an active link without that attribute makes the current page visible to sighted
+	 * visitors only.
+	 */
+	it('marks the current screen for a screen reader, not only in colour', async () => {
+		await mount('/account/addresses')
+
+		expect(screen.getByRole('link', { name: 'Addresses' })).toHaveAttribute('aria-current', 'page')
+	})
+
+	/*
+	 * ⚠️ `activeOptions={{ exact: true }}` on the profile link is required, not cosmetic. `/account` is a
+	 * prefix of every other route here, so without it the profile link renders as current while the
+	 * customer is standing on the addresses page — two links claiming to be the current page, one lying.
+	 */
+	it('does not mark the profile link current on a sibling screen', async () => {
+		await mount('/account/addresses')
+
+		expect(screen.getByRole('link', { name: 'Profile' })).not.toHaveAttribute('aria-current')
+	})
+
+	it('marks the profile link current on the profile screen', async () => {
+		await mount('/account')
+
+		expect(screen.getByRole('link', { name: 'Profile' })).toHaveAttribute('aria-current', 'page')
+	})
+
+	/*
+	 * ⚠️ All three links are checked, not only the first, and the *colours* are what is checked. Every one
+	 * carries its own `activeProps`, and `aria-current` is the router's doing — it appears on the current
+	 * link whatever `activeProps` holds. So a link that lost its active styling still satisfies the two
+	 * tests above while rendering identically to its neighbours: three grey tabs, and nothing saying which
+	 * screen the customer is on.
+	 *
+	 * The layout utilities are asserted alongside them because the active class repeats them rather than
+	 * inheriting them. `Link` concatenates `className` with `activeProps.className` and the later one wins
+	 * on a conflicting utility — but "concatenates" is behaviour of the router, not of the DOM, and
+	 * spelling the box out keeps the padding if that merge ever became a replace. Asserting the box alone
+	 * would prove nothing: it is on the inactive links too.
+	 */
+	it.each([
+		['Profile', '/account'],
+		['Addresses', '/account/addresses'],
+		['Password', '/account/password']
+	])('paints %s as the current screen while standing on it', async (name, path) => {
+		await mount(path)
+
+		const active = screen.getByRole('link', { name })
+
+		expect(active).toHaveClass('bg-palette-bg', 'text-palette-white')
+		expect(active).toHaveClass('rounded-box', 'px-3', 'py-2', 'text-sm')
+	})
+
+	it('leaves the other two links unpainted', async () => {
+		await mount('/account/addresses')
+
+		expect(screen.getByRole('link', { name: 'Profile' })).not.toHaveClass('bg-palette-bg')
+		expect(screen.getByRole('link', { name: 'Password' })).not.toHaveClass('bg-palette-bg')
+	})
+})
+
+describe('AccountNav sign out', () => {
+	it('ends the session', async () => {
+		const { user, stub } = await mount()
+
+		await user.click(screen.getByRole('button', { name: 'Sign out' }))
+
+		await waitFor(() => {
+			expect(stub.calls.map((call) => call.operationName)).toContain('Logout')
+		})
+		expect(getAccessToken()).toBeNull()
+		expect(getSession().signedIn).toBe(false)
+	})
+
+	it('leaves the private area', async () => {
+		const { user, router } = await mount()
+
+		await user.click(screen.getByRole('button', { name: 'Sign out' }))
+
+		await waitFor(() => {
+			expect(router.state.location.pathname).toBe('/')
+		})
+	})
+
+	// A button and not a link: signing out is a state change, and a crawler that followed it would sign
+	// out whoever it was crawling as.
+	it('is a button, not a link', async () => {
+		await mount()
+
+		expect(screen.getByRole('button', { name: 'Sign out' })).toHaveAttribute('type', 'button')
+	})
+
+	/*
+	 * ⚠️ `ml-auto` is asserted rather than left as decoration: it is the whole of what keeps sign-out at the
+	 * far end of the bar. Flush against "Password" — the arrangement the class is the only thing preventing
+	 * — it is one mis-tap from the link beside it, and the mis-tap ends the session.
+	 *
+	 * The rest of `LINK` comes with it, so sign-out is the same height as the three links it sits in a row
+	 * with, and `underline` is what says it does something rather than being a label.
+	 */
+	it('sits apart from the links, and reads as an action', async () => {
+		await mount()
+
+		expect(screen.getByRole('button', { name: 'Sign out' })).toHaveClass('ml-auto', 'underline', 'px-3', 'py-2')
+	})
+})

@@ -4,7 +4,8 @@ import { useForm } from 'react-hook-form'
 import { useMutation } from 'urql'
 import { z } from 'zod'
 
-import { messageOf } from '@/api/errors'
+import type { MutationResult } from '@/api/errors'
+import { dataOf, messageOf } from '@/api/errors'
 import { UserAddressAddDocument, UserAddressUpdateDocument } from '@/api/operations/userResource/mutations'
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete'
 import { FormStatus } from '@/components/ui/FormStatus'
@@ -50,14 +51,18 @@ const schema = z.object({
 		.toUpperCase()
 		.regex(/^[A-Z]{2}$/, 'A province is two letters, like MI.'),
 	/**
-	 * Kept as strings, not numbers.
+	 * The position, as one `"lon,lat"` string rather than as two fields.
 	 *
-	 * They are never typed — the geocoder writes them — but they live in form state alongside fields that
-	 * are, and `''` is the only honest "no position". A numeric field would have to use `NaN` or `0` for
-	 * that, and `0, 0` is a real point in the Atlantic that a `2dsphere` query will match.
+	 * It is never typed — the geocoder writes it — but it lives in form state alongside fields that are,
+	 * and `''` is the only honest "no position". A numeric field would have to spell that as `NaN` or `0`,
+	 * and `0, 0` is a real point in the Atlantic that a `2dsphere` query will happily match.
+	 *
+	 * ⚠️ One field and not two because the halves of a coordinate pair are never independently true. Half a
+	 * position is not a degraded position, it is a wrong one — `[9.1895, NaN]` is rejected on write, and the
+	 * same gap filled with a zero puts the customer in the Gulf of Guinea. Holding them together means
+	 * "have we got a position" has one answer, in one place, and no way to be asked about half of it.
 	 */
-	lat: z.string(),
-	lon: z.string()
+	position: z.string()
 })
 
 type Values = z.infer<typeof schema>
@@ -72,16 +77,32 @@ export interface AddressFormProps {
 
 const blank = (value: string | null | undefined): string => value ?? ''
 
+/** `"lon,lat"`, or `''` for an address that has no position — see the schema field of the same name. */
+const positionOf = (address: MeAddress | undefined): string => {
+	const coordinates = address?.position?.coordinates
+
+	/*
+	 * Indexed rather than destructured, and the difference is not style: `const [lon, lat] = coordinates ?? []`
+	 * needs a fallback array whose *contents* nothing can observe — the second entry of a one-element array is
+	 * `undefined`, exactly as it is for an empty one — so that literal is unkillable by any test. Reading the
+	 * two entries through `?.` says the same thing with nothing invented to fall back to.
+	 *
+	 * `coordinates[0]` is longitude. The latitude alone is the guard: an array is dense, so a second entry
+	 * that exists guarantees a first one beside it, and fewer than two entries is not a position at all.
+	 */
+	const lon = coordinates?.[0]
+	const lat = coordinates?.[1]
+
+	return lat === undefined ? '' : `${String(lon)},${String(lat)}`
+}
+
 const defaultsFrom = (address: MeAddress | undefined): Values => ({
 	label: blank(address?.label),
 	street: blank(address?.street),
 	postalCode: blank(address?.postalCode),
 	city: blank(address?.city),
 	province: blank(address?.province),
-	// `coordinates[0]` is longitude. Indexed access can be `undefined` under
-	// `noUncheckedIndexedAccess`, and a position with fewer than two entries is not a position.
-	lon: address?.position?.coordinates[0]?.toString() ?? '',
-	lat: address?.position?.coordinates[1]?.toString() ?? ''
+	position: positionOf(address)
 })
 
 export const AddressForm = ({ address, onDone, onCancel }: AddressFormProps) => {
@@ -97,12 +118,14 @@ export const AddressForm = ({ address, onDone, onCancel }: AddressFormProps) => 
 		formState: { errors, isSubmitting }
 	} = useForm<Values>({ resolver: zodResolver(schema), defaultValues: defaultsFrom(address) })
 
-	const lat = watch('lat')
-	const lon = watch('lon')
-	const located = lat !== '' && lon !== ''
+	const position = watch('position')
+	const located = position !== ''
 
 	const onSubmit = handleSubmit(async (values) => {
 		setFailure(undefined)
+
+		// ⚠️ longitude first, on both sides of the split. See the note at the top of this file.
+		const [lon, lat] = values.position.split(',')
 
 		const input = {
 			label: values.label === '' ? undefined : values.label,
@@ -110,21 +133,20 @@ export const AddressForm = ({ address, onDone, onCancel }: AddressFormProps) => 
 			postalCode: values.postalCode,
 			city: values.city,
 			province: values.province,
-			// ⚠️ longitude first. See the note at the top of this file.
-			position: located ? { coordinates: [Number(values.lon), Number(values.lat)] } : undefined
+			position: located ? { coordinates: [Number(lon), Number(lat)] } : undefined
 		}
 
-		const result =
+		// Annotated rather than inferred — see `MutationResult`. The two mutations answer different payloads
+		// and this form reads neither: all it needs to know is whether one arrived.
+		const result: MutationResult<unknown> =
 			address === undefined
 				? await add({ address: input }, CTX_ACCOUNT_WRITE)
 				: await update({ _id: address._id, address: input }, CTX_ACCOUNT_WRITE)
 
-		if (result.error !== undefined || result.data === undefined) {
-			setFailure(messageOf(result.error))
-			return
-		}
-
-		onDone()
+		// `dataOf` and not a bare `result.error` test: a `{"data": null}` envelope carries no error at all, and
+		// closing the form on one throws away an address the customer typed and the server never stored.
+		if (dataOf(result) === undefined) setFailure(messageOf(result.error))
+		else onDone()
 	})
 
 	return (
@@ -141,8 +163,8 @@ export const AddressForm = ({ address, onDone, onCancel }: AddressFormProps) => 
 					setValue('postalCode', found.postalCode, options)
 					setValue('city', found.city, options)
 					setValue('province', found.province, options)
-					setValue('lat', found.lat.toString(), options)
-					setValue('lon', found.lon.toString(), options)
+					// ⚠️ longitude first, as everywhere else in this file.
+					setValue('position', `${found.lon.toString()},${found.lat.toString()}`, options)
 				}}
 			/>
 
@@ -182,13 +204,12 @@ export const AddressForm = ({ address, onDone, onCancel }: AddressFormProps) => 
 			</div>
 
 			{/*
-			 * Not `<input type="hidden">`: react-hook-form needs these registered to keep them in form state,
-			 * and a hidden input would still be in the DOM with no way for anyone to see whether the address
-			 * was located. The sentence below is that feedback, and it is the only place a customer learns
-			 * that a hand-typed address will not be sorted by distance.
+			 * Registered so react-hook-form keeps the position in form state, and hidden because there is
+			 * nothing in `"9.1895,45.4642"` for a customer to read or correct. A hidden input is not feedback,
+			 * though: the sentence below is, and it is the only place anyone learns that a hand-typed address
+			 * will not be sorted by distance.
 			 */}
-			<input type="hidden" {...register('lat')} />
-			<input type="hidden" {...register('lon')} />
+			<input type="hidden" {...register('position')} />
 
 			<p className="text-xs text-tip">
 				{located

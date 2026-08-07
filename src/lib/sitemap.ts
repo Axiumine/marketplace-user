@@ -40,8 +40,12 @@ export const START_CURSOR = 'start'
  * Stops a walk that never terminates. At 5 000 URLs a shard this is 25 million URLs — far past anything
  * this platform will hold — so hitting it means the resolver is handing back a `nextAfterId` that does
  * not advance, and truncating the sitemap beats looping until the request times out.
+ *
+ * Exported, and `collectShardCursors` takes it as an argument, because a guard nothing can reach is a
+ * guard nobody knows is broken: driving 5 000 shards through a stub is 15 million stubbed paths, so the
+ * only way to prove the walk actually stops is to lower the cap for the test that proves it.
  */
-const MAX_SHARDS = 5_000
+export const MAX_SHARDS = 5_000
 
 const KINDS: readonly GraphQlSitemapKind[] = ['COMPANY', 'ITEM', 'CATEGORY']
 
@@ -137,11 +141,15 @@ export const fetchShard = async (client: Client, kind: GraphQlSitemapKind, curso
  * empty `<urlset>`. A crawler reading an empty shard learns that the section exists and is currently
  * bare; a missing shard tells it nothing, and it has no reason to come back and check.
  */
-export const collectShardCursors = async (client: Client, kind: GraphQlSitemapKind): Promise<readonly string[]> => {
+export const collectShardCursors = async (
+	client: Client,
+	kind: GraphQlSitemapKind,
+	maxShards: number = MAX_SHARDS
+): Promise<readonly string[]> => {
 	const cursors: string[] = [START_CURSOR]
 	let cursor: string | undefined = START_CURSOR
 
-	while (cursors.length < MAX_SHARDS) {
+	while (cursors.length < maxShards) {
 		const shard: Shard = await fetchShard(client, kind, cursor)
 		if (shard.nextCursor === undefined) return cursors
 

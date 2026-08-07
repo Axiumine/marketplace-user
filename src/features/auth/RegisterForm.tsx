@@ -5,7 +5,7 @@ import { useMutation } from 'urql'
 import { z } from 'zod'
 
 import { CTX_PUBLIC_RESOURCE } from '@/api/endpoints'
-import { messageOf } from '@/api/errors'
+import { dataOf, messageOf } from '@/api/errors'
 import { UserRegisterDocument } from '@/api/operations/publicResource/mutations'
 import { FormStatus } from '@/components/ui/FormStatus'
 import { SubmitButton } from '@/components/ui/SubmitButton'
@@ -49,17 +49,16 @@ export const RegisterForm = () => {
 		register,
 		handleSubmit,
 		formState: { errors, isSubmitting }
-	} = useForm<Values>({
-		resolver: zodResolver(schema),
-		defaultValues: { email: '', password: '', repeatPassword: '' }
-	})
+	} = useForm<Values>({ resolver: zodResolver(schema) })
 
 	const onSubmit = handleSubmit(async (values) => {
 		setFailure(undefined)
 
 		const result = await submit({ ...values, turnstileToken: turnstile.read() }, CTX_PUBLIC_RESOURCE)
 
-		if (result.error !== undefined || result.data === undefined) {
+		// `dataOf` and not a bare `result.error` test: a `{"data": null}` envelope carries no error at all, and
+		// telling someone to go and confirm an email nobody sent is worse than telling them it failed.
+		if (dataOf(result) === undefined) {
 			setFailure(messageOf(result.error))
 			return
 		}

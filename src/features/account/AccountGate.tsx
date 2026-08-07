@@ -69,29 +69,42 @@ export const AccountGate = ({ children }: { readonly children: ReactNode }) => {
 		void navigate({ to: '/login', replace: true })
 	}, [gone, navigate])
 
-	// `result.data` survives a refetch, so this only shows on the very first load — a background
-	// revalidation after a mutation keeps rendering the account instead of blanking it.
-	if (result.data === undefined && result.fetching) {
-		return (
-			<Centered>
-				<p className="text-sm text-slate-600" role="status">
-					Loading your account…
-				</p>
-			</Centered>
-		)
-	}
+	/*
+	 * ⚠️ Read through `?.`, because a failed query answers with `data: null` and not with no `data` at
+	 * all. GraphQL says so: an error that propagates to a non-nullable root field nulls the whole
+	 * `data`, so `{"data": null, "errors": [...]}` is the ordinary shape of a 500 here — while a body
+	 * that is not a GraphQL envelope leaves `data` undefined. Testing only for `undefined` reads the
+	 * first case as success and crashes on the field access below.
+	 */
+	const me = result.data?.me
 
 	// The redirect is already queued; rendering an error about an expired session would flash for one
 	// frame and say nothing the login page will not.
 	if (gone) return null
 
-	if (result.data === undefined) {
-		return (
-			<Centered>
-				<FormStatus tone="error" message={messageOf(result.error)} />
-			</Centered>
-		)
-	}
+	/*
+	 * ⚠️ An account in hand wins over everything below it, and that ordering is the whole of what keeps a
+	 * background revalidation from blanking the private area. Every write here invalidates the account
+	 * query — `CTX_ACCOUNT_WRITE` names `GraphQLUserMe` — so a second `Me` goes out each time the customer
+	 * saves a form, and a gate that asked "is a request in flight?" first would answer "Loading your
+	 * account…" on every save, discarding the scroll position and moving focus off the button just used.
+	 *
+	 * urql happens to make that hard to notice: its document cache re-executes an invalidated query with
+	 * the previous data still attached and marks the result `stale`, leaving `fetching` false throughout —
+	 * so a `fetching` check reads as correct while never being exercised. The order above does not depend
+	 * on that. It is the presence of the data that decides, whichever flag urql sets while fetching more.
+	 */
+	if (me !== undefined) return <MeContext value={me}>{children}</MeContext>
 
-	return <MeContext value={result.data.me}>{children}</MeContext>
+	return (
+		<Centered>
+			{result.fetching ? (
+				<p className="text-sm text-slate-600" role="status">
+					Loading your account…
+				</p>
+			) : (
+				<FormStatus tone="error" message={messageOf(result.error)} />
+			)}
+		</Centered>
+	)
 }

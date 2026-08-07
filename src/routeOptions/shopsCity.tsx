@@ -34,6 +34,23 @@ const searchSchema = z.object({
 
 export type ShopsCitySearch = z.infer<typeof searchSchema>
 
+/**
+ * The path the whole page is built around: the canonical, the pagination links, the last crumb and every
+ * `<a href>` in the trail all derive from this one string, so the `encodeURIComponent` happens once.
+ */
+const cityPath = (city: string) => `/shops/${encodeURIComponent(city)}`
+
+/**
+ * The trail, written once and read twice — by the `BreadcrumbList` in the head and by the `<nav>` in the
+ * page. `Breadcrumbs` says in its own header that the two must agree; the way to make them agree is not
+ * to have two lists. Duplicating them is how a route tells a crawler one path and a visitor another.
+ */
+const crumbsFor = (city: string) => [
+	{ name: 'Home', path: '/' },
+	{ name: 'Shops', path: '/shops' },
+	{ name: city, path: cityPath(city) }
+]
+
 const loader = async ({
 	context,
 	params,
@@ -68,7 +85,7 @@ const head = ({ loaderData }: { loaderData?: LoaderData }) => {
 	const city = loaderData?.city ?? ''
 	const page = loaderData?.page ?? 1
 	const nodes = loaderData?.companies.nodes ?? []
-	const basePath = `/shops/${encodeURIComponent(city)}`
+	const basePath = cityPath(city)
 	const path = page === 1 ? basePath : `${basePath}?page=${String(page)}`
 
 	const seo = headFor({
@@ -88,11 +105,7 @@ const head = ({ loaderData }: { loaderData?: LoaderData }) => {
 			...(next === undefined ? [] : [{ rel: 'next', href: absoluteUrl(next) }])
 		],
 		scripts: jsonLdScripts(
-			breadcrumbJsonLd([
-				{ name: 'Home', path: '/' },
-				{ name: 'Shops', path: '/shops' },
-				{ name: city, path: basePath }
-			]),
+			breadcrumbJsonLd(crumbsFor(city)),
 			itemListJsonLd(
 				nodes.map((company) => `/shop/${company.slug}`),
 				offsetOf(page)
@@ -103,17 +116,11 @@ const head = ({ loaderData }: { loaderData?: LoaderData }) => {
 
 const ShopsCity = () => {
 	const { companies, city, page } = route.useLoaderData()
-	const { prev, next } = pageLinks(`/shops/${encodeURIComponent(city)}`, page, companies.hasMore)
+	const { prev, next } = pageLinks(cityPath(city), page, companies.hasMore)
 
 	return (
 		<div className="mx-auto max-w-6xl px-4 py-8">
-			<Breadcrumbs
-				crumbs={[
-					{ name: 'Home', path: '/' },
-					{ name: 'Shops', path: '/shops' },
-					{ name: city, path: `/shops/${encodeURIComponent(city)}` }
-				]}
-			/>
+			<Breadcrumbs crumbs={crumbsFor(city)} />
 
 			<h1 className="mt-4 text-3xl font-semibold text-palette-bg">Shops in {city}</h1>
 			<p className="mt-2 text-slate-600">{formatTotal(companies.total, companies.totalIsExact)} shops here.</p>

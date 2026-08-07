@@ -90,6 +90,39 @@ export const messageOf = (error: CombinedError | undefined): string => {
 const GENERIC = 'Error while communicating with the server'
 
 /**
+ * The payload a mutation answered with, or `undefined` when it answered with none.
+ *
+ * ⚠️ There are two shapes of "no payload" and only one of them is an error. urql reports an unusable
+ * envelope — a proxy page where the service should be, a body that is not a GraphQL response at all — as
+ * a `CombinedError`, and every form in the app reads that. A well-formed `{"data": null}` is *not* one: it
+ * arrives with no error and a `data` that is null rather than absent, so a caller that tests only for a
+ * `CombinedError` reports a success the server never sent — closing a form and throwing away everything
+ * the visitor typed into it.
+ *
+ * Written as one helper rather than as the same two comparisons in six forms, because the second of them
+ * is the one that is easy to leave out and impossible to notice missing.
+ *
+ * The cast is what lets the comparison be written at all: codegen spells `data` as `T | undefined`, so
+ * TypeScript rejects `=== null` on it as a comparison that can never be true. On the wire it can.
+ */
+export const dataOf = <T>(result: MutationResult<T>): T | undefined =>
+	result.error !== undefined || (result.data as T | null) === null ? undefined : result.data
+
+/**
+ * What `dataOf` reads off a urql result — a structural slice of `OperationResult`, so nothing here has to
+ * import the exchange types.
+ *
+ * Exported for the caller whose two mutations answer different payloads: `result` is then a *union* of two
+ * `OperationResult`s, and inference resolves `T` to the first member and rejects the second. Annotating it
+ * as `MutationResult<unknown>` says what such a caller means — one of them answered, and which shape it
+ * was is not this form's business.
+ */
+export interface MutationResult<T> {
+	readonly error?: CombinedError | undefined
+	readonly data?: T | undefined
+}
+
+/**
  * The visitor-facing message for anything thrown into a router error boundary.
  *
  * ⚠️ This one has no counterpart in `marketplace-shopowner`, because that app has no error boundary above

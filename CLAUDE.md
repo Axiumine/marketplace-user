@@ -110,7 +110,7 @@ yarn codegen        # regenerate src/gql/ from schema/*.graphql — one project 
 yarn build          # codegen && tsc --noEmit && vite build
 yarn start          # node serve.mjs — SSR only, needs PORT set, no default
 yarn lint           # eslint --fix + prettier --write   (lint:check for CI and the hooks)
-yarn test  test:cov  test:mutation   # gated at 100 / 100 — the suite is not written yet
+yarn test  test:cov  test:mutation   # gated at 100 / 100
 ```
 
 ⚠️ **`schema/*.graphql` are hand-maintained slices, not the contract.** No service has an SDL file; all of

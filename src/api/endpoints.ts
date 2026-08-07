@@ -40,7 +40,10 @@ export const CTX_LOGOUT: Partial<OperationContext> = Object.freeze({ url: ENDPOI
  * make every anonymous visitor's first page view fire a refresh that cannot succeed — and then land on
  * `onSessionLost`, bouncing a browsing visitor to the login page.
  */
-const ANONYMOUS: readonly string[] = [ENDPOINT.publicResource, ENDPOINT.publicAuthorization]
+// The element type is widened to include `undefined` so the lookup below needs no `?? ''` default.
+// urql answers `context.url` as `string | undefined`, no endpoint is ever the empty string, and a
+// default whose value cannot change the answer is a token no test can pin down.
+const ANONYMOUS: readonly (string | undefined)[] = [ENDPOINT.publicResource, ENDPOINT.publicAuthorization]
 
 /** Whether an operation needs an access token before it is worth sending. */
-export const requiresAuth = (url: string | undefined): boolean => !ANONYMOUS.includes(url ?? '')
+export const requiresAuth = (url: string | undefined): boolean => !ANONYMOUS.includes(url)

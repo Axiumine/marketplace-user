@@ -40,3 +40,4 @@ certs/
 # They pass --results-dir .qodana/results so the SARIF is readable from the repo root
 # after a failed gate, rather than under ~/.cache/JetBrains/Qodana/<project-hash>/.
 .qodana/
+semgrep.sarif

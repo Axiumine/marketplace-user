@@ -40,13 +40,19 @@ export const AddressAutocomplete = ({ label, hint, onPick }: AddressAutocomplete
 	const [busy, setBusy] = useState(false)
 
 	/**
-	 * Suppresses the search that a programmatic `setQuery` would otherwise trigger.
+	 * The label this component last wrote into the box itself.
 	 *
-	 * Picking a suggestion writes its label back into the box, which changes `query`, which re-runs the
+	 * Picking a suggestion writes its label back into the input, which changes `query`, which re-runs the
 	 * effect and reopens the list under the cursor showing the thing that was just chosen. A ref rather
-	 * than state because flipping it must not itself cause a render.
+	 * than state because recording it must not itself cause a render.
+	 *
+	 * It holds the text rather than a `skip` boolean deliberately. A boolean's initial value is
+	 * unobservable — the first effect run always returns early on the empty query whichever way the flag
+	 * starts — so it is a branch no test can distinguish. Comparing against the text is observable at
+	 * every step, and it is also the more accurate rule: what must not trigger a search is the box
+	 * holding exactly what was picked, not "one change, whichever it turns out to be".
 	 */
-	const skip = useRef(false)
+	const pickedLabel = useRef<string | null>(null)
 
 	/**
 	 * Clears everything the last search produced.
@@ -70,10 +76,7 @@ export const AddressAutocomplete = ({ label, hint, onPick }: AddressAutocomplete
 	}
 
 	useEffect(() => {
-		if (skip.current) {
-			skip.current = false
-			return
-		}
+		if (query === pickedLabel.current) return
 
 		if (query.trim().length < MIN_QUERY) return
 
@@ -107,7 +110,7 @@ export const AddressAutocomplete = ({ label, hint, onPick }: AddressAutocomplete
 	}, [query])
 
 	const pick = (address: FoundAddress): void => {
-		skip.current = true
+		pickedLabel.current = address.label
 		setQuery(address.label)
 		setResults([])
 		onPick(address)

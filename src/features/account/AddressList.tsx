@@ -2,7 +2,7 @@ import type { AnyVariables, OperationResult } from '@urql/core'
 import { useState } from 'react'
 import { useMutation } from 'urql'
 
-import { messageOf } from '@/api/errors'
+import { dataOf, messageOf } from '@/api/errors'
 import { UserAddressDelDocument, UserDefaultAddressSetDocument } from '@/api/operations/userResource/mutations'
 import { FormStatus } from '@/components/ui/FormStatus'
 
@@ -54,9 +54,18 @@ export const AddressList = () => {
 		setFailure(undefined)
 
 		const result = await action
-		if (result.error === undefined && result.data !== undefined) return
+		// `dataOf` and not a bare `result.error` test: a `{"data": null}` envelope carries no error at all, and
+		// reading that as done leaves the customer looking at a list the server never changed.
+		if (dataOf(result) !== undefined) return
 
-		setFailure(messageOf(result.error))
+		/*
+		 * ⚠️ A fallback, because `messageOf` is the empty string when there is no `CombinedError` to quote —
+		 * which is exactly the envelope above. Every other surface here reports itself: a form stays open, a
+		 * field keeps its error. This one has none of that. The row simply does not change, and an empty
+		 * message renders nothing at all, so the customer is left believing the address book says what they
+		 * asked it to say.
+		 */
+		setFailure(messageOf(result.error) || 'That change did not go through. Try again.')
 	}
 
 	return (

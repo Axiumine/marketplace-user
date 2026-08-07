@@ -1,11 +1,11 @@
 # Coverage and mutation policy
 
-⚠️ **There is no `test/` directory in this repo, so both numbers below describe the target and not the
-current state.** The harness is complete — `vitest.config.ts`, `vitest.polyfill.ts`, `stryker.config.mjs`,
-`qodana.yaml`, the `test:*` scripts and the git hooks — and the tests are the only missing part, per the
-standing instruction to skip them. Until they exist a commit here needs `git commit --no-verify`, which is
-a stated exception and not the way to work: **do not lower a threshold and do not remove a gate to make a
-commit pass.** Everything below is the shape the first test written should assume.
+**Both numbers below are the current state, not a target.** `test/` holds 66 files and 1165 tests, and
+they carry 100% on all four coverage metrics and a 100 mutation score — 2028 mutants killed, 6 timed out,
+none survived, out of 2050 generated — so every gate passes on its own and
+`git commit --no-verify` is not needed here for any reason. That is the whole point of writing this file
+down: **do not lower a threshold and do not remove a gate to make a commit pass** — the numbers only stay
+meaningful while nothing has ever been allowed past them.
 
 Two numbers, both 100, both blocking — plus a scan that re-checks the first one and much else:
 
@@ -67,3 +67,36 @@ which imports nothing from the router and can be exercised without one:
 4. **Sitemap shards are cursor-addressed.** `collectShardCursors` must be tested against a stub that stops
    advancing its `nextAfterId`: the `MAX_SHARDS` ceiling is the only thing between that and an infinite
    walk, and it is one `<` away from being wrong.
+
+## How the suite is built, and the four things that cost a day each
+
+**GraphQL is stubbed at `fetch`, never with a mock urql client** — `test/helpers/graphql.ts`. A fake client
+answers whatever the test declares and proves nothing about the exchanges the real one runs: the auth
+exchange, the document cache and `preferGetMethod: false` are all *between* the component and the wire, and
+a mock client is installed on the far side of them. Stubbing `fetch` keeps them in the path. Replies are
+keyed by operation name and take `data`, `errors`, `status`, `body`, `pending: true` or `networkError`; an
+operation the test did not declare **throws**, so a component that sends an unexpected query fails loudly
+instead of hanging on a `undefined`. Each recorded call carries `{ operationName, variables, url,
+authorization }` — assert the `url`, because two services expose mutations under the same name (see
+`ChangePasswordForm.test.tsx`).
+
+⚠️ **urql's document cache answers an identical query out of memory without touching `fetch`.** A test that
+expects a *second* network call must change the variables; asserting `stub.calls` has length 2 after
+re-rendering the same query passes only by accident and fails the moment the cache warms differently.
+
+⚠️ **A dead branch cannot be covered and cannot be killed — delete it instead.** Four of the last six gaps
+to 100 were unreachable code, not missing tests: three `??` fallbacks in `routeOptions/shop.tsx` behind a
+loader that throws `notFound()` before they can fire, and a container-ref guard in `ShopMap.tsx`. Adding
+`ignoreStatic` or an `/* c8 ignore */` would have left an unkillable Stryker mutant on each. `ShopMap`'s
+guard was made *live* rather than removed — the container moved from a `useRef` to `useState`, so its
+arrival is a render and both arms actually run.
+
+⚠️ **v8-to-istanbul mis-attributes an implicit `else` inside an async arrow.** An `if` with a braced body
+ending in `return`, placed after an `await`, can report counts `[4, 0]` for a path the test demonstrably
+took (`AddressForm.tsx:122` did exactly this). Writing the `else` out explicitly, or using the bare
+`if (…) return` plus fall-through that `AddressList.tsx` uses, gives both arms a countable range. Do not
+chase this one with more tests — it is the reporter, not the suite.
+
+To find what is left rather than guess at it: `npx vitest run --coverage --coverage.reporter=json`, then
+read `coverage/coverage-final.json` — `branchMap`/`b` gives every branch its type, line and path index, so
+"line 122 at 95.45%" becomes "`if` path #1, counts `[4, 0]`" without reading the HTML report.

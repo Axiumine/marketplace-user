@@ -82,8 +82,16 @@ failureConditions:
 # for the same reason, so leaving it inspected here would be the one gate reporting
 # problems nobody can act on.
 #
-# Scoped to that path, NOT disabled globally.
+# semgrep/vendor/ is the frozen Semgrep registry snapshot, refreshed by its own script and
+# never edited here. Qodana reads the rule *patterns* as code and reports two Criticals —
+# "PGP private key block" and "slack-webhook-url" — for the literals a secret-scanning rule
+# has to contain in order to match one. They are the detector, not a leak, and the gate
+# blocks at critical: 0, so a scan of this directory fails every run and can never be fixed
+# in this repo: the only way to change those lines is to stop vendoring the pack.
+#
+# Scoped to those paths, NOT disabled globally.
 exclude:
   - name: All
     paths:
       - src/gql
+      - semgrep/vendor

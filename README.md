@@ -525,9 +525,13 @@ to `localStorage` or a readable cookie · the tier assertion of §3.7.
 
 ## 7. Known costs and open items
 
-- **Tests are not written.** The harness is wired — vitest, coverage thresholds, Stryker, Qodana, the
-  git hooks — but the suite is empty, per the standing instruction to skip tests. Thresholds stay at
-  100/100; commits use `--no-verify` until tests exist. No gate is removed and no threshold is lowered.
+- **The suite runs entirely under jsdom, and nothing here is exercised against a real service.** 66 files
+  and 1165 tests hold 100% coverage and a 100 mutation score, so every gate passes without `--no-verify` —
+  but GraphQL is stubbed at `fetch`, MapLibre is a fake, and the Turnstile script is never fetched. What
+  that leaves untested is the wire: a resolver whose answer shape drifted from `schema/*.graphql` passes
+  here and fails in the browser, because the slices are hand-maintained and not the contract (§3.6). The
+  backend services own that half in their own integration suites; the seam between the two is covered by
+  nothing, and an end-to-end run against the five endpoints is the missing layer rather than more units.
 - **Route-level code splitting does not happen, and the route pattern is why.** TanStack Start turns
   `autoCodeSplitting` on and does not let a config switch it off — but the splitter works by reading the
   `component` / `loader` properties written literally inside `createFileRoute(...)({ … })`, and every

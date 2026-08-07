@@ -1,0 +1,140 @@
+# Project-specific Semgrep rules for marketplace-user.
+#
+# Registry packs are vendored under `vendor/` and loaded together with this file
+# by the `semgrep` / `semgrep:ci` yarn scripts (`--config semgrep/`). This file
+# holds only the invariants that are specific to a Marketplace frontend.
+#
+# The framing is different from a backend service: everything here is shipped to
+# a browser, so "do not log it" is the weaker half of the rule and "do not put it
+# in the bundle at all" is the stronger one.
+rules:
+  # Access tokens live in memory and travel in an `Authorization` header. A
+  # console line survives in the browser's console, in a session replay and in
+  # every error reporter that scrapes console output.
+  - id: marketplace-fe-no-log-auth-token
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: >-
+      Do not log an access or refresh token. These are opaque session keys (see the workspace CLAUDE.md — tokens + Redis sessions), and a browser console line reaches session replay and every reporter that scrapes it.
+    metadata:
+      category: security
+      confidence: MEDIUM
+      references:
+        - src/api/client.ts
+    patterns:
+      - pattern-either:
+          - pattern: console.$M(..., $ARG, ...)
+          - patterns:
+              - pattern: $L.$M(..., $ARG, ...)
+              - metavariable-regex:
+                  metavariable: $L
+                  regex: (?i)^(logger|log)$
+      - metavariable-regex:
+          metavariable: $ARG
+          regex: (?i)(accesstoken|access_token|refreshtoken|refresh_token|bearer|introspection)
+
+  # Every service sets `csrfPrevention: true`, which rejects a GET that carries
+  # none of Apollo's preflight-forcing headers — and urql sends none. urql's
+  # default is `true`, so this key is not optional: at the default every query
+  # short enough to fit in a URL fails with a CSRF message while mutations work.
+  - id: marketplace-fe-prefer-get-method-must-stay-false
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: >-
+      `preferGetMethod` must stay false. Apollo's `csrfPrevention: true` rejects a GET carrying none of its preflight-forcing headers, and urql sends none — so a GET-preferring client fails every short query while mutations keep working, which reads as a server bug.
+    metadata:
+      category: correctness
+      confidence: HIGH
+      references:
+        - src/api/client.ts
+    pattern-either:
+      - pattern: 'preferGetMethod: true'
+      - pattern: "preferGetMethod: 'force'"
+      - pattern: "preferGetMethod: 'within-url-limit'"
+
+  # `import.meta.env.VITE_*` is substituted into the client bundle at build time.
+  # A secret named this way is not "read at runtime by the browser" — it is
+  # published, minified, and cached by every CDN in front of the app.
+  - id: marketplace-fe-no-secret-in-vite-env
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: >-
+      A `VITE_`-prefixed variable is inlined into the client bundle at build time, so this value is published rather than merely read. Move it to a server-side variable without the prefix. (`VITE_TURNSTILE_SITE_KEY` is the deliberate exception — a Turnstile *site* key is public by design.)
+    metadata:
+      category: security
+      confidence: HIGH
+      cwe:
+        - 'CWE-200: Exposure of Sensitive Information to an Unauthorized Actor'
+      references:
+        - src/env.ts
+    patterns:
+      - pattern-either:
+          - pattern: import.meta.env.$NAME
+          - pattern: process.env.$NAME
+      - metavariable-regex:
+          metavariable: $NAME
+          regex: ^VITE_(?!TURNSTILE_SITE_KEY$).*(SECRET|PASSWORD|PRIVATE|CREDENTIAL|INTROSPECTION|_TOKEN|APIKEY|API_KEY)
+
+  # `context.url` is compared by reference. A `{ url }` literal written in a
+  # component body is a new object on every render, urql re-executes on context
+  # change, and the re-execution renders again — an infinite refetch loop that
+  # looks like a backend problem from the network tab.
+  - id: marketplace-fe-urql-context-must-be-a-module-constant
+    languages: [typescript, javascript]
+    severity: WARNING
+    message: >-
+      Pass one of the `CTX_*` module constants from `src/api/endpoints.ts`, not an inline `{ url }` object. urql compares context by reference, so a literal built during render is a new object every time and the query re-executes forever.
+    metadata:
+      category: correctness
+      confidence: LOW
+      references:
+        - src/api/endpoints.ts
+    patterns:
+      - pattern-either:
+          - pattern: 'useQuery({ ..., context: { ..., url: ..., ... }, ... })'
+          - pattern: 'useMutation($DOC, { ..., context: { ..., url: ..., ... }, ... })'
+      - pattern-not-inside: |
+          const $C = { ..., url: ..., ... }
+
+  # `PUBLIC_RESOURCE_URL` is deliberately **not** `VITE_`-prefixed: the SSR server
+  # reads it from the process environment and it points at a loopback address.
+  # Reading it through `import.meta.env` would inline `http://127.0.0.1:4027` into
+  # the client bundle, where it is both useless and a map of the internal network.
+  - id: marketplace-user-public-resource-url-is-server-only
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: >-
+      Read `PUBLIC_RESOURCE_URL` from `process.env` on the server, never through `import.meta.env`. Vite inlines whatever it can see there into the client bundle, and this value is a loopback upstream — published, it is a dead endpoint for the browser and an internal address for everyone else.
+    metadata:
+      category: security
+      confidence: HIGH
+      references:
+        - src/api/ssr.ts
+    pattern: import.meta.env.PUBLIC_RESOURCE_URL
+
+  # The account area is `ssr: false`, and that is a security boundary rather than
+  # a performance choice: the public routes are server-rendered behind a shared
+  # `proxy_cache`, so authenticated HTML produced on the server is one cache key
+  # away from another customer. The cache bypasses on the session cookie and these
+  # routes never render server-side — two halves of one mechanism.
+  - id: marketplace-user-account-routes-must-not-ssr
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: >-
+      Never enable SSR for an `/account` route. Authenticated HTML rendered on the server sits behind the same shared proxy_cache as the public pages, and `ssr: false` plus the cookie-based cache bypass are two halves of one mechanism — weakening either alone is enough to serve one customer's data to another.
+    metadata:
+      category: security
+      confidence: HIGH
+      cwe:
+        - 'CWE-524: Use of Cache Containing Sensitive Information'
+      references:
+        - docs/nginx/cache.conf
+        - src/routeOptions/account.tsx
+    patterns:
+      - pattern: |
+          { ..., ssr: true, ... }
+      - pattern-inside: |
+          $X = { ..., ssr: true, ... }
+      - metavariable-regex:
+          metavariable: $X
+          regex: (?i).*account.*

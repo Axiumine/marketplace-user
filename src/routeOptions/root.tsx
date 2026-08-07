@@ -1,4 +1,4 @@
-import { HeadContent, Outlet, Scripts, useRouteContext } from '@tanstack/react-router'
+import { getRouteApi, HeadContent, Outlet, Scripts } from '@tanstack/react-router'
 import type { ReactNode } from 'react'
 import { Provider as UrqlProvider } from 'urql'
 
@@ -50,8 +50,18 @@ const Shell = ({ children }: { children: ReactNode }) => (
  *
  * `<main id="main">` is the skip link's target and the landmark a screen reader jumps to.
  */
+/**
+ * ⚠️ `getRouteApi('__root__')` rather than `useRouteContext({ from: '__root__' })` written inline, and the
+ * difference is testability rather than behaviour — the API's hook forwards `from: this.id` to that exact
+ * call. Emptying the inline object literal leaves the hook reading the *nearest* match, which inside the
+ * root route's own component is the root match: the same value, by a different path, and nothing any test
+ * can assert on. Emptying the string here has no such fallback — `from: ''` matches no route and the
+ * render throws.
+ */
+const rootApi = getRouteApi('__root__')
+
 const Layout = () => {
-	const { gql } = useRouteContext({ from: '__root__' })
+	const { gql } = rootApi.useRouteContext()
 
 	return (
 		<UrqlProvider value={gql}>
