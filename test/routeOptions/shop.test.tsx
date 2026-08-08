@@ -34,7 +34,7 @@ const replies = (company: FixtureCompany | null, items: GraphQLReply): GraphQLRe
 })
 
 const mount = async (
-	path = '/shop/bottega-rossi',
+	path = '/shop/rivers-boutique',
 	company: FixtureCompany | null = companyOf(),
 	items = itemsReply([itemOf()])
 ) => {
@@ -71,14 +71,14 @@ describe('the shop route', () => {
 		const { stub } = await mount()
 
 		expect(stub.calls.map((call) => call.operationName)).toEqual(['CompanyBySlug', 'Items'])
-		expect(stub.calls[0]?.variables).toEqual({ slug: 'bottega-rossi' })
-		expect(stub.calls[1]?.variables).toEqual({ companySlug: 'bottega-rossi', limit: 24, offset: 0 })
+		expect(stub.calls[0]?.variables).toEqual({ slug: 'rivers-boutique' })
+		expect(stub.calls[1]?.variables).toEqual({ companySlug: 'rivers-boutique', limit: 24, offset: 0 })
 	})
 
 	it('offsets the item query by the page in the URL', async () => {
-		const { stub } = await mount('/shop/bottega-rossi?page=3')
+		const { stub } = await mount('/shop/rivers-boutique?page=3')
 
-		expect(stub.calls[1]?.variables).toEqual({ companySlug: 'bottega-rossi', limit: 24, offset: 48 })
+		expect(stub.calls[1]?.variables).toEqual({ companySlug: 'rivers-boutique', limit: 24, offset: 48 })
 	})
 
 	/*
@@ -136,15 +136,15 @@ describe('the shop route', () => {
 	it('renders the shop, its address and its items', async () => {
 		await mount()
 
-		expect(screen.getByRole('heading', { level: 1, name: 'Bottega Rossi' })).toBeInTheDocument()
+		expect(screen.getByRole('heading', { level: 1, name: 'Rivers Boutique' })).toBeInTheDocument()
 		// One `<address>` split over a `<br>`, so the two lines are read together rather than matched apart.
-		expect(screen.getByText(/Via Roma 1/).textContent).toBe('Via Roma 120121 Milano (MI)')
+		expect(screen.getByText(/1 Main Street/).textContent).toBe('1 Main Street02108 Boston (MA)')
 		expect(screen.getByText('Leather goods, made two streets away.')).toBeInTheDocument()
 		expect(within(screen.getByRole('region', { name: 'Items' })).getByText('Leather satchel')).toBeInTheDocument()
 	})
 
 	it('counts the items beside their heading', async () => {
-		await mount('/shop/bottega-rossi', companyOf(), itemsReply([itemOf()], { total: 7 }))
+		await mount('/shop/rivers-boutique', companyOf(), itemsReply([itemOf()], { total: 7 }))
 
 		expect(screen.getByRole('heading', { level: 2, name: /^Items/ }).textContent).toBe('Items (7)')
 	})
@@ -152,19 +152,19 @@ describe('the shop route', () => {
 	it('opens the map on the shop rather than on the country', async () => {
 		await mount()
 
-		expect(screen.getByTestId('map')).toHaveTextContent('9.1895,45.4642 @ 15 · bottega-rossi')
+		expect(screen.getByTestId('map')).toHaveTextContent('-71.0589,42.3601 @ 15 · rivers-boutique')
 	})
 
 	// Both "no position at all" and "a position that is not a plottable pair" render the page without a map,
 	// which is the right outcome for each — the alternative is a MapLibre centre of `NaN`.
 	it.each([
 		['no position', null],
-		['a position with one coordinate', { type: 'Point', coordinates: [9.1895] }]
+		['a position with one coordinate', { type: 'Point', coordinates: [-71.0589] }]
 	])('renders the page without a map when the shop has %s', async (_label, position) => {
-		await mount('/shop/bottega-rossi', companyOf({ address: { ...companyOf().address, position } }))
+		await mount('/shop/rivers-boutique', companyOf({ address: { ...companyOf().address, position } }))
 
 		expect(screen.queryByTestId('map')).not.toBeInTheDocument()
-		expect(screen.getByRole('heading', { level: 1, name: 'Bottega Rossi' })).toBeInTheDocument()
+		expect(screen.getByRole('heading', { level: 1, name: 'Rivers Boutique' })).toBeInTheDocument()
 	})
 
 	/*
@@ -177,7 +177,7 @@ describe('the shop route', () => {
 		['an empty description', ''],
 		['a null description', null]
 	])('omits the description paragraph given %s', async (_label, description) => {
-		await mount('/shop/bottega-rossi', companyOf({ description }))
+		await mount('/shop/rivers-boutique', companyOf({ description }))
 
 		expect(screen.queryByText('Leather goods, made two streets away.')).not.toBeInTheDocument()
 		expect(document.querySelector('p.max-w-3xl')).toBeNull()
@@ -202,20 +202,20 @@ describe('the shop route', () => {
 		expect(trail.getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/')
 		expect(trail.getByRole('link', { name: 'Shops' })).toHaveAttribute('href', '/shops')
 		// The last crumb is the current page, so it is text rather than a link — `getByText` covers both.
-		expect(trail.getByText('Bottega Rossi')).toBeInTheDocument()
+		expect(trail.getByText('Rivers Boutique')).toBeInTheDocument()
 	})
 
 	it('says so when the shop has published nothing', async () => {
-		await mount('/shop/bottega-rossi', companyOf(), itemsReply([]))
+		await mount('/shop/rivers-boutique', companyOf(), itemsReply([]))
 
 		expect(screen.getByText('This shop has not published any item yet')).toBeInTheDocument()
 	})
 
 	it('paginates the items with links a crawler can follow', async () => {
-		await mount('/shop/bottega-rossi?page=2', companyOf(), itemsReply([itemOf()], { hasMore: true }))
+		await mount('/shop/rivers-boutique?page=2', companyOf(), itemsReply([itemOf()], { hasMore: true }))
 
-		expect(screen.getByRole('link', { name: '← Previous' })).toHaveAttribute('href', '/shop/bottega-rossi')
-		expect(screen.getByRole('link', { name: 'Next →' })).toHaveAttribute('href', '/shop/bottega-rossi?page=3')
+		expect(screen.getByRole('link', { name: '← Previous' })).toHaveAttribute('href', '/shop/rivers-boutique')
+		expect(screen.getByRole('link', { name: 'Next →' })).toHaveAttribute('href', '/shop/rivers-boutique?page=3')
 	})
 
 	it('links each item to its own page', async () => {
@@ -223,15 +223,15 @@ describe('the shop route', () => {
 
 		expect(screen.getByRole('link', { name: /Leather satchel/ })).toHaveAttribute(
 			'href',
-			'/shop/bottega-rossi/item/leather-satchel'
+			'/shop/rivers-boutique/item/leather-satchel'
 		)
 	})
 })
 
 describe('the shop route head', () => {
 	it('titles the page with the trading name, and the page after the first', () => {
-		expect(titleOf(head(companyOf()))).toBe('Bottega Rossi · Marketplace')
-		expect(titleOf(head(companyOf(), 2))).toBe('Bottega Rossi — page 2 · Marketplace')
+		expect(titleOf(head(companyOf()))).toBe('Rivers Boutique · Marketplace')
+		expect(titleOf(head(companyOf(), 2))).toBe('Rivers Boutique — page 2 · Marketplace')
 	})
 
 	/*
@@ -250,23 +250,23 @@ describe('the shop route head', () => {
 	 * local, and it is the only line that answers "is this shop near me" before the click.
 	 */
 	it('opens the description with the address, then the shop’s own words', () => {
-		expect(metaOf(head(companyOf()), 'description')).toBe('Via Roma 1, 20121 Milano. Leather goods, made two streets away.')
+		expect(metaOf(head(companyOf()), 'description')).toBe('1 Main Street, 02108 Boston. Leather goods, made two streets away.')
 	})
 
 	it('describes a shop with no words of its own by where it is', () => {
-		expect(metaOf(head(companyOf({ description: null })), 'description')).toBe('Via Roma 1, 20121 Milano')
+		expect(metaOf(head(companyOf({ description: null })), 'description')).toBe('1 Main Street, 02108 Boston')
 	})
 
 	it('keeps the canonical on the page it describes', () => {
-		expect(canonicalOf(head(companyOf()))).toBe('http://127.0.0.1:3045/shop/bottega-rossi')
-		expect(canonicalOf(head(companyOf(), 2))).toBe('http://127.0.0.1:3045/shop/bottega-rossi?page=2')
+		expect(canonicalOf(head(companyOf()))).toBe('http://127.0.0.1:3045/shop/rivers-boutique')
+		expect(canonicalOf(head(companyOf(), 2))).toBe('http://127.0.0.1:3045/shop/rivers-boutique?page=2')
 	})
 
 	it('chains the item pages together, absolutely', () => {
 		const middle = head(companyOf(), 2, [], true)
 
-		expect(linkOf(middle, 'prev')).toBe('http://127.0.0.1:3045/shop/bottega-rossi')
-		expect(linkOf(middle, 'next')).toBe('http://127.0.0.1:3045/shop/bottega-rossi?page=3')
+		expect(linkOf(middle, 'prev')).toBe('http://127.0.0.1:3045/shop/rivers-boutique')
+		expect(linkOf(middle, 'next')).toBe('http://127.0.0.1:3045/shop/rivers-boutique?page=3')
 	})
 
 	/*
@@ -276,31 +276,31 @@ describe('the shop route head', () => {
 	 * crawler to follow, and neither shows up in any assertion that only asks what `prev` resolves to.
 	 */
 	it('advertises neither a previous nor a next page on a shop with one page of items', () => {
-		expect(head(companyOf()).links).toEqual([{ rel: 'canonical', href: 'http://127.0.0.1:3045/shop/bottega-rossi' }])
+		expect(head(companyOf()).links).toEqual([{ rel: 'canonical', href: 'http://127.0.0.1:3045/shop/rivers-boutique' }])
 	})
 
 	/*
 	 * ⚠️ This block is what the whole SSR argument is about: `Store` with a real `geo` is what can put a
 	 * shop into a local-results panel, and a crawler that has to run JavaScript to find it usually does not.
-	 * GeoJSON is `[lng, lat]` and schema.org names its fields — read in the wrong order this puts an Italian
-	 * shop in the sea off Somalia, and nothing on the page looks wrong.
+	 * GeoJSON is `[lng, lat]` and schema.org names its fields — read in the wrong order this puts a
+	 * shop in the Southern Ocean, and nothing on the page looks wrong.
 	 */
 	it('declares the shop as a Store, with its address and its coordinates', () => {
 		const store = jsonLdTyped(head(companyOf()), 'Store')
 
 		expect(store).toMatchObject({
-			name: 'Bottega Rossi',
-			url: 'http://127.0.0.1:3045/shop/bottega-rossi',
+			name: 'Rivers Boutique',
+			url: 'http://127.0.0.1:3045/shop/rivers-boutique',
 			description: 'Leather goods, made two streets away.',
 			address: {
 				'@type': 'PostalAddress',
-				streetAddress: 'Via Roma 1',
-				postalCode: '20121',
-				addressLocality: 'Milano',
-				addressRegion: 'MI',
+				streetAddress: '1 Main Street',
+				postalCode: '02108',
+				addressLocality: 'Boston',
+				addressRegion: 'MA',
 				addressCountry: 'IT'
 			},
-			geo: { '@type': 'GeoCoordinates', longitude: 9.1895, latitude: 45.4642 }
+			geo: { '@type': 'GeoCoordinates', longitude: -71.0589, latitude: 42.3601 }
 		})
 	})
 
@@ -314,13 +314,13 @@ describe('the shop route head', () => {
 		expect(jsonLdTyped(head(companyOf()), 'BreadcrumbList')?.itemListElement).toEqual([
 			{ '@type': 'ListItem', position: 1, name: 'Home', item: 'http://127.0.0.1:3045/' },
 			{ '@type': 'ListItem', position: 2, name: 'Shops', item: 'http://127.0.0.1:3045/shops' },
-			{ '@type': 'ListItem', position: 3, name: 'Bottega Rossi', item: 'http://127.0.0.1:3045/shop/bottega-rossi' }
+			{ '@type': 'ListItem', position: 3, name: 'Rivers Boutique', item: 'http://127.0.0.1:3045/shop/rivers-boutique' }
 		])
 	})
 
 	it('lists the items on the page, numbered from where the page starts', () => {
 		expect(jsonLdTyped(head(companyOf(), 2, ['leather-satchel']), 'ItemList')?.itemListElement).toEqual([
-			{ '@type': 'ListItem', position: 25, url: 'http://127.0.0.1:3045/shop/bottega-rossi/item/leather-satchel' }
+			{ '@type': 'ListItem', position: 25, url: 'http://127.0.0.1:3045/shop/rivers-boutique/item/leather-satchel' }
 		])
 	})
 

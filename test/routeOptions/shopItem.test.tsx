@@ -10,7 +10,7 @@ import type { RouteHead } from '../helpers/head'
 import { canonicalOf, jsonLdOf, jsonLdTyped, metaOf, titleOf } from '../helpers/head'
 import { renderRoute } from '../helpers/render'
 
-const mount = async (path = '/shop/bottega-rossi/item/leather-satchel', item: FixtureItem | null = itemOf()) => {
+const mount = async (path = '/shop/rivers-boutique/item/leather-satchel', item: FixtureItem | null = itemOf()) => {
 	const stub = stubGraphQL({ ItemBySlug: { data: { itemBySlug: item } } })
 	const result = await renderRoute(path)
 
@@ -32,11 +32,11 @@ describe('the item route', () => {
 		const { stub } = await mount()
 
 		expect(stub.calls[0]?.operationName).toBe('ItemBySlug')
-		expect(stub.calls[0]?.variables).toEqual({ companySlug: 'bottega-rossi', slug: 'leather-satchel' })
+		expect(stub.calls[0]?.variables).toEqual({ companySlug: 'rivers-boutique', slug: 'leather-satchel' })
 	})
 
 	it('404s an item the resolver does not know', async () => {
-		await mount('/shop/bottega-rossi/item/nowhere', null)
+		await mount('/shop/rivers-boutique/item/nowhere', null)
 
 		expect(screen.getByRole('heading', { level: 1, name: 'This page does not exist' })).toBeInTheDocument()
 	})
@@ -50,7 +50,7 @@ describe('the item route', () => {
 	 */
 	it('404s an answer that carries no item at all', async () => {
 		stubGraphQL({ ItemBySlug: { data: {} } })
-		await renderRoute('/shop/bottega-rossi/item/leather-satchel')
+		await renderRoute('/shop/rivers-boutique/item/leather-satchel')
 
 		expect(screen.getByRole('heading', { level: 1, name: 'This page does not exist' })).toBeInTheDocument()
 	})
@@ -63,8 +63,8 @@ describe('the item route', () => {
 		// Scoped: the shop is linked twice on this page, here and in the trail above it.
 		const credit = screen.getByText(/Sold by/)
 
-		expect(credit.textContent).toBe('Sold by Bottega Rossi')
-		expect(within(credit).getByRole('link', { name: 'Bottega Rossi' })).toHaveAttribute('href', '/shop/bottega-rossi')
+		expect(credit.textContent).toBe('Sold by Rivers Boutique')
+		expect(within(credit).getByRole('link', { name: 'Rivers Boutique' })).toHaveAttribute('href', '/shop/rivers-boutique')
 	})
 
 	/*
@@ -79,15 +79,15 @@ describe('the item route', () => {
 
 		const trail = within(screen.getByRole('navigation', { name: 'Breadcrumb' }))
 
-		expect(within(screen.getByText(/Sold by/)).getByRole('link', { name: 'Bottega Rossi' })).toHaveAttribute(
+		expect(within(screen.getByText(/Sold by/)).getByRole('link', { name: 'Rivers Boutique' })).toHaveAttribute(
 			'href',
-			'/shop/bottega-rossi'
+			'/shop/rivers-boutique'
 		)
-		expect(trail.getByRole('link', { name: 'Bottega Rossi' })).toHaveAttribute('href', '/shop/bottega-rossi')
+		expect(trail.getByRole('link', { name: 'Rivers Boutique' })).toHaveAttribute('href', '/shop/rivers-boutique')
 	})
 
 	it('renders the description a shop owner typed, line breaks and all', async () => {
-		await mount('/shop/bottega-rossi/item/leather-satchel', itemOf({ description: 'Stitched by hand.\nTwo pockets.' }))
+		await mount('/shop/rivers-boutique/item/leather-satchel', itemOf({ description: 'Stitched by hand.\nTwo pockets.' }))
 
 		expect(screen.getByText(/Stitched by hand/)).toHaveClass('whitespace-pre-line')
 	})
@@ -99,20 +99,20 @@ describe('the item route', () => {
 
 		expect(trail.getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/')
 		expect(trail.getByRole('link', { name: 'Shops' })).toHaveAttribute('href', '/shops')
-		expect(trail.getByRole('link', { name: 'Bottega Rossi' })).toHaveAttribute('href', '/shop/bottega-rossi')
+		expect(trail.getByRole('link', { name: 'Rivers Boutique' })).toHaveAttribute('href', '/shop/rivers-boutique')
 		expect(trail.queryByRole('link', { name: 'Leather satchel' })).not.toBeInTheDocument()
 	})
 })
 
 describe('the item route head', () => {
-	// An item name on its own ("Margherita", "Blue shirt") is not a query anyone types; the pair is.
+	// An item name on its own ("Blue shirt", "Walnut table") is not a query anyone types; the pair is.
 	it('names the shop beside the item in the title', () => {
-		expect(titleOf(head(itemOf()))).toBe('Leather satchel — Bottega Rossi · Marketplace')
+		expect(titleOf(head(itemOf()))).toBe('Leather satchel — Rivers Boutique · Marketplace')
 	})
 
 	it('describes the item with its own text, and points the canonical at the nested URL', () => {
 		expect(metaOf(head(itemOf()), 'description')).toBe('Stitched by hand.')
-		expect(canonicalOf(head(itemOf()))).toBe('http://127.0.0.1:3045/shop/bottega-rossi/item/leather-satchel')
+		expect(canonicalOf(head(itemOf()))).toBe('http://127.0.0.1:3045/shop/rivers-boutique/item/leather-satchel')
 	})
 
 	/*
@@ -129,8 +129,8 @@ describe('the item route head', () => {
 			'@type': 'Product',
 			name: 'Leather satchel',
 			description: 'Stitched by hand.',
-			url: 'http://127.0.0.1:3045/shop/bottega-rossi/item/leather-satchel',
-			brand: { '@type': 'Organization', name: 'Bottega Rossi' }
+			url: 'http://127.0.0.1:3045/shop/rivers-boutique/item/leather-satchel',
+			brand: { '@type': 'Organization', name: 'Rivers Boutique' }
 		})
 	})
 
@@ -140,12 +140,12 @@ describe('the item route head', () => {
 		expect(jsonLdTyped(head(itemOf()), 'BreadcrumbList')?.itemListElement).toEqual([
 			{ '@type': 'ListItem', position: 1, name: 'Home', item: 'http://127.0.0.1:3045/' },
 			{ '@type': 'ListItem', position: 2, name: 'Shops', item: 'http://127.0.0.1:3045/shops' },
-			{ '@type': 'ListItem', position: 3, name: 'Bottega Rossi', item: 'http://127.0.0.1:3045/shop/bottega-rossi' },
+			{ '@type': 'ListItem', position: 3, name: 'Rivers Boutique', item: 'http://127.0.0.1:3045/shop/rivers-boutique' },
 			{
 				'@type': 'ListItem',
 				position: 4,
 				name: 'Leather satchel',
-				item: 'http://127.0.0.1:3045/shop/bottega-rossi/item/leather-satchel'
+				item: 'http://127.0.0.1:3045/shop/rivers-boutique/item/leather-satchel'
 			}
 		])
 	})

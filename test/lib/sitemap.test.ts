@@ -98,7 +98,7 @@ describe('escapeXml', () => {
 	})
 
 	it('leaves an ordinary slug alone', () => {
-		expect(escapeXml('/shop/panificio-rossi')).toBe('/shop/panificio-rossi')
+		expect(escapeXml('/shop/rivers-boutique')).toBe('/shop/rivers-boutique')
 	})
 })
 
@@ -130,7 +130,7 @@ describe('urlsetXml', () => {
 	})
 
 	it('escapes a path that carries a reserved character', () => {
-		expect(urlsetXml(['/search?q=pane&near=milano'])).toContain(`${ORIGIN}/search?q=pane&amp;near=milano`)
+		expect(urlsetXml(['/search?q=bags&near=boston'])).toContain(`${ORIGIN}/search?q=bags&amp;near=boston`)
 	})
 
 	// A kind with nothing published still gets a document: an empty `<urlset>` says "this section exists

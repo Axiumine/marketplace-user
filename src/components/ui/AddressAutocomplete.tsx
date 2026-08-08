@@ -22,7 +22,7 @@ import { type FoundAddress, searchAddresses } from '@/lib/nominatim'
  */
 const DEBOUNCE_MS = 350
 
-/** Below this, results are noise: two characters match half of Italy and the query is the expensive part. */
+/** Below this, results are noise: two characters match half the country and the query is the expensive part. */
 const MIN_QUERY = 3
 
 export interface AddressAutocompleteProps {

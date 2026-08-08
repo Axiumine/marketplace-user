@@ -102,9 +102,9 @@ describe('statusOf', () => {
 
 describe('descriptionOf', () => {
 	it('reads the long form the backend wrote for the visitor', () => {
-		const error = combined({ graphQLErrors: [platformError('Bad Request', 400, 'Email o password non corretti')] })
+		const error = combined({ graphQLErrors: [platformError('Bad Request', 400, 'Email or password incorrect')] })
 
-		expect(descriptionOf(error)).toBe('Email o password non corretti')
+		expect(descriptionOf(error)).toBe('Email or password incorrect')
 	})
 
 	// An empty description is a field the backend left blank, not a message — showing it would render an
@@ -190,9 +190,9 @@ describe('isSessionGone', () => {
 describe('messageOf', () => {
 	// Preference order: the backend's own long description, then the title, then a generic line.
 	it('prefers the description the backend wrote', () => {
-		const error = combined({ graphQLErrors: [platformError('Bad Request', 400, 'La password è troppo corta')] })
+		const error = combined({ graphQLErrors: [platformError('Bad Request', 400, 'The password is too short')] })
 
-		expect(messageOf(error)).toBe('La password è troppo corta')
+		expect(messageOf(error)).toBe('The password is too short')
 	})
 
 	it('falls back to the GraphQL error message when there is no description', () => {
@@ -227,9 +227,9 @@ describe('messageOf', () => {
 
 describe('visitorMessageOf', () => {
 	it('reads a urql error the same way `messageOf` does', () => {
-		const error = combined({ graphQLErrors: [platformError('Not Found', 404, 'Questo negozio non esiste')] })
+		const error = combined({ graphQLErrors: [platformError('Not Found', 404, 'This shop does not exist')] })
 
-		expect(visitorMessageOf(error)).toBe('Questo negozio non esiste')
+		expect(visitorMessageOf(error)).toBe('This shop does not exist')
 	})
 
 	/*

@@ -18,8 +18,8 @@ const ITEM: ItemCardItem = {
 	name: 'Leather satchel',
 	description: 'Vegetable-tanned, stitched by hand.',
 	slug: 'leather-satchel',
-	companySlug: 'bottega-rossi',
-	companyPublicName: 'Bottega Rossi'
+	companySlug: 'rivers-boutique',
+	companyPublicName: 'Rivers Boutique'
 }
 
 const mount = async (item: ItemCardItem = ITEM) => {
@@ -40,7 +40,7 @@ describe('ItemCard', () => {
 	it('links to the item under its shop', async () => {
 		await mount()
 
-		expect(screen.getByRole('link')).toHaveAttribute('href', '/shop/bottega-rossi/item/leather-satchel')
+		expect(screen.getByRole('link')).toHaveAttribute('href', '/shop/rivers-boutique/item/leather-satchel')
 	})
 
 	/*
@@ -55,7 +55,7 @@ describe('ItemCard', () => {
 		const links = screen.getAllByRole('link')
 
 		expect(links).toHaveLength(1)
-		expect(links[0]).toHaveTextContent('Bottega Rossi')
+		expect(links[0]).toHaveTextContent('Rivers Boutique')
 	})
 
 	it('shows the description', async () => {
@@ -67,7 +67,7 @@ describe('ItemCard', () => {
 	// `item.description` is required by the collection validator, so there is no absent case here — only a
 	// long one, cut at the same 120 characters the shop card uses so the two grids line up.
 	it('truncates a long description', async () => {
-		await mount({ ...ITEM, description: `${'parola '.repeat(40)}fine` })
+		await mount({ ...ITEM, description: `${'word '.repeat(40)}end` })
 
 		expect(screen.getByText(/…$/)).toBeInTheDocument()
 		expect(screen.queryByText(/fine/)).not.toBeInTheDocument()

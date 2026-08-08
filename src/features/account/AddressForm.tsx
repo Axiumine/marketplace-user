@@ -21,8 +21,8 @@ import { CTX_ACCOUNT_WRITE } from './invalidate'
  * eighty lines with a different verb.
  *
  * ⚠️ **Coordinates are `[longitude, latitude]`, in that order.** This is GeoJSON, and it is the reverse
- * of how every mapping UI, every URL and every human says it. Swapping them does not throw: `[45.46,
- * 9.19]` is a perfectly valid point, it is simply in Somalia, and the `2dsphere` index will happily
+ * of how every mapping UI, every URL and every human says it. Swapping them does not throw: `[42.36,
+ * -71.06]` is a perfectly valid point, it is simply in the Southern Ocean, and the `2dsphere` index will happily
  * answer "no shops near you" forever. Nominatim answers `lat`/`lon` as named fields, which is why the
  * conversion happens here, once, at the boundary.
  *
@@ -38,7 +38,7 @@ const schema = z.object({
 		.trim()
 		.max(LABEL_MAX, `Use at most ${String(LABEL_MAX)} characters.`),
 	street: z.string().trim().min(1, 'Street is required.').max(250, 'Use at most 250 characters.'),
-	// Italian postal codes are exactly five digits, leading zeros included — which is why this is a string
+	// Postal codes are exactly five digits, leading zeros included — which is why this is a string
 	// and not a number. `00187` parsed as a number is 187, and there is no way back.
 	postalCode: z
 		.string()
@@ -49,7 +49,7 @@ const schema = z.object({
 		.string()
 		.trim()
 		.toUpperCase()
-		.regex(/^[A-Z]{2}$/, 'A province is two letters, like MI.'),
+		.regex(/^[A-Z]{2}$/, 'A province is two letters, like MA.'),
 	/**
 	 * The position, as one `"lon,lat"` string rather than as two fields.
 	 *
@@ -58,7 +58,7 @@ const schema = z.object({
 	 * and `0, 0` is a real point in the Atlantic that a `2dsphere` query will happily match.
 	 *
 	 * ⚠️ One field and not two because the halves of a coordinate pair are never independently true. Half a
-	 * position is not a degraded position, it is a wrong one — `[9.1895, NaN]` is rejected on write, and the
+	 * position is not a degraded position, it is a wrong one — `[-71.0589, NaN]` is rejected on write, and the
 	 * same gap filled with a zero puts the customer in the Gulf of Guinea. Holding them together means
 	 * "have we got a position" has one answer, in one place, and no way to be asked about half of it.
 	 */
@@ -205,7 +205,7 @@ export const AddressForm = ({ address, onDone, onCancel }: AddressFormProps) => 
 
 			{/*
 			 * Registered so react-hook-form keeps the position in form state, and hidden because there is
-			 * nothing in `"9.1895,45.4642"` for a customer to read or correct. A hidden input is not feedback,
+			 * nothing in `"-71.0589,42.3601"` for a customer to read or correct. A hidden input is not feedback,
 			 * though: the sentence below is, and it is the only place anyone learns that a hand-typed address
 			 * will not be sorted by distance.
 			 */}

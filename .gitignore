@@ -28,7 +28,6 @@ dev-dist/
 # Stryker
 reports/
 .stryker-tmp/
-.env*.bak
 
 # TLS certs for the https dev server. Never committed — the key is a private key.
 certs/

@@ -10,10 +10,12 @@ alternative; `COVERAGE.md` carries the gate policy.
 below that reads as unnecessary ceremony is there because a request is rendered on a shared Node process
 before any browser is involved.
 
-⚠️ **Language: everything is English** — identifiers, UI text, routes, comments. Italian survives in two
-deliberate places only: domain terms with no English equivalent in prose (*partita IVA* = `vatNumber`,
-*codice fiscale* = `taxCode`, *PEC* = `certifiedEmail`) and the `it-IT` collator used to order categories,
-which is a market choice and not a name. `<html lang="it">` is set for the same market reason.
+⚠️ **Language: everything is English** — identifiers, UI text, routes, comments. There is no second
+language anywhere in this app, and adding one is a regression rather than a style nit.
+
+The `en-GB` collator that orders categories, the `en-GB` formats in `src/lib/format.ts` and
+`<html lang="en">` in `src/routeOptions/root.tsx` are market choices, not names — changing any of them
+changes what the page says about itself to a crawler and what every date and distance looks like.
 
 ## Public is server-rendered, private is not
 

@@ -15,10 +15,10 @@ const HOME: GraphQLReplies = {
 
 const companyOf = (n: number): ShopCardCompany => ({
 	_id: `66c00000000000000000000${String(n)}`,
-	publicName: `Bottega ${String(n)}`,
-	slug: `bottega-${String(n)}`,
+	publicName: `Boutique ${String(n)}`,
+	slug: `boutique-${String(n)}`,
 	description: null,
-	address: { street: `Via Roma ${String(n)}`, postalCode: '20121', city: 'Milano', province: 'MI' }
+	address: { street: `Main Street ${String(n)}`, postalCode: '02108', city: 'Boston', province: 'MA' }
 })
 
 const mount = async (companies: readonly ShopCardCompany[]) => {
@@ -43,8 +43,8 @@ describe('ShopGrid', () => {
 	it('renders a card for each shop', async () => {
 		await mount([companyOf(1), companyOf(2)])
 
-		expect(screen.getByRole('heading', { name: 'Bottega 1' })).toBeInTheDocument()
-		expect(screen.getByRole('heading', { name: 'Bottega 2' })).toBeInTheDocument()
+		expect(screen.getByRole('heading', { name: 'Boutique 1' })).toBeInTheDocument()
+		expect(screen.getByRole('heading', { name: 'Boutique 2' })).toBeInTheDocument()
 	})
 
 	/*

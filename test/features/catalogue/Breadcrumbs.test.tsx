@@ -7,8 +7,8 @@ import { breadcrumbJsonLd } from '@/lib/jsonLd'
 
 const TRAIL: readonly Crumb[] = [
 	{ name: 'Home', path: '/' },
-	{ name: 'Alimentari', path: '/category/alimentari' },
-	{ name: 'Panetteria', path: '/category/alimentari/panetteria' }
+	{ name: 'Apparel', path: '/category/apparel' },
+	{ name: 'Footwear', path: '/category/apparel/footwear' }
 ]
 
 describe('Breadcrumbs', () => {
@@ -30,7 +30,7 @@ describe('Breadcrumbs', () => {
 		render(<Breadcrumbs crumbs={TRAIL} />)
 
 		expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/')
-		expect(screen.getByRole('link', { name: 'Alimentari' })).toHaveAttribute('href', '/category/alimentari')
+		expect(screen.getByRole('link', { name: 'Apparel' })).toHaveAttribute('href', '/category/apparel')
 		expect(screen.getAllByRole('link')).toHaveLength(2)
 	})
 
@@ -41,10 +41,10 @@ describe('Breadcrumbs', () => {
 	it('renders the current page as text, marked as current', () => {
 		render(<Breadcrumbs crumbs={TRAIL} />)
 
-		const current = screen.getByText('Panetteria')
+		const current = screen.getByText('Footwear')
 
 		expect(current).toHaveAttribute('aria-current', 'page')
-		expect(screen.queryByRole('link', { name: 'Panetteria' })).not.toBeInTheDocument()
+		expect(screen.queryByRole('link', { name: 'Footwear' })).not.toBeInTheDocument()
 	})
 
 	// The separator is decoration and must not be read out: a screen reader announcing "slash" between

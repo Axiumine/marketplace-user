@@ -12,7 +12,7 @@ describe('toLngLat', () => {
 	// GeoJSON order, and it is the whole reason this is not `[lat, lng]`: the pair is longitude first,
 	// which is the opposite of how every address is spoken.
 	it('keeps GeoJSON order — longitude first', () => {
-		expect(toLngLat([9.1859, 45.4668])).toEqual([9.1859, 45.4668])
+		expect(toLngLat([-71.0636, 42.3626])).toEqual([-71.0636, 42.3626])
 	})
 
 	it('accepts a zero coordinate, which is a real place off the coast of Ghana', () => {
@@ -20,14 +20,14 @@ describe('toLngLat', () => {
 	})
 
 	it('drops anything after the pair', () => {
-		expect(toLngLat([9.1859, 45.4668, 120])).toEqual([9.1859, 45.4668])
+		expect(toLngLat([-71.0636, 42.3626, 120])).toEqual([-71.0636, 42.3626])
 	})
 
 	it.each([
 		['null', null],
 		['undefined', undefined],
 		['an empty array', []],
-		['a single number', [9.1859]]
+		['a single number', [-71.0636]]
 	])('answers undefined for %s, so the caller can render no map at all', (_label, coordinates) => {
 		expect(toLngLat(coordinates)).toBeUndefined()
 	})
@@ -39,10 +39,10 @@ describe('toLngLat', () => {
 	 * nothing and has to run after the `typeof` pair rather than instead of it.
 	 */
 	it.each([
-		['NaN longitude', [Number.NaN, 45.4668]],
-		['NaN latitude', [9.1859, Number.NaN]],
-		['Infinite longitude', [Number.POSITIVE_INFINITY, 45.4668]],
-		['Infinite latitude', [9.1859, Number.NEGATIVE_INFINITY]]
+		['NaN longitude', [Number.NaN, 42.3626]],
+		['NaN latitude', [-71.0636, Number.NaN]],
+		['Infinite longitude', [Number.POSITIVE_INFINITY, 42.3626]],
+		['Infinite latitude', [-71.0636, Number.NEGATIVE_INFINITY]]
 	])('answers undefined for %s', (_label, coordinates) => {
 		expect(toLngLat(coordinates)).toBeUndefined()
 	})
@@ -53,18 +53,18 @@ describe('toMutableLngLat', () => {
 	// copy. Spreading a tuple keeps its length in the type; `Array.from` would widen it to `number[]`
 	// and stop compiling at the call site.
 	it('copies the pair rather than handing the library the array the app holds', () => {
-		const source: readonly [number, number] = [9.1859, 45.4668]
+		const source: readonly [number, number] = [-71.0636, 42.3626]
 		const copy = toMutableLngLat(source)
 
-		expect(copy).toEqual([9.1859, 45.4668])
+		expect(copy).toEqual([-71.0636, 42.3626])
 		expect(copy).not.toBe(source)
 	})
 
 	it('leaves the source untouched when the copy is written to', () => {
-		const source: readonly [number, number] = [9.1859, 45.4668]
+		const source: readonly [number, number] = [-71.0636, 42.3626]
 		const copy = toMutableLngLat(source)
 		copy[0] = 0
 
-		expect(source[0]).toBe(9.1859)
+		expect(source[0]).toBe(-71.0636)
 	})
 })

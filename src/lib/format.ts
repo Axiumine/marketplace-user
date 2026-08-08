@@ -1,29 +1,29 @@
 /**
  * Display formatting.
  *
- * `it-IT` throughout, and it is a market choice rather than a leftover: this platform serves Italy, so
- * `31/12/2026` and `1,2 km` are what a customer expects to read. It is the one place Italian survives
- * in this codebase deliberately — everything that is a *name* is English.
+ * `en-GB` throughout, and it is a market choice rather than a leftover: `31/12/2026` and `1.2 km` are
+ * what a customer on this platform expects to read. It is the one locale the app names, and every
+ * formatter here goes through it rather than through the browser's.
  *
  * `Intl` reads the ambient time zone, so every test run pins `TZ=UTC` (in the scripts *and* in
  * vitest.config.ts — Stryker's worker pool ignores the config one). Without it the same assertion
- * passes in Rome and fails in CI, one hour out, which reads as a formatter bug.
+ * passes in one zone and fails in CI, one hour out, which reads as a formatter bug.
  */
 
 import { isFiniteNumber } from '@/lib/number'
 
-const LOCALE = 'it-IT'
+const LOCALE = 'en-GB'
 
 /**
  * ⚠️ **No options, deliberately** — `{ day: '2-digit', month: '2-digit', year: 'numeric' }` used to be
  * spelled out here and was removed because it is a no-op, not because the shape it asked for is wrong.
- * With no date-time component at all the spec fills in numeric year, month and day, and `it-IT` renders
+ * With no date-time component at all the spec fills in numeric year, month and day, and `en-GB` renders
  * numeric month and day padded: `resolvedOptions()` comes back byte-identical either way, and formatting
  * every 37th day from year 1 to 2300 produced zero differing strings. Two spellings of one formatter is
  * a token nothing can observe, so it is the shorter one that stays.
  *
  * What holds the output in place is the assertions, not the options — `test/lib/format.test.ts` pins
- * `02/01/2026` and `01/02/2026` as literals, so a CLDR update that moved Italy off `dd/MM/y` breaks the
+ * `02/01/2026` and `01/02/2026` as literals, so a CLDR update that moved the locale off `dd/MM/y` breaks the
  * build rather than the account page.
  */
 const DATE = new Intl.DateTimeFormat(LOCALE)
@@ -74,7 +74,7 @@ export const formatDistance = (metres: number | null | undefined): string | null
 	return metres < 1000 ? `${METRES.format(metres)} m` : `${KILOMETRES.format(metres / 1000)} km`
 }
 
-/** `1.234` — thousands separated, for result counts. */
+/** `1,234` — thousands separated, for result counts. */
 export const formatCount = (value: number): string => METRES.format(value)
 
 /**

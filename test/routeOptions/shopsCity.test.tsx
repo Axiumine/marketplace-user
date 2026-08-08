@@ -38,26 +38,26 @@ describe('the city listing route', () => {
 		expect(stub.calls[0]?.variables).toEqual({ limit: 24, offset: 0, city: 'Reggio Emilia' })
 	})
 
-	// Surrounding space is the one deviation allowed, and it is trimmed rather than sent: `city: ' Milano'`
+	// Surrounding space is the one deviation allowed, and it is trimmed rather than sent: `city: ' Boston'`
 	// matches nothing, and a link that picked up a stray space would 404 a city that exists.
 	it('trims the segment before querying', async () => {
-		const { stub } = await mount('/shops/%20Milano%20')
+		const { stub } = await mount('/shops/%20Boston%20')
 
-		expect(stub.calls[0]?.variables).toEqual({ limit: 24, offset: 0, city: 'Milano' })
+		expect(stub.calls[0]?.variables).toEqual({ limit: 24, offset: 0, city: 'Boston' })
 	})
 
 	it('offsets the query by the page in the URL', async () => {
-		const { stub } = await mount('/shops/Milano?page=2')
+		const { stub } = await mount('/shops/Boston?page=2')
 
-		expect(stub.calls[0]?.variables).toEqual({ limit: 24, offset: 24, city: 'Milano' })
+		expect(stub.calls[0]?.variables).toEqual({ limit: 24, offset: 24, city: 'Boston' })
 	})
 
 	it('renders the city listing under its own heading', async () => {
-		await mount('/shops/Milano')
+		await mount('/shops/Boston')
 
-		expect(screen.getByRole('heading', { level: 1, name: 'Shops in Milano' })).toBeInTheDocument()
+		expect(screen.getByRole('heading', { level: 1, name: 'Shops in Boston' })).toBeInTheDocument()
 		expect(screen.getByText(/shops here/).textContent).toBe('1 shops here.')
-		expect(screen.getByRole('link', { name: /Bottega Rossi/ })).toHaveAttribute('href', '/shop/bottega-rossi')
+		expect(screen.getByRole('link', { name: /Rivers Boutique/ })).toHaveAttribute('href', '/shop/rivers-boutique')
 	})
 
 	/*
@@ -73,7 +73,7 @@ describe('the city listing route', () => {
 
 	// Exempt on purpose: an out-of-range `?page=` on a real city is a bad parameter, not a missing city.
 	it('shows an empty page rather than a 404 past the end of a real city', async () => {
-		await mount('/shops/Milano?page=9', companiesReply([]))
+		await mount('/shops/Boston?page=9', companiesReply([]))
 
 		expect(screen.getByText('No shops on this page')).toBeInTheDocument()
 		expect(screen.queryByRole('heading', { name: 'This page does not exist' })).not.toBeInTheDocument()
@@ -89,7 +89,7 @@ describe('the city listing route', () => {
 	// The trail is Home → Shops → city, and the city is the current page: text with `aria-current`, never a
 	// link to where the visitor already is.
 	it('places the city under the shops listing in the trail', async () => {
-		await mount('/shops/Milano')
+		await mount('/shops/Boston')
 
 		const trail = within(screen.getByRole('navigation', { name: 'Breadcrumb' }))
 
@@ -98,8 +98,8 @@ describe('the city listing route', () => {
 			['Home', '/'],
 			['Shops', '/shops']
 		])
-		expect(trail.getByText('Milano')).toHaveAttribute('aria-current', 'page')
-		expect(trail.queryByRole('link', { name: 'Milano' })).not.toBeInTheDocument()
+		expect(trail.getByText('Boston')).toHaveAttribute('aria-current', 'page')
+		expect(trail.queryByRole('link', { name: 'Boston' })).not.toBeInTheDocument()
 	})
 })
 
@@ -120,19 +120,19 @@ describe('the city listing search parameter', () => {
 
 describe('the city listing head', () => {
 	it('names the city in the title, and the page after the first', () => {
-		expect(titleOf(head('Milano', 1))).toBe('Shops in Milano · Marketplace')
-		expect(titleOf(head('Milano', 2))).toBe('Shops in Milano — page 2 · Marketplace')
+		expect(titleOf(head('Boston', 1))).toBe('Shops in Boston · Marketplace')
+		expect(titleOf(head('Boston', 2))).toBe('Shops in Boston — page 2 · Marketplace')
 	})
 
 	it('describes the city, since that is the query these pages exist for', () => {
-		expect(metaOf(head('Milano', 1), 'description')).toBe(
-			'Every shop published in Milano, with what they sell and where to find them.'
+		expect(metaOf(head('Boston', 1), 'description')).toBe(
+			'Every shop published in Boston, with what they sell and where to find them.'
 		)
 	})
 
 	it('keeps the deeper pages out of the index without cutting their links', () => {
-		expect(metaOf(head('Milano', 1), 'robots')).toBeUndefined()
-		expect(metaOf(head('Milano', 3), 'robots')).toBe('noindex, follow')
+		expect(metaOf(head('Boston', 1), 'robots')).toBeUndefined()
+		expect(metaOf(head('Boston', 3), 'robots')).toBe('noindex, follow')
 	})
 
 	// The canonical is built from the same `encodeURIComponent` the links use — a canonical carrying a raw
@@ -143,10 +143,10 @@ describe('the city listing head', () => {
 	})
 
 	it('chains the pages together, absolutely', () => {
-		const middle = head('Milano', 2, [], true)
+		const middle = head('Boston', 2, [], true)
 
-		expect(linkOf(middle, 'prev')).toBe('http://127.0.0.1:3045/shops/Milano')
-		expect(linkOf(middle, 'next')).toBe('http://127.0.0.1:3045/shops/Milano?page=3')
+		expect(linkOf(middle, 'prev')).toBe('http://127.0.0.1:3045/shops/Boston')
+		expect(linkOf(middle, 'next')).toBe('http://127.0.0.1:3045/shops/Boston?page=3')
 	})
 
 	/*
@@ -155,27 +155,27 @@ describe('the city listing head', () => {
 	 * produce is invisible to a reader that searches the array by `rel`.
 	 */
 	it('emits no previous on the first page and no next on the last', () => {
-		expect(head('Milano', 1, [], true).links).toEqual([
-			{ rel: 'canonical', href: 'http://127.0.0.1:3045/shops/Milano' },
-			{ rel: 'next', href: 'http://127.0.0.1:3045/shops/Milano?page=2' }
+		expect(head('Boston', 1, [], true).links).toEqual([
+			{ rel: 'canonical', href: 'http://127.0.0.1:3045/shops/Boston' },
+			{ rel: 'next', href: 'http://127.0.0.1:3045/shops/Boston?page=2' }
 		])
-		expect(head('Milano', 2, [], false).links).toEqual([
-			{ rel: 'canonical', href: 'http://127.0.0.1:3045/shops/Milano?page=2' },
-			{ rel: 'prev', href: 'http://127.0.0.1:3045/shops/Milano' }
+		expect(head('Boston', 2, [], false).links).toEqual([
+			{ rel: 'canonical', href: 'http://127.0.0.1:3045/shops/Boston?page=2' },
+			{ rel: 'prev', href: 'http://127.0.0.1:3045/shops/Boston' }
 		])
 	})
 
 	it('describes the trail Home → Shops → city', () => {
-		expect(jsonLdTyped(head('Milano', 1), 'BreadcrumbList')?.itemListElement).toEqual([
+		expect(jsonLdTyped(head('Boston', 1), 'BreadcrumbList')?.itemListElement).toEqual([
 			{ '@type': 'ListItem', position: 1, name: 'Home', item: 'http://127.0.0.1:3045/' },
 			{ '@type': 'ListItem', position: 2, name: 'Shops', item: 'http://127.0.0.1:3045/shops' },
-			{ '@type': 'ListItem', position: 3, name: 'Milano', item: 'http://127.0.0.1:3045/shops/Milano' }
+			{ '@type': 'ListItem', position: 3, name: 'Boston', item: 'http://127.0.0.1:3045/shops/Boston' }
 		])
 	})
 
 	it('numbers the list from where the page actually starts', () => {
-		expect(jsonLdTyped(head('Milano', 2, ['bottega-rossi']), 'ItemList')?.itemListElement).toEqual([
-			{ '@type': 'ListItem', position: 25, url: 'http://127.0.0.1:3045/shop/bottega-rossi' }
+		expect(jsonLdTyped(head('Boston', 2, ['rivers-boutique']), 'ItemList')?.itemListElement).toEqual([
+			{ '@type': 'ListItem', position: 25, url: 'http://127.0.0.1:3045/shop/rivers-boutique' }
 		])
 	})
 

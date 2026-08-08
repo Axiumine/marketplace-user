@@ -27,10 +27,10 @@ vi.mock('@/features/map/ShopMap', async () => {
 	}
 })
 
-const CENTER = [9.19, 45.4642] as const
+const CENTER = [-71.06, 42.3601] as const
 
 const PINS: NonNullable<ShopMapProps['initialPins']> = [
-	{ _id: '66b0000000000000000000a1', publicName: 'Bottega Rossi', slug: 'bottega-rossi', coordinates: [9.1895, 45.4642] }
+	{ _id: '66b0000000000000000000a1', publicName: 'Rivers Boutique', slug: 'rivers-boutique', coordinates: [-71.0589, 42.3601] }
 ]
 
 const placeholderOf = (container: HTMLElement): HTMLElement => {
@@ -116,7 +116,7 @@ describe('MapIsland', () => {
 	it('hands the map the props it was given', async () => {
 		render(<MapIsland center={CENTER} zoom={14} initialPins={PINS} />)
 
-		expect(await screen.findByTestId('shop-map')).toHaveTextContent('9.19,45.4642 @ 14 · 1 pins')
+		expect(await screen.findByTestId('shop-map')).toHaveTextContent('-71.06,42.3601 @ 14 · 1 pins')
 	})
 
 	it('defaults to no pins when the page has none to hand over', async () => {

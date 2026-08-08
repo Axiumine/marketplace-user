@@ -42,13 +42,13 @@ describe('the document shell', () => {
 	 * ⚠️ `shellComponent` owns `<html>`, which is why the client entry hydrates `document` and not a `div` —
 	 * there is no `index.html` in this repo. Everything React renders on the server starts here.
 	 */
-	it('renders the document itself, and claims Italian content', () => {
+	it('renders the document itself, and claims English content', () => {
 		const shell = rootRouteOptions.shellComponent({ children: null })
 
 		expect(shell.type).toBe('html')
 		// `lang` is a claim about the *content* — the shops, the addresses and the item descriptions are
-		// Italian — not about the interface strings, which are English.
-		expect(shell.props.lang).toBe('it')
+		// English — the same claim the interface strings make.
+		expect(shell.props.lang).toBe('en')
 	})
 
 	// The skip link's target is the `<main>` the route renders into — a screen reader and a keyboard user

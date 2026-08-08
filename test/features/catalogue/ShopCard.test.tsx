@@ -16,10 +16,10 @@ const HOME: GraphQLReplies = {
 
 const COMPANY: ShopCardCompany = {
 	_id: '66c0000000000000000000b1',
-	publicName: 'Bottega Rossi',
-	slug: 'bottega-rossi',
+	publicName: 'Rivers Boutique',
+	slug: 'rivers-boutique',
 	description: 'Handmade leather goods, repaired and sold since 1974.',
-	address: { street: 'Via Roma 1', postalCode: '20121', city: 'Milano', province: 'MI' }
+	address: { street: '1 Main Street', postalCode: '02108', city: 'Boston', province: 'MA' }
 }
 
 /** The fragment does not always select `description`, so the key is genuinely absent sometimes. */
@@ -30,8 +30,8 @@ const NO_DESCRIPTION: ShopCardCompany = {
 	address: COMPANY.address
 }
 
-const ONE_LINE = 'Via Roma 1, 20121 Milano (MI)'
-const CARD_TEXT = `Bottega Rossi${ONE_LINE}`
+const ONE_LINE = '1 Main Street, 02108 Boston (MA)'
+const CARD_TEXT = `Rivers Boutique${ONE_LINE}`
 
 const mount = async (company: ShopCardCompany = COMPANY, distanceMeters?: number | null) => {
 	stubGraphQL(HOME)
@@ -50,7 +50,7 @@ describe('ShopCard', () => {
 	it('heads the card with the shop name, at level two', async () => {
 		await mount()
 
-		expect(screen.getByRole('heading', { level: 2, name: 'Bottega Rossi' })).toBeInTheDocument()
+		expect(screen.getByRole('heading', { level: 2, name: 'Rivers Boutique' })).toBeInTheDocument()
 	})
 
 	/*
@@ -64,7 +64,7 @@ describe('ShopCard', () => {
 		const links = screen.getAllByRole('link')
 
 		expect(links).toHaveLength(1)
-		expect(links[0]).toHaveAttribute('href', '/shop/bottega-rossi')
+		expect(links[0]).toHaveAttribute('href', '/shop/rivers-boutique')
 	})
 
 	it('writes the address on one line', async () => {
@@ -82,10 +82,10 @@ describe('ShopCard', () => {
 	// Cut at 120 characters on a word boundary, so one wordy shop cannot make its card twice the height of
 	// its neighbours in a grid that has to line up.
 	it('truncates a long description', async () => {
-		await mount({ ...COMPANY, description: `${'parola '.repeat(40)}fine` })
+		await mount({ ...COMPANY, description: `${'word '.repeat(40)}end` })
 
 		expect(screen.getByText(/…$/)).toBeInTheDocument()
-		expect(screen.queryByText(/fine/)).not.toBeInTheDocument()
+		expect(screen.queryByText(/end/)).not.toBeInTheDocument()
 	})
 
 	/*
@@ -120,7 +120,7 @@ describe('ShopCard distance', () => {
 	it('shows how far away the shop is', async () => {
 		await mount(COMPANY, 1500)
 
-		expect(screen.getByText('1,5 km away')).toBeInTheDocument()
+		expect(screen.getByText('1.5 km away')).toBeInTheDocument()
 	})
 
 	it('shows metres under a kilometre', async () => {

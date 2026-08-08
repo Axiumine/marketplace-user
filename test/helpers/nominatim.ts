@@ -30,7 +30,7 @@ export interface ResponseOsm {
 }
 
 /**
- * One Nominatim result, with the keys the real service sends for an Italian street address.
+ * One Nominatim result, with the keys the real service sends for a street address.
  *
  * `lat`/`lon` are strings and `place_id` a number because that is what jsonv2 puts on the wire — the
  * coercion in `src/lib/nominatim.ts` exists for exactly this, and a fixture that pre-converted them
@@ -38,17 +38,17 @@ export interface ResponseOsm {
  */
 export const resultOsm = (over: Record<string, unknown> = {}) => ({
 	place_id: 240109189,
-	display_name: 'Via Roma, 1, Milano, MI, 20121, Italia',
-	lat: '45.46420',
-	lon: '9.18950',
+	display_name: 'Main Street, 1, Boston, MA, 02108, USA',
+	lat: '42.36010',
+	lon: '-71.05890',
 	address: {
-		road: 'Via Roma',
+		road: 'Main Street',
 		house_number: '1',
-		postcode: '20121',
-		city: 'Milano',
-		county: 'Milano',
-		'ISO3166-2-lvl6': 'IT-MI',
-		country_code: 'it'
+		postcode: '02108',
+		city: 'Boston',
+		county: 'Boston',
+		'ISO3166-2-lvl4': 'US-MA',
+		country_code: 'us'
 	},
 	...over
 })

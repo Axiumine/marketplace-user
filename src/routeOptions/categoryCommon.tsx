@@ -90,10 +90,10 @@ export const loadCategory = async ({
 	]
 
 	// Sorted here rather than by the resolver: `position` is the operator's ordering and ties are broken
-	// by name with the same `it-IT` collator `nestCategories` uses, so both navigations agree.
+	// by name with the same `en-GB` collator `nestCategories` uses, so both navigations agree.
 	const children = tree.itemCategories
 		.filter((candidate) => candidate.idParent === category._id)
-		.toSorted((a, b) => a.position - b.position || a.name.localeCompare(b.name, 'it-IT'))
+		.toSorted((a, b) => a.position - b.position || a.name.localeCompare(b.name, 'en-GB'))
 
 	return { category, parent, children, crumbs, items: await loadItems(context, category._id, page), page, basePath }
 }

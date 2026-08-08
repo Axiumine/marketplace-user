@@ -8,53 +8,53 @@ const category = (over: Partial<FlatCategory> & Pick<FlatCategory, '_id' | 'name
 	...over
 })
 
-const BREAD = category({ _id: 'c1', name: 'Pane', slug: 'pane', position: 1 })
-const DRINKS = category({ _id: 'c2', name: 'Bevande', slug: 'bevande', position: 2 })
-const FOCACCE = category({ _id: 'c3', name: 'Focacce', slug: 'focacce', position: 1, idParent: 'c1' })
-const GRISSINI = category({ _id: 'c4', name: 'Grissini', slug: 'grissini', position: 2, idParent: 'c1' })
+const BAGS = category({ _id: 'c1', name: 'Bags', slug: 'bags', position: 1 })
+const DRINKS = category({ _id: 'c2', name: 'Drinks', slug: 'drinks', position: 2 })
+const SATCHELS = category({ _id: 'c3', name: 'Satchels', slug: 'satchels', position: 1, idParent: 'c1' })
+const TOTES = category({ _id: 'c4', name: 'Totes', slug: 'totes', position: 2, idParent: 'c1' })
 
 describe('nestCategories', () => {
 	it('hangs each subcategory under its parent', () => {
-		const tree = nestCategories([FOCACCE, BREAD, GRISSINI, DRINKS])
+		const tree = nestCategories([SATCHELS, BAGS, TOTES, DRINKS])
 
-		expect(tree.map((node) => node.slug)).toEqual(['pane', 'bevande'])
-		expect(tree[0]?.children.map((node) => node.slug)).toEqual(['focacce', 'grissini'])
+		expect(tree.map((node) => node.slug)).toEqual(['bags', 'drinks'])
+		expect(tree[0]?.children.map((node) => node.slug)).toEqual(['satchels', 'totes'])
 		expect(tree[1]?.children).toEqual([])
 	})
 
 	// Two levels by construction — the Admin-tier resolver refuses a parent that already has one — so a
 	// grandchild is not something the tree has to represent, and every node's children are leaves.
 	it('leaves every subcategory childless', () => {
-		const tree = nestCategories([BREAD, FOCACCE])
+		const tree = nestCategories([BAGS, SATCHELS])
 
 		expect(tree[0]?.children[0]?.children).toEqual([])
 	})
 
 	it('orders both levels by position rather than by the order the resolver answered in', () => {
-		const tree = nestCategories([DRINKS, GRISSINI, BREAD, FOCACCE])
+		const tree = nestCategories([DRINKS, TOTES, BAGS, SATCHELS])
 
-		expect(tree.map((node) => node.name)).toEqual(['Pane', 'Bevande'])
-		expect(tree[0]?.children.map((node) => node.name)).toEqual(['Focacce', 'Grissini'])
+		expect(tree.map((node) => node.name)).toEqual(['Bags', 'Drinks'])
+		expect(tree[0]?.children.map((node) => node.name)).toEqual(['Satchels', 'Totes'])
 	})
 
 	/*
 	 * The operator UI does not force distinct positions, and Mongo's answer order for two equal ones is
 	 * not stable between requests — so without a tiebreak the navigation reshuffles itself at random.
-	 * `it-IT` rather than the default collation because the default sorts every accented letter after
-	 * `z`: `Àlpi` would come after `Zucchero`.
+	 * `en-GB` rather than the default collation because the default sorts every accented letter after
+	 * `z`: `Àprons` would come after `Zippers`.
 	 */
-	it('breaks a position tie by name, with an Italian collator', () => {
-		const zucchero = category({ _id: 'z', name: 'Zucchero', slug: 'zucchero', position: 5 })
-		const alpi = category({ _id: 'a', name: 'Àlpi', slug: 'alpi', position: 5 })
+	it('breaks a position tie by name, with a locale collator', () => {
+		const zippers = category({ _id: 'z', name: 'Zippers', slug: 'zippers', position: 5 })
+		const aprons = category({ _id: 'a', name: 'Àprons', slug: 'aprons', position: 5 })
 
-		expect(nestCategories([zucchero, alpi]).map((node) => node.name)).toEqual(['Àlpi', 'Zucchero'])
+		expect(nestCategories([zippers, aprons]).map((node) => node.name)).toEqual(['Àprons', 'Zippers'])
 	})
 
 	it('breaks a position tie between two subcategories of the same parent', () => {
-		const b = category({ _id: 'x1', name: 'Bianco', slug: 'bianco', position: 1, idParent: 'c1' })
-		const a = category({ _id: 'x2', name: 'Àzzurro', slug: 'azzurro', position: 1, idParent: 'c1' })
+		const b = category({ _id: 'x1', name: 'White', slug: 'white', position: 1, idParent: 'c1' })
+		const a = category({ _id: 'x2', name: 'Àzure', slug: 'azure', position: 1, idParent: 'c1' })
 
-		expect(nestCategories([BREAD, b, a])[0]?.children.map((node) => node.name)).toEqual(['Àzzurro', 'Bianco'])
+		expect(nestCategories([BAGS, b, a])[0]?.children.map((node) => node.name)).toEqual(['Àzure', 'White'])
 	})
 
 	// `idParent` is optional on the type and nullable on the wire — the resolver answers `null` for a
@@ -77,9 +77,9 @@ describe('nestCategories', () => {
 	 * children still point at it, which the Admin tier prevents.
 	 */
 	it('drops a subcategory whose parent is not in the list', () => {
-		const orphan = category({ _id: 'o', name: 'Orfana', slug: 'orfana', idParent: 'gone' })
+		const orphan = category({ _id: 'o', name: 'Orphan', slug: 'orphan', idParent: 'gone' })
 
-		expect(nestCategories([BREAD, orphan]).map((node) => node.slug)).toEqual(['pane'])
+		expect(nestCategories([BAGS, orphan]).map((node) => node.slug)).toEqual(['bags'])
 	})
 
 	it('answers an empty tree for an empty list', () => {
@@ -89,25 +89,25 @@ describe('nestCategories', () => {
 	// The input is what a loader got back from urql, which hands out its cached array. Sorting it in
 	// place would reorder the cache entry every other page holds a reference to.
 	it('does not reorder the array it was given', () => {
-		const flat = [DRINKS, BREAD]
+		const flat = [DRINKS, BAGS]
 		nestCategories(flat)
 
-		expect(flat).toEqual([DRINKS, BREAD])
+		expect(flat).toEqual([DRINKS, BAGS])
 	})
 })
 
 describe('categoryPath', () => {
 	it('writes a top-level category at one segment', () => {
-		expect(categoryPath('pane')).toBe('/category/pane')
+		expect(categoryPath('bags')).toBe('/category/bags')
 	})
 
 	it('writes a subcategory under its parent', () => {
-		expect(categoryPath('focacce', 'pane')).toBe('/category/pane/focacce')
+		expect(categoryPath('satchels', 'bags')).toBe('/category/bags/satchels')
 	})
 })
 
 describe('findCategory', () => {
-	const ALL = [BREAD, DRINKS, FOCACCE, GRISSINI]
+	const ALL = [BAGS, DRINKS, SATCHELS, TOTES]
 
 	/*
 	 * ⚠️ `toStrictEqual`, not `toEqual`, everywhere a result carries no parent — and it is the assertion
@@ -118,11 +118,11 @@ describe('findCategory', () => {
 	 * client anyway, having travelled as a difference the server thought it was expressing.
 	 */
 	it('finds a top-level category and reports no parent', () => {
-		expect(findCategory(ALL, 'pane')).toStrictEqual({ category: BREAD })
+		expect(findCategory(ALL, 'bags')).toStrictEqual({ category: BAGS })
 	})
 
 	it('finds a subcategory and its parent', () => {
-		expect(findCategory(ALL, 'focacce')).toEqual({ category: FOCACCE, parent: BREAD })
+		expect(findCategory(ALL, 'satchels')).toEqual({ category: SATCHELS, parent: BAGS })
 	})
 
 	it('answers undefined for a slug nobody has', () => {
@@ -131,9 +131,9 @@ describe('findCategory', () => {
 
 	// Slugs are unique across the whole collection rather than per level, so the parent segment of the
 	// URL is readability and a breadcrumb — never disambiguation. Which is why the route options have to
-	// check it and redirect: `/category/bevande/focacce` resolves the child perfectly well.
+	// check it and redirect: `/category/drinks/satchels` resolves the child perfectly well.
 	it('finds a subcategory by slug alone, whatever the URL claims its parent is', () => {
-		expect(findCategory(ALL, 'grissini')?.category).toEqual(GRISSINI)
+		expect(findCategory(ALL, 'totes')?.category).toEqual(TOTES)
 	})
 
 	/*
@@ -142,7 +142,7 @@ describe('findCategory', () => {
 	 * turn one broken row in the database into a 404 on a page full of items.
 	 */
 	it('answers the category alone when its parent is missing from the list', () => {
-		expect(findCategory([FOCACCE], 'focacce')).toStrictEqual({ category: FOCACCE })
+		expect(findCategory([SATCHELS], 'satchels')).toStrictEqual({ category: SATCHELS })
 	})
 
 	it.each<[string, Partial<FlatCategory>]>([

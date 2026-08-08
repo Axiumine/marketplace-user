@@ -79,9 +79,9 @@ describe('pageLinks', () => {
 	})
 
 	it('keeps the base path it was given, including one that already has segments', () => {
-		expect(pageLinks('/category/pane/focacce', 2, true)).toEqual({
-			prev: '/category/pane/focacce',
-			next: '/category/pane/focacce?page=3'
+		expect(pageLinks('/category/bags/satchels', 2, true)).toEqual({
+			prev: '/category/bags/satchels',
+			next: '/category/bags/satchels?page=3'
 		})
 	})
 

@@ -61,7 +61,7 @@ const head = ({ loaderData }: { loaderData?: LoaderData }) => {
 
 	return {
 		...headFor({
-			// The shop's name is in the title because an item name on its own ("Margherita", "Blue shirt")
+			// The shop's name is in the title because an item name on its own ("Blue shirt", "Walnut table")
 			// is not a query anyone types, and the pair is.
 			title: `${item.name} — ${item.companyPublicName}`,
 			description: truncate(item.description),

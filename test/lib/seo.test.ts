@@ -7,17 +7,17 @@ const ORIGIN = 'http://127.0.0.1:3045'
 
 describe('truncate', () => {
 	it('leaves a description that already fits', () => {
-		expect(truncate('Panificio artigianale a Milano.')).toBe('Panificio artigianale a Milano.')
+		expect(truncate('Artisan boutique in Boston.')).toBe('Artisan boutique in Boston.')
 	})
 
 	// Newlines and runs of spaces come from a shop's own description field, which is a textarea. Left
 	// alone they reach the `<meta name="description">` attribute verbatim and the tag renders unusable.
 	it('collapses every run of whitespace into a single space', () => {
-		expect(truncate('Pane\n\n  e   focacce\t.')).toBe('Pane e focacce .')
+		expect(truncate('Bags\n\n  and   satchels\t.')).toBe('Bags and satchels .')
 	})
 
 	it('trims the ends', () => {
-		expect(truncate('   Pane   ')).toBe('Pane')
+		expect(truncate('   Bags   ')).toBe('Bags')
 	})
 
 	it('keeps a description of exactly the limit whole, with no ellipsis', () => {
@@ -32,12 +32,12 @@ describe('truncate', () => {
 	 * broken page rather than as a summary. Cutting on a word boundary makes the ellipsis deliberate.
 	 */
 	it('cuts on a word boundary and marks the cut', () => {
-		const long = `${'parola '.repeat(30)}fine`
+		const long = `${'phrase '.repeat(30)}end`
 		const result = truncate(long)
 
 		expect(result.length).toBeLessThanOrEqual(DESCRIPTION_MAX)
 		expect(result.endsWith('…')).toBe(true)
-		expect(result).not.toContain('parol…')
+		expect(result).not.toContain('phras…')
 	})
 
 	// `lastIndexOf` answers -1 when there is no space to cut at, and slicing to -1 would drop the last
@@ -49,7 +49,7 @@ describe('truncate', () => {
 	})
 
 	it('takes a limit of its own', () => {
-		expect(truncate('uno due tre quattro', 10)).toBe('uno due…')
+		expect(truncate('one two three four', 10)).toBe('one two…')
 	})
 })
 
@@ -83,8 +83,8 @@ describe('headFor', () => {
 		content.meta.find((tag) => tag[key] === value)?.content
 
 	it('appends the site name to a page title', () => {
-		expect(headFor({ title: 'Negozi', description: 'x', path: '/shops' }).meta[0]).toEqual({
-			title: `Negozi · ${SITE_NAME}`
+		expect(headFor({ title: 'Shops', description: 'x', path: '/shops' }).meta[0]).toEqual({
+			title: `Shops · ${SITE_NAME}`
 		})
 	})
 
@@ -94,8 +94,8 @@ describe('headFor', () => {
 	})
 
 	it('truncates the description everywhere it appears', () => {
-		const long = `${'parola '.repeat(40)}fine`
-		const content = headFor({ title: 'Negozi', description: long, path: '/shops' })
+		const long = `${'word '.repeat(40)}end`
+		const content = headFor({ title: 'Shops', description: long, path: '/shops' })
 		const summary = truncate(long)
 
 		expect(meta(content, 'name', 'description')).toBe(summary)
@@ -109,31 +109,31 @@ describe('headFor', () => {
 	 * accrue to two different URLs, neither of which has both.
 	 */
 	it('points og:url and the canonical at the same absolute URL', () => {
-		const content = headFor({ title: 'Negozi', description: 'x', path: '/shops' })
+		const content = headFor({ title: 'Shops', description: 'x', path: '/shops' })
 
 		expect(content.links).toEqual([{ rel: 'canonical', href: `${ORIGIN}/shops` }])
 		expect(meta(content, 'property', 'og:url')).toBe(`${ORIGIN}/shops`)
 	})
 
 	it('declares the site name and a website og:type', () => {
-		const content = headFor({ title: 'Negozi', description: 'x', path: '/shops' })
+		const content = headFor({ title: 'Shops', description: 'x', path: '/shops' })
 
 		expect(meta(content, 'property', 'og:site_name')).toBe(SITE_NAME)
 		expect(meta(content, 'property', 'og:type')).toBe('website')
 	})
 
 	it('repeats the full title in the og and twitter cards', () => {
-		const content = headFor({ title: 'Negozi', description: 'x', path: '/shops' })
+		const content = headFor({ title: 'Shops', description: 'x', path: '/shops' })
 
-		expect(meta(content, 'property', 'og:title')).toBe(`Negozi · ${SITE_NAME}`)
-		expect(meta(content, 'name', 'twitter:title')).toBe(`Negozi · ${SITE_NAME}`)
+		expect(meta(content, 'property', 'og:title')).toBe(`Shops · ${SITE_NAME}`)
+		expect(meta(content, 'name', 'twitter:title')).toBe(`Shops · ${SITE_NAME}`)
 	})
 
 	describe('the social image', () => {
 		// A summary card with no image is a small square; claiming `summary_large_image` without one
 		// renders as a blank banner where the picture should be.
 		it('asks for the small card when there is no image', () => {
-			const content = headFor({ title: 'Negozi', description: 'x', path: '/shops' })
+			const content = headFor({ title: 'Shops', description: 'x', path: '/shops' })
 
 			expect(meta(content, 'name', 'twitter:card')).toBe('summary')
 			expect(meta(content, 'property', 'og:image')).toBeUndefined()
@@ -141,30 +141,30 @@ describe('headFor', () => {
 		})
 
 		it('asks for the large card and emits both image tags when there is one', () => {
-			const content = headFor({ title: 'Negozio', description: 'x', path: '/shop/pane', image: '/img/pane.jpg' })
+			const content = headFor({ title: 'Shop', description: 'x', path: '/shop/bags', image: '/img/bread.jpg' })
 
 			expect(meta(content, 'name', 'twitter:card')).toBe('summary_large_image')
-			expect(meta(content, 'property', 'og:image')).toBe(`${ORIGIN}/img/pane.jpg`)
-			expect(meta(content, 'name', 'twitter:image')).toBe(`${ORIGIN}/img/pane.jpg`)
+			expect(meta(content, 'property', 'og:image')).toBe(`${ORIGIN}/img/bread.jpg`)
+			expect(meta(content, 'name', 'twitter:image')).toBe(`${ORIGIN}/img/bread.jpg`)
 		})
 
 		// A social crawler fetches the image from a different host than the page, so a relative URL is
 		// unresolvable to it — and an image already on a CDN must not be rewritten onto this origin.
 		it('leaves an image that is already absolute alone', () => {
 			const content = headFor({
-				title: 'Negozio',
+				title: 'Shop',
 				description: 'x',
-				path: '/shop/pane',
-				image: 'https://cdn.example.it/pane.jpg'
+				path: '/shop/bags',
+				image: 'https://cdn.example.com/bags.jpg'
 			})
 
-			expect(meta(content, 'property', 'og:image')).toBe('https://cdn.example.it/pane.jpg')
+			expect(meta(content, 'property', 'og:image')).toBe('https://cdn.example.com/bags.jpg')
 		})
 	})
 
 	describe('noIndex', () => {
 		it('emits no robots tag by default', () => {
-			expect(meta(headFor({ title: 'Negozi', description: 'x', path: '/shops' }), 'name', 'robots')).toBeUndefined()
+			expect(meta(headFor({ title: 'Shops', description: 'x', path: '/shops' }), 'name', 'robots')).toBeUndefined()
 		})
 
 		/*
@@ -173,13 +173,13 @@ describe('headFor', () => {
 		 * and gains nothing, since the page is out of the index either way.
 		 */
 		it('emits noindex with follow, so the links on the page are still discovered', () => {
-			const content = headFor({ title: 'Cerca', description: 'x', path: '/search', noIndex: true })
+			const content = headFor({ title: 'Search', description: 'x', path: '/search', noIndex: true })
 
 			expect(meta(content, 'name', 'robots')).toBe('noindex, follow')
 		})
 
 		it('still emits a canonical, because the page has one even when it is not indexed', () => {
-			const content = headFor({ title: 'Cerca', description: 'x', path: '/search', noIndex: true })
+			const content = headFor({ title: 'Search', description: 'x', path: '/search', noIndex: true })
 
 			expect(content.links).toEqual([{ rel: 'canonical', href: `${ORIGIN}/search` }])
 		})

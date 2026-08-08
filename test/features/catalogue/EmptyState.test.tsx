@@ -5,9 +5,9 @@ import { EmptyState } from '@/features/catalogue/EmptyState'
 
 describe('EmptyState', () => {
 	it('states what is not there', () => {
-		render(<EmptyState title="No shops in Milano yet" />)
+		render(<EmptyState title="No shops in Boston yet" />)
 
-		expect(screen.getByText('No shops in Milano yet')).toBeInTheDocument()
+		expect(screen.getByText('No shops in Boston yet')).toBeInTheDocument()
 	})
 
 	it('adds the hint when there is one', () => {

@@ -15,9 +15,9 @@ import appCss from '../styles.css?url'
  * server starts here, which is why the client entry hydrates `document` and not a `div`. There is no
  * `index.html` in this repo.
  *
- * `lang="it"` is a market statement, the same one `it-IT` makes in `src/lib/format.ts`. The interface
- * strings are English; the shops, the addresses and the item descriptions are Italian, and `lang` is
- * read by screen readers and by search engines as a claim about the *content*, not about the chrome.
+ * `lang="en"` is a market statement, the same one `en-GB` makes in `src/lib/format.ts`. It is a claim
+ * about the *content* — the shops, the addresses and the item descriptions — and not about the chrome,
+ * and it is read as such by screen readers and by search engines.
  *
  * ⚠️ `<HeadContent />` and `<Scripts />` are not decoration. The first is where every route's `head()`
  * output is actually emitted — without it, the title, the canonical link and the JSON-LD of every page
@@ -26,7 +26,7 @@ import appCss from '../styles.css?url'
  * permanently static.
  */
 const Shell = ({ children }: { children: ReactNode }) => (
-	<html lang="it">
+	<html lang="en">
 		<head>
 			<HeadContent />
 		</head>
