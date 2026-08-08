@@ -1,23 +1,20 @@
 # marketplace-user
 
-The customer app (`User` tier) for Marketplace: the public, indexed site **and** the private account
-area, in one codebase. Read the parent workspace's
-`/media/nvme/websites/fullstack-marketplace-blueprint/CLAUDE.md` first — this is one of fourteen sub-repos
-and almost nothing here is changeable on its own. `README.md` carries the strategy and every rejected
-alternative; `COVERAGE.md` carries the gate policy.
+Customer app, `User` tier. Public indexed site **and** private account area, one codebase.
 
-⚠️ **This is the only server-rendered app on the platform.** The other two frontends are SPAs. Everything
-below that reads as unnecessary ceremony is there because a request is rendered on a shared Node process
-before any browser is involved.
+**Read parent first** — `/media/nvme/websites/fullstack-marketplace-blueprint/CLAUDE.md`. One of fourteen
+sub-repos; almost nothing here is changeable on its own.
 
-⚠️ **Language: everything is English** — identifiers, UI text, routes, comments. There is no second
-language anywhere in this app, and adding one is a regression rather than a style nit.
+| Need | File |
+|---|---|
+| strategy, every rejected alternative, chunk numbers | `README.md` |
+| gate policy | `COVERAGE.md` |
+| anything cross-repo | parent `CLAUDE.md` |
 
-The `en-GB` collator that orders categories, the `en-GB` formats in `src/lib/format.ts` and
-`<html lang="en">` in `src/routeOptions/root.tsx` are market choices, not names — changing any of them
-changes what the page says about itself to a crawler and what every date and distance looks like.
+⚠️ **Only server-rendered app on the platform.** Other two frontends are SPAs. Anything below that reads
+as ceremony is there because a request renders on a shared Node process before any browser exists.
 
-## Public is server-rendered, private is not
+## Routes
 
 | Surface | Routes | Mode |
 |---|---|---|
@@ -28,11 +25,11 @@ changes what the page says about itself to a crawler and what every date and dis
 
 ⚠️ **Never turn SSR on for an `/account` route.** Rendering authenticated HTML on a server that sits
 behind a shared `proxy_cache` is how one customer's personal data ends up in another customer's response.
-The cache bypasses on the session cookie (`nginx/conf.d/30-cache.conf` in the **parent workspace** — the
-copy that used to sit in `docs/nginx/` here is gone), so the two rules are one mechanism — weakening
-either alone is enough to leak. There is also nothing to gain: an account page has no SEO value.
+The cache bypasses on the session cookie (`nginx/conf.d/30-cache.conf` in the **parent workspace**), so the
+two rules are one mechanism — weakening either alone is enough to leak. Nothing to gain either: an account
+page has no SEO value.
 
-## The four endpoints are the **user** tier's
+## Endpoints — user tier only
 
 | Path | Service | Port |
 |---|---|---|
@@ -42,65 +39,61 @@ either alone is enough to leak. There is also nothing to gain: an account page h
 | `/user-authenticated-resource` | `marketplace-dev-user-authenticated-resource` | 4032 |
 | `/logout` | `marketplace-dev-authenticated-logout` | 4030 |
 
-⚠️ **`/authenticated-*` (4026 / 4029) belongs to the ShopOwner tier and pointing anything here at it now
-fails closed** — since the Phase 0 tier fix a session carries a `tier` field and a service rejects a token
-minted for another one with a 403. `/logout` is shared by all three tiers on purpose: that resolver
-deletes Redis keys by token content and never asks which collection minted them.
+⚠️ **`/authenticated-*` (4026 / 4029) is the ShopOwner tier — pointing anything here at it fails closed.**
+A session carries a `tier` field and a service 403s a token minted for another one. `/logout` is shared by
+all three tiers on purpose: it deletes Redis keys by token content, never asking which collection minted
+them.
 
-The SSR server does **not** use those browser-facing paths. It reads `PUBLIC_RESOURCE_URL` — deliberately
-un-prefixed, because a `VITE_` variable is inlined into the client bundle and this one names a loopback
+SSR server does **not** use those browser-facing paths. It reads `PUBLIC_RESOURCE_URL` — deliberately
+un-prefixed, since a `VITE_` variable is inlined into the client bundle and this one names a loopback
 address — and talks to public-resource directly, skipping nginx.
 
-## Route files are one-liners; the behaviour is in `src/routeOptions/`
+## Route files are one-liners
 
-`src/routes/x.tsx` is `createFileRoute('/x')(xRouteOptions)` and nothing else. The options object is a
-plain constant that imports nothing from the router, which is what makes loaders, `head` and
-`validateSearch` testable without mounting one. Keep the pattern when adding a route.
-
-Its one cost, measured and accepted: the framework's route-level code splitter reads literal properties
-inside `createFileRoute(...)({ … })` and cannot see into an imported identifier, so no route is split out
-of the entry chunk. The chunk that mattered is split anyway — see the map below. README §7 has the numbers.
+`src/routes/x.tsx` = `createFileRoute('/x')(xRouteOptions)`, nothing else. The options object imports
+nothing from the router → loaders, `head` and `validateSearch` testable without mounting one. Keep the
+pattern. Cost, measured and accepted: no route splits out of the entry chunk (README §7). The one chunk
+that mattered is split anyway — see the map section.
 
 ## Things that bite
 
-- **`vite.config.ts`: `router.routesDirectory` and `router.generatedRouteTree` are relative to
-  `srcDirectory`, not to the project root.** Writing `'src/routes'` resolves to `src/src/routes` and the
-  build dies with an `ENOENT` naming a path nobody typed. They are `'routes'` and `'routeTree.gen.ts'`.
-- **`autoCodeSplitting` cannot be set.** Start builds its router options as
-  `configSchema.omit({ autoCodeSplitting: true, target: true })`, so writing it is a type error.
+- **`vite.config.ts`: `router.routesDirectory` / `router.generatedRouteTree` resolve against `srcDirectory`,
+  not the project root.** `'src/routes'` → `src/src/routes`, and the build dies with an `ENOENT` naming a
+  path nobody typed. They are `'routes'` and `'routeTree.gen.ts'`.
+- **`autoCodeSplitting` cannot be set.** Start builds router options as
+  `configSchema.omit({ autoCodeSplitting: true, target: true })` → writing it is a type error.
 - **`src/routeTree.gen.ts` is committed, and prettier ignores it.** `yarn build` runs `tsc --noEmit`
-  *before* vite generates it, so a clone without the file fails to type-check.
+  *before* vite generates it → a clone without the file fails to type-check.
 - **`src/lib/seo.ts`'s `HeadContent` holds mutable arrays deliberately.** The router's
-  `UpdatableRouteOptions` declares `meta` and `links` as mutable, and TypeScript refuses `readonly T[]`
-  where `T[]` is expected. Marking them `readonly` breaks *every* `createFileRoute` call with an error
-  that names `DetailedHTMLProps<LinkHTMLAttributes<…>>` and never mentions `seo.ts`.
-- **Paginated routes declare `page` as `.catch(1).optional()`.** TanStack derives the requiredness of the
-  `search` prop from the *output* type: without `.optional()` every `<Link to="/shops">` in the app must
-  pass `search={{ page: 1 }}` and then emits `/shops?page=1` — a second URL for page 1, competing in the
-  index with the canonical the same route emits. `pageNumber()` normalises in `loaderDeps` so an absent
-  `?page=` and an explicit `?page=1` produce one cache key.
-- **`tsconfig.json` pins `types` to three entries**, which switches off automatic `@types/*` inclusion —
-  so the ambient `GeoJSON` namespace is not in scope and those types are imported from `geojson`.
-  `maplibre-gl` 6 has **no default export**; it is a namespace import.
-- **`exactOptionalPropertyTypes: true`.** A prop a call site always passes, whose *value* may be
-  `undefined`, must be declared `x?: T | undefined`. A bare `x?: T` rejects it.
-- **Coordinates are checked, never cast.** `Point.coordinates` is `number[]`;
-  `as readonly [number, number]` does not compile and the mutable variant compiles into a `NaN` centre.
-  Use `toLngLat` / `toMutableLngLat` from `src/lib/geo.ts`.
-- **`setState` in an effect body is an eslint error** (`react-hooks/set-state-in-effect`), not a warning.
-  Clearing state that a keystroke caused belongs in the change handler; inside a debounce timer is fine.
+  `UpdatableRouteOptions` declares `meta` and `links` mutable, and TS refuses `readonly T[]` where `T[]` is
+  expected. Marking them `readonly` breaks *every* `createFileRoute` call with an error naming
+  `DetailedHTMLProps<LinkHTMLAttributes<…>>` that never mentions `seo.ts`.
+- **Paginated routes declare `page` as `.catch(1).optional()`.** TanStack derives requiredness of `search`
+  from the *output* type: without `.optional()` every `<Link to="/shops">` must pass `search={{ page: 1 }}`
+  and emits `/shops?page=1` — a second URL for page 1, competing in the index with the canonical the same
+  route emits. `pageNumber()` normalises in `loaderDeps` so absent `?page=` and explicit `?page=1` share one
+  cache key.
+- **`tsconfig.json` pins `types` to three entries** → automatic `@types/*` inclusion off, ambient `GeoJSON`
+  namespace out of scope, those types imported from `geojson`. `maplibre-gl` 6 has **no default export** —
+  namespace import.
+- **`exactOptionalPropertyTypes: true`.** A prop always passed whose *value* may be `undefined` must be
+  declared `x?: T | undefined`. Bare `x?: T` rejects it.
+- **Coordinates are checked, never cast.** `Point.coordinates` is `number[]`; `as readonly [number, number]`
+  does not compile and the mutable variant compiles into a `NaN` centre. Use `toLngLat` /
+  `toMutableLngLat` from `src/lib/geo.ts`.
+- **`setState` in an effect body is an eslint *error*** (`react-hooks/set-state-in-effect`), not a warning.
+  Clearing state a keystroke caused belongs in the change handler; inside a debounce timer is fine.
 - **`yarn start` runs `serve.mjs`, not the build output.** `vite build` emits `dist/server/server.js`,
-  whose default export is `{ fetch }` — a handler with no listener. There is no `.output/` here: that path
-  belongs to the Nitro preset, which this app does not install. The process serves SSR only; nginx serves
-  `dist/client`.
+  default export `{ fetch }` — a handler with no listener. No `.output/` here: that path belongs to the
+  Nitro preset, which this app does not install. The process serves SSR only; nginx serves `dist/client`.
 
 ## The map is an island, and that is load-bearing
 
 `src/features/map/ShopMap.tsx` is reachable **only** through `MapIsland`'s dynamic import. Importing it
-statically from a route puts ~950 KB of MapLibre into the entry chunk of every catalogue page, including
-the ones with no map, and breaks SSR outright — the module touches `window` and WebGL at module scope.
-`MapIsland`'s placeholder reserves the final height on purpose: an island mounting into a zero-height box
-is a Cumulative Layout Shift, so never render the fallback as `null`.
+statically puts ~950 KB of MapLibre into the entry chunk of every catalogue page, including the ones with
+no map, and breaks SSR outright — the module touches `window` and WebGL at module scope. `MapIsland`'s
+placeholder reserves the final height on purpose: an island mounting into a zero-height box is a
+Cumulative Layout Shift, so never render the fallback as `null`.
 
 Every pin is also a real `<a href>` in the listing beside it. The map is a way to look at the catalogue,
 never the only route into a page.
@@ -116,9 +109,21 @@ yarn lint           # eslint --fix + prettier --write   (lint:check for CI and t
 yarn test  test:cov  test:mutation   # gated at 100 / 100
 ```
 
-⚠️ **`schema/*.graphql` are hand-maintained slices, not the contract.** No service has an SDL file; all of
-them build their schema programmatically, so the resolvers are the source of truth and these slices drift.
+⚠️ **`schema/*.graphql` are hand-maintained slices, not the contract.** No service has an SDL file; all
+build their schema programmatically → the resolvers are the source of truth and these slices drift.
 Re-check against the resolver before adding or changing an operation.
+
+## Language
+
+⚠️ **English only** — identifiers, UI text, routes, comments, fixtures. No exception; adding one word of a
+second language is a regression, not a style nit.
+
+The `en-GB` collator ordering categories, the `en-GB` formats in `src/lib/format.ts` and `<html lang="en">`
+in `src/routeOptions/root.tsx` are market choices, not names: changing one changes what the page says
+about itself to a crawler and what every date and distance looks like.
+
+Git rules — branch first, never commit on `main`, no remote, push-on-request — are the parent's, and apply
+here unchanged.
 
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
