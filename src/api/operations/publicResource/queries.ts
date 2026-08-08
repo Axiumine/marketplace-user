@@ -6,7 +6,7 @@ import { graphql } from '@gql/publicResource'
  *
  * ⚠️ Select only what the page renders. These queries are the ones a crawler triggers, so their cost is
  * multiplied by every indexed URL — and two of them (`companies`, `items`) sort a collection that will
- * hold hundreds of thousands of rows. The backend indexes cover the exact key order these arguments
+ * hold hundreds of thousands of documents. The backend indexes cover the exact key order these arguments
  * produce; adding a field is free, adding an argument is not.
  */
 
@@ -154,7 +154,7 @@ export const ItemCategoriesDocument = graphql(`
  * `/search?q=`. Text search over published companies and items, optionally narrowed to a radius.
  *
  * Both halves come back in one round trip because the results page shows them together; splitting it
- * would double the text-index work for the same rows.
+ * would double the text-index work for the same documents.
  */
 export const SearchDocument = graphql(`
 	query Search($q: String!, $near: GraphQLInputNearPoint, $limit: Int) {
@@ -191,8 +191,8 @@ export const SearchDocument = graphql(`
 /**
  * Feeds `/sitemap-:kind-:page.xml`. Keyset paginated: hand back `nextAfterId` until it is null.
  *
- * ⚠️ Never re-implement this with an offset. Walking 500K rows with `skip` degrades quadratically —
- * the server re-reads and discards every skipped row — while `_id > afterId` is one index seek per
+ * ⚠️ Never re-implement this with an offset. Walking 500K documents with `skip` degrades quadratically
+ * — the server re-reads and discards every skipped one — while `_id > afterId` is one index seek per
  * page regardless of depth.
  */
 export const SitemapEntriesDocument = graphql(`

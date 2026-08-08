@@ -14,8 +14,8 @@ import type { RouteHead } from '../helpers/head'
 import { canonicalOf, jsonLdTyped, linkOf, metaOf, titleOf } from '../helpers/head'
 import { renderRoute } from '../helpers/render'
 
-const mount = async (path: string, items: GraphQLReply = itemsReply([itemOf()]), rows?: readonly FixtureCategory[]) => {
-	const stub = stubGraphQL({ ItemCategories: categoriesReply(rows), Items: items })
+const mount = async (path: string, items: GraphQLReply = itemsReply([itemOf()]), docs?: readonly FixtureCategory[]) => {
+	const stub = stubGraphQL({ ItemCategories: categoriesReply(docs), Items: items })
 	const result = await renderRoute(path)
 
 	return { ...result, stub }

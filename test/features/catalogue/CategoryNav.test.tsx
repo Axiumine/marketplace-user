@@ -11,7 +11,7 @@ import { renderWithRouter } from '../../helpers/render'
 /**
  * The loaders of every route this file stands on: `/` asks for shops and the tree, and a category route
  * asks for the tree and that category's items. The tree here is the flat shape the resolver answers with
- * — `nestCategories` builds the nodes below out of the same rows.
+ * — `nestCategories` builds the nodes below out of the same documents.
  */
 const REPLIES: GraphQLReplies = {
 	Companies: { data: { companies: { nodes: [], total: 0, totalIsExact: true, hasMore: false } } },

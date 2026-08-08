@@ -71,7 +71,7 @@ export const itemOf = (over: Partial<FixtureItem> = {}): FixtureItem => ({
 	...over
 })
 
-/** The flat rows the resolver answers with — `nestCategories` is what turns them into a two-level tree. */
+/** The flat documents the resolver answers with — `nestCategories` turns them into a two-level tree. */
 export const CATEGORIES: readonly FixtureCategory[] = [
 	{ _id: 'cat-apparel', idParent: null, name: 'Apparel', slug: 'apparel', position: 1 },
 	{ _id: 'cat-craft', idParent: null, name: 'Handmade', slug: 'handmade', position: 2 },
@@ -106,8 +106,8 @@ export const itemsReply = (nodes: readonly FixtureItem[], page: PageOptions = {}
 	}
 })
 
-export const categoriesReply = (rows: readonly FixtureCategory[] = CATEGORIES): GraphQLReply => ({
-	data: { itemCategories: rows }
+export const categoriesReply = (docs: readonly FixtureCategory[] = CATEGORIES): GraphQLReply => ({
+	data: { itemCategories: docs }
 })
 
 export const nearbyReply = (nodes: readonly FixtureCompany[] = [], truncated = false): GraphQLReply => ({

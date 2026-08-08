@@ -47,7 +47,7 @@ const registerPmtilesProtocol = () => {
 	protocolRegistered = true
 }
 
-/** Matches the resolver's own cap. Asking for more is answered with `truncated: true`, not with more rows. */
+/** Matches the resolver's own cap. Asking for more is answered with `truncated: true`, not with more pins. */
 const MAX_PINS = 500
 
 /**
