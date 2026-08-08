@@ -547,7 +547,7 @@ to `localStorage` or a readable cookie · the tier assertion of §3.7.
 - **Meilisearch is the expected next step** for search, once the catalogue is real (§3.6).
 - **The PMTiles archive needs a refresh job.** Monthly is fine for shop locations.
 - **Orders, cart, delivery and payment are unbuilt** and undesigned. Nothing here assumes their shape.
-- **`@thedoctorweb_agency/marketplace-common` is not published to npm.** It is deployed locally into each
+- **`@axiumine/marketplace-common` is not published to npm.** It is deployed locally into each
   consumer's `node_modules` by a script in that repo, and must be redeployed after every edit.
 
 ---

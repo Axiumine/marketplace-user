@@ -6,7 +6,7 @@
 #
 # ⚠️ This WIPES node_modules before mounting. Do not run it if you have local patches there.
 #
-# ⚠️ This repo is one of the consumers of `@thedoctorweb_agency/marketplace-common`, which is NOT on
+# ⚠️ This repo is one of the consumers of `@axiumine/marketplace-common`, which is NOT on
 # any registry — the services resolve it from a copy placed in node_modules by
 # `BEs/marketplace-common/deploy-local.sh`. Wiping node_modules therefore wipes that copy too, and
 # `yarn install` cannot put it back. Re-run the deploy script after this one if the install fails to
