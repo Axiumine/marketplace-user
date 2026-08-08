@@ -28,8 +28,9 @@ changes what the page says about itself to a crawler and what every date and dis
 
 ⚠️ **Never turn SSR on for an `/account` route.** Rendering authenticated HTML on a server that sits
 behind a shared `proxy_cache` is how one customer's personal data ends up in another customer's response.
-The cache bypasses on the session cookie (`docs/nginx/cache.conf`), so the two rules are one mechanism —
-weakening either alone is enough to leak. There is also nothing to gain: an account page has no SEO value.
+The cache bypasses on the session cookie (`nginx/conf.d/30-cache.conf` in the **parent workspace** — the
+copy that used to sit in `docs/nginx/` here is gone), so the two rules are one mechanism — weakening
+either alone is enough to leak. There is also nothing to gain: an account page has no SEO value.
 
 ## The four endpoints are the **user** tier's
 
