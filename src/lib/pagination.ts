@@ -3,11 +3,11 @@
  *
  * The URL carries `?page=2` because that is what a person reads, links to and a crawler follows; the
  * API takes `limit`/`offset`. Keeping the translation in one place is what stops a page from being
- * off by one row — the classic `offset = page * limit` with a 1-based page, which silently skips the
+ * off by one page — the classic `offset = page * limit` with a 1-based page, which silently skips the
  * first `limit` results and is invisible on page 1.
  */
 
-/** Rows per listing page. One screen of cards, and small enough that page 1 is the LCP candidate. */
+/** Items per listing page. One screen of cards, and small enough that page 1 is the LCP candidate. */
 export const PAGE_SIZE = 24
 
 /** 1-based, and clamped: `?page=0` and `?page=-3` are page 1, not an error and not an empty listing. */

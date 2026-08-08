@@ -456,7 +456,7 @@ separately so it can be struck without unpicking the rest:
 | `idCategory` | Categories were requested. Without the link they cannot filter anything. |
 | `slug` | SEO URLs need a stable, readable path segment. Unique per company. |
 | `published` | A shop owner must be able to draft an item without it appearing on a public, indexed page. |
-| `deleted` | The platform's soft-delete convention — `companyDel` stamps a date rather than removing the row. |
+| `deleted` | The platform's soft-delete convention — `companyDel` stamps a date rather than removing the document. |
 
 Indexes: `idCompany_list`, unique `{idCompany, slug}`, compound `{idCompany, published}`, and a `text`
 index on `name` + `description`.

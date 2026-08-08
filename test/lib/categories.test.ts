@@ -139,7 +139,7 @@ describe('findCategory', () => {
 	/*
 	 * A dangling `idParent` answers the category with no parent rather than nothing at all. The page can
 	 * still render — it is the breadcrumb that loses a link — and refusing to resolve the category would
-	 * turn one broken row in the database into a 404 on a page full of items.
+	 * turn one broken document in the database into a 404 on a page full of items.
 	 */
 	it('answers the category alone when its parent is missing from the list', () => {
 		expect(findCategory([SATCHELS], 'satchels')).toStrictEqual({ category: SATCHELS })

@@ -133,7 +133,7 @@ type GraphQLPublicItemPage {
 }
 
 # Denormalised on the way out: `companySlug` and `companyPublicName` are joined in by the resolver so a
-# search result can link to `/shop/:companySlug/item/:slug` without a second round trip per row.
+# search result can link to `/shop/:companySlug/item/:slug` without a second round trip per item.
 type GraphQLPublicItemHit {
 	_id: ID!
 	idCategory: ID!
@@ -160,7 +160,7 @@ type GraphQLPublicSearchResult {
 }
 
 # Keyset pagination, not offset: `nextAfterId` is null on the last page. A sitemap generator walking
-# 500K rows with `skip` degrades quadratically; `_id > afterId` does not.
+# 500K documents with `skip` degrades quadratically; `_id > afterId` does not.
 type GraphQLSitemapPage {
 	nodes: [GraphQLSitemapEntry!]!
 	nextAfterId: ID

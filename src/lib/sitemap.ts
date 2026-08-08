@@ -10,7 +10,7 @@ import { absoluteUrl } from './seo'
  * The sitemap builders, kept out of the route files so they can be tested without a server.
  *
  * ⚠️ **A shard is addressed by a cursor, not by a page number, and that is the whole design.** The
- * backend paginates by keyset (`_id > afterId`) because offsetting into 500K rows degrades
+ * backend paginates by keyset (`_id > afterId`) because offsetting into 500K documents degrades
  * quadratically. A `/sitemaps/ITEM/7` URL would have to re-walk shards 1–6 on every request to find
  * where 7 begins, which puts the quadratic cost back — in the one place a crawler hits hardest. With the
  * cursor in the URL (`/sitemaps/ITEM/652f…`) each shard is a fixed number of index seeks no matter how

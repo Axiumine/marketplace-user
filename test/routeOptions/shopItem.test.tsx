@@ -26,7 +26,7 @@ describe('the item route', () => {
 	/*
 	 * ⚠️ Both segments go to the resolver. An item slug is unique *per company* — the backend's unique index
 	 * is `{idCompany, slug}` — so the item slug alone cannot resolve, and a query that sent only it would
-	 * answer with whichever shop's row happened to sort first.
+	 * answer with whichever shop's item happened to sort first.
 	 */
 	it('resolves the item by shop and slug together', async () => {
 		const { stub } = await mount()
