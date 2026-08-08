@@ -29,13 +29,13 @@ const route = getRouteApi('/')
 const HOME_LIMIT = 12
 
 /**
- * Rome, at a zoom that frames most of Italy.
+ * The country's geographic centre, at a zoom that frames most of it.
  *
  * A fixed centre rather than the visitor's geolocation: asking for location permission on first paint is
  * a prompt before any value has been offered, and most people refuse it. The map queries whatever
  * viewport it ends up in, so panning is the interaction that narrows it.
  */
-const CENTER: readonly [number, number] = [12.4964, 41.9028]
+const CENTER: readonly [number, number] = [-98.5795, 39.8283]
 const ZOOM = 5
 
 const loader = async ({ context }: { context: RouterContext }) => {

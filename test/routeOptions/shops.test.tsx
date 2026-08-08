@@ -10,7 +10,7 @@ import type { RouteHead } from '../helpers/head'
 import { canonicalOf, jsonLdTyped, linkOf, metaOf, titleOf } from '../helpers/head'
 import { renderRoute } from '../helpers/render'
 
-const OTHER = companyOf({ _id: '66b0000000000000000000c2', publicName: 'Panificio Verdi', slug: 'panificio-verdi' })
+const OTHER = companyOf({ _id: '66b0000000000000000000c2', publicName: 'Green Boutique', slug: 'green-boutique' })
 
 const mount = async (path = '/shops', companies: GraphQLReply = companiesReply([companyOf(), OTHER])) => {
 	const stub = stubGraphQL({ Companies: companies })
@@ -50,7 +50,7 @@ describe('the shops route', () => {
 		await mount()
 
 		expect(screen.getByRole('heading', { level: 1, name: 'All shops' })).toBeInTheDocument()
-		expect(screen.getByRole('link', { name: /Bottega Rossi/ })).toHaveAttribute('href', '/shop/bottega-rossi')
+		expect(screen.getByRole('link', { name: /Rivers Boutique/ })).toHaveAttribute('href', '/shop/rivers-boutique')
 	})
 
 	it('says how many shops there are', async () => {
@@ -64,13 +64,13 @@ describe('the shops route', () => {
 	 * and then `total` is the cap rather than the answer — it always understates, so a customer told "500
 	 * shops" where there are 40 000 concludes the site is empty.
 	 *
-	 * `12.500` and not `12500` because the locale is `it-IT`, where CLDR suppresses grouping below five
-	 * digits: 1000 formats as `1000` and 12500 as `12.500`.
+	 * `12,500` and not `12500` because the locale is `en-GB`, which groups thousands with a comma from four
+	 * digits up: 1000 formats as `1,000` and 12500 as `12,500`.
 	 */
 	it('marks a total the resolver stopped counting', async () => {
 		await mount('/shops', companiesReply([companyOf()], { total: 12500, totalIsExact: false }))
 
-		expect(screen.getByText(/shops published/).textContent).toBe('12.500+ shops published.')
+		expect(screen.getByText(/shops published/).textContent).toBe('12,500+ shops published.')
 	})
 
 	it('says so when a page is past the end of the listing', async () => {
@@ -145,7 +145,7 @@ describe('the shops search parameter', () => {
 
 describe('the shops route head', () => {
 	it('titles the first page without a page number', () => {
-		expect(titleOf(head(1, ['bottega-rossi']))).toBe('All shops · Marketplace')
+		expect(titleOf(head(1, ['rivers-boutique']))).toBe('All shops · Marketplace')
 		expect(metaOf(head(1, []), 'robots')).toBeUndefined()
 	})
 
@@ -208,10 +208,10 @@ describe('the shops route head', () => {
 	 * a crawler it is looking at three different lists that all begin with a first result.
 	 */
 	it('numbers the list from where the page actually starts', () => {
-		const list = jsonLdTyped(head(3, ['bottega-rossi']), 'ItemList')
+		const list = jsonLdTyped(head(3, ['rivers-boutique']), 'ItemList')
 
 		expect(list?.itemListElement).toEqual([
-			{ '@type': 'ListItem', position: 49, url: 'http://127.0.0.1:3045/shop/bottega-rossi' }
+			{ '@type': 'ListItem', position: 49, url: 'http://127.0.0.1:3045/shop/rivers-boutique' }
 		])
 	})
 

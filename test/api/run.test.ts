@@ -21,20 +21,20 @@ const ShopDocument = gql`
 	}
 ` as TypedDocumentNode<Shop, { slug: string }>
 
-const run = () => runQuery(createSsrClient(SSR_URL), ShopDocument, { slug: 'panificio-rossi' })
+const run = () => runQuery(createSsrClient(SSR_URL), ShopDocument, { slug: 'rivers-boutique' })
 
 describe('runQuery', () => {
 	it('gives back the data a successful query answered', async () => {
-		stubGraphQL({ Shop: { data: { shop: { slug: 'panificio-rossi' } } } })
+		stubGraphQL({ Shop: { data: { shop: { slug: 'rivers-boutique' } } } })
 
-		expect(await run()).toEqual({ shop: { slug: 'panificio-rossi' } })
+		expect(await run()).toEqual({ shop: { slug: 'rivers-boutique' } })
 	})
 
 	it('passes the variables through to the server', async () => {
 		const stub = stubGraphQL({ Shop: { data: { shop: null } } })
 		await run()
 
-		expect(stub.calls[0]?.variables).toEqual({ slug: 'panificio-rossi' })
+		expect(stub.calls[0]?.variables).toEqual({ slug: 'rivers-boutique' })
 	})
 
 	/*
@@ -44,7 +44,7 @@ describe('runQuery', () => {
 	 * exactly the soft-404 this app exists to avoid.
 	 */
 	it('throws the error rather than answering an empty page', async () => {
-		stubGraphQL({ Shop: { errors: [graphQLError('Not Found', 'Questo negozio non esiste', 404)], status: 404 } })
+		stubGraphQL({ Shop: { errors: [graphQLError('Not Found', 'This shop does not exist', 404)], status: 404 } })
 
 		await expect(run()).rejects.toThrow('Not Found')
 	})
@@ -62,7 +62,7 @@ describe('runQuery', () => {
 	 */
 	it('throws on a partial response rather than rendering the half that worked', async () => {
 		stubGraphQL({
-			Shop: { data: { shop: { slug: 'panificio-rossi' } }, errors: [graphQLError('Internal Server Error')] }
+			Shop: { data: { shop: { slug: 'rivers-boutique' } }, errors: [graphQLError('Internal Server Error')] }
 		})
 
 		await expect(run()).rejects.toThrow('Internal Server Error')

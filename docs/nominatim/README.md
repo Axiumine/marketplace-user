@@ -23,7 +23,7 @@ milliseconds instead of 200–800 ms.
 
 ## What it costs
 
-Figures below are for the **Italy extract**. Treat them as the sizing to provision against, then measure —
+Figures below are for a **single-country extract** the size of the US Northeast. Treat them as the sizing to provision against, then measure —
 they move with the OSM data, which grows monotonically.
 
 |Resource|Import|Steady state|
@@ -43,7 +43,8 @@ per OSM node id, sized by the *global* id space and therefore ~90 GB regardless 
 For a single-country extract it buys little and costs that same 90 GB, because node ids are global and the
 file is indexed by id, not by how many of them the extract contains.
 
-**Do not enable it for Italy.** Enable it only if the extract is later widened to Europe or the planet, and
+**Do not enable it for a single-country extract.** Enable it only if the extract is later widened to a
+continent or the planet, and
 budget the full 90 GB when you do.
 
 ## Install
@@ -67,10 +68,10 @@ services:
       # Loopback only. nginx is the sole way in — see docs/nginx/marketplace-user.conf.
       - "127.0.0.1:8080:8080"
     environment:
-      PBF_URL: https://download.geofabrik.de/europe/italy-latest.osm.pbf
+      PBF_URL: https://download.geofabrik.de/north-america/us-northeast-latest.osm.pbf
       # Must be the *-updates URL matching the extract above, or replication silently
       # applies planet diffs to a country database and the import rots.
-      REPLICATION_URL: https://download.geofabrik.de/europe/italy-updates/
+      REPLICATION_URL: https://download.geofabrik.de/north-america/us-northeast-updates/
       REPLICATION_UPDATE_INTERVAL: 86400
       REPLICATION_RECHECK_INTERVAL: 900
       IMPORT_WIKIPEDIA: "false"
@@ -148,7 +149,7 @@ If `data_updated` stops moving, replication has stalled — almost always becaus
 match the extract, or because a diff arrived while the previous one was still applying. Restart the container
 and re-check; a stalled replication is silent otherwise, and the geocoder keeps answering with stale data.
 
-Re-import from scratch when: the extract's coverage changes (Italy → Europe), or a Nominatim major version
+Re-import from scratch when: the extract's coverage widens (one region → a continent), or a Nominatim major version
 bumps its schema. A re-import is `docker compose down -v && docker compose up -d` and the same hours again, so
 do it deliberately.
 
@@ -206,7 +207,7 @@ const GEOCODER_BASE = import.meta.env.VITE_GEOCODER_URL ?? '/geocode'
 const NOMINATIM_SEARCH = `${GEOCODER_BASE}/search`
 ```
 
-Three edits travel with it, and skipping them leaves the file lying about its own constraints:
+Two edits travel with it, and skipping them leaves the file lying about its own constraints:
 
 1. **The module doc comment (lines 3–16) documents a policy that no longer applies.** "one request per second,
    no bulk querying, and an identifiable client" describes the public instance. Rewrite it to say the instance
@@ -214,9 +215,6 @@ Three edits travel with it, and skipping them leaves the file lying about its ow
    the *user's* sake (not typing a query per keystroke) rather than to stay inside someone else's quota.
 2. **`SEARCH_DEBOUNCE_MS` in `AddressField` can drop** — it was sized by the 1 req/s policy. 150–200 ms is a
    UX number now, not a compliance one. Lower it deliberately, in the same commit, or leave it and say why.
-3. **`throw new Error(\`Nominatim ha risposto ${String(response.status)}\`)` is Italian** (line 132) and the
-   workspace is English-only since the 2026-08-04 rename. `Nominatim answered ${status}`. It is in the file
-   being edited anyway.
 
 Dev server proxy, in each app's `vite.config.ts`, alongside the existing GraphQL entries:
 
@@ -245,15 +243,15 @@ See the map section of `marketplace-user/README.md`.
 curl -s 'http://127.0.0.1:8080/status?format=json' | jq
 
 # the query the address field actually sends
-curl -s 'http://127.0.0.1:8080/search?q=Via+Roma+1+Milano&format=jsonv2&addressdetails=1&limit=5&countrycodes=it&accept-language=it' | jq '.[0]'
+curl -s 'http://127.0.0.1:8080/search?q=350+Fifth+Avenue+New+York&format=jsonv2&addressdetails=1&limit=5&countrycodes=us&accept-language=en' | jq '.[0]'
 
-# the province code the form reads must be present, and must be `IT-xx`
-curl -s 'http://127.0.0.1:8080/search?q=Milano&format=jsonv2&addressdetails=1&limit=1&countrycodes=it' \
+# the province code the form reads must be present, and must be `US-XX`
+curl -s 'http://127.0.0.1:8080/search?q=New+York&format=jsonv2&addressdetails=1&limit=1&countrycodes=us' \
   | jq '.[0].address["ISO3166-2-lvl6"]'
 
 # through the proxy, twice — MISS then HIT
-curl -sI 'https://<customer-domain>/geocode/search?q=Milano&format=jsonv2' | grep -i x-cache-status
-curl -sI 'https://<customer-domain>/geocode/search?q=Milano&format=jsonv2' | grep -i x-cache-status
+curl -sI 'https://<customer-domain>/geocode/search?q=New+York&format=jsonv2' | grep -i x-cache-status
+curl -sI 'https://<customer-domain>/geocode/search?q=New+York&format=jsonv2' | grep -i x-cache-status
 ```
 
 The third command is the one that decides whether the migration is complete: `src/lib/nominatim.ts` reads the
@@ -267,8 +265,9 @@ was standard.
   PostgreSQL fills it at 80%.
 - **Data is only as fresh as the diffs.** A shop at a brand-new address may not geocode until the OSM edit
   reaches the extract. The public instance has the same property; nobody notices because nobody watches it.
-- **Italy only.** A customer entering a foreign address gets nothing. The two panels are already restricted to
-  `countrycodes=it` and every field around them is an Italian address, so this narrows nothing that was open —
+- **One country only.** A customer entering a foreign address gets nothing. The two panels are already
+  restricted to `countrycodes=us` and every field around them is a US address, so this narrows nothing that
+  was open —
   but it is a real ceiling on where the platform can operate without a re-import.
 - **One instance is a single point of failure** for address entry. It degrades a form, not the platform: an
   address can still be typed by hand, and the map still renders because tiles come from PMTiles, not from here.

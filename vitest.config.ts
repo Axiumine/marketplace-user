@@ -54,8 +54,9 @@ export default defineConfig({
 		globals: true,
 		environment: 'jsdom',
 		// Dates on the customer screens are formatted through `Intl`, which reads the ambient zone.
-		// Without a fixed one the same assertion passes in Rome and fails in UTC — and the failure is an
-		// hour, which reads as a bug in the formatter rather than as a machine difference.
+		// Without a fixed one the same assertion passes on a machine an hour ahead of UTC and fails in
+		// UTC — and the failure is an hour, which reads as a bug in the formatter rather than as a
+		// machine difference.
 		//
 		// The test scripts export `TZ=UTC` as well, and both are needed. This setting reaches the worker
 		// through `process.env`, which is enough for vitest's own pool; Stryker's runner uses a pool where

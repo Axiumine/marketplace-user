@@ -8,8 +8,8 @@ import { z } from 'zod'
  * passphrases can log into the same account. Rejecting the input is the only honest handling; raising
  * the number here without changing the hash function would produce exactly that bug.
  *
- * ⚠️ It counts **bytes**, and the field the customer types into counts characters. An accented Italian
- * password ("perché…") spends two bytes per accent, so a 70-character passphrase can be 75 bytes and
+ * ⚠️ It counts **bytes**, and the field the customer types into counts characters. An accented
+ * password ("café…") spends two bytes per accent, so a 70-character passphrase can be 75 bytes and
  * fail server-side while passing a `.max(72)` on the string. `TextEncoder` is what the two sides agree
  * on.
  *

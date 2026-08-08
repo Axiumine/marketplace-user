@@ -27,7 +27,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
  *
  * Every assertion is a literal string rather than a comparison against another `Intl` call. The point of
  * the module is the locale it picks, and
- * `expect(formatDate(x)).toBe(new Intl.DateTimeFormat('it-IT', …).format(x))` passes for `en-US` too — it
+ * `expect(formatDate(x)).toBe(new Intl.DateTimeFormat('en-GB', …).format(x))` passes for `en-US` too — it
  * compares the formatter against itself.
  */
 
@@ -49,11 +49,11 @@ describe('the module-scope Intl formatters', () => {
 })
 
 describe('formatDate', () => {
-	it('writes an ISO timestamp the Italian way, day first', () => {
+	it('writes an ISO timestamp day first', () => {
 		expect(format.formatDate('2026-08-05T10:30:00.000Z')).toBe('05/08/2026')
 	})
 
-	// Two digits, both of them, on a date that has neither. The bare `it-IT` default writes `1/2/2026`, so
+	// Two digits, both of them, on a date that has neither. The bare `en-GB` default writes `1/2/2026`, so
 	// this is the one input that tells the configured formatter apart from an unconfigured one.
 	it('keeps the two-digit day and month of a single-digit date', () => {
 		expect(format.formatDate('2026-01-02T00:00:00.000Z')).toBe('02/01/2026')
@@ -65,7 +65,7 @@ describe('formatDate', () => {
 	})
 
 	// The zone is pinned to UTC by vitest.config.ts *and* by the test scripts. Without it this is
-	// 31/12/2025 in London and 01/01/2026 in Rome, and the failure reads as a formatter bug.
+	// 31/12/2025 in one zone and 01/01/2026 in another, and the failure reads as a formatter bug.
 	it('reads the timestamp in UTC, not in the machine zone', () => {
 		expect(format.formatDate('2025-12-31T23:30:00.000Z')).toBe('31/12/2025')
 	})
@@ -109,28 +109,28 @@ describe('formatDistance', () => {
 
 	it('rounds metres rather than truncating them', () => {
 		expect(format.formatDistance(940.6)).toBe('941 m')
-		expect(format.formatDistance(999.6)).toBe('1000 m')
+		expect(format.formatDistance(999.6)).toBe('1,000 m')
 	})
 
 	// The switch is at a thousand exactly, and the kilometre side always carries one decimal — `1 km`
-	// and `1,0 km` differ, and a listing where some rows have a decimal and some do not reads as broken.
+	// and `1.0 km` differ, and a listing where some rows have a decimal and some do not reads as broken.
 	it('switches to kilometres at exactly 1000 metres', () => {
 		expect(format.formatDistance(999)).toBe('999 m')
-		expect(format.formatDistance(1000)).toBe('1,0 km')
+		expect(format.formatDistance(1000)).toBe('1.0 km')
 	})
 
-	it('writes kilometres with a comma, the Italian decimal separator', () => {
-		expect(format.formatDistance(1234)).toBe('1,2 km')
+	it('writes kilometres with a dot, the decimal separator', () => {
+		expect(format.formatDistance(1234)).toBe('1.2 km')
 	})
 
 	/*
-	 * One decimal, always — and the group separator on the thousands. `it-IT` declares
-	 * `minimumGroupingDigits: 2`, so grouping only shows from five digits up; `2040,0 km` is correct and
-	 * would pass a laxer assertion whichever options the formatter had.
+	 * One decimal, always — and the group separator on the thousands. `en-GB` declares
+	 * `minimumGroupingDigits: 1`, so grouping shows from four digits up; `2.0 km` is correct and would
+	 * pass a laxer assertion whichever options the formatter had.
 	 */
-	it('groups thousands of kilometres with a dot, one decimal either way', () => {
-		expect(format.formatDistance(2000)).toBe('2,0 km')
-		expect(format.formatDistance(12_345_678)).toBe('12.345,7 km')
+	it('groups thousands of kilometres with a comma, one decimal either way', () => {
+		expect(format.formatDistance(2000)).toBe('2.0 km')
+		expect(format.formatDistance(12_345_678)).toBe('12,345.7 km')
 	})
 
 	/*
@@ -149,18 +149,18 @@ describe('formatDistance', () => {
 })
 
 describe('formatCount', () => {
-	it('groups thousands with a dot', () => {
-		expect(format.formatCount(12_345)).toBe('12.345')
+	it('groups thousands with a comma', () => {
+		expect(format.formatCount(12_345)).toBe('12,345')
 	})
 
 	/*
-	 * ⚠️ Not a bug and not a rounding accident: `it-IT` declares `minimumGroupingDigits: 2`, so a
-	 * four-digit number is written unseparated and grouping starts at five. Asserted rather than avoided,
-	 * because "1.234" is what everyone writing this test by hand expects and the first reaction to `1234`
-	 * on screen is to add `useGrouping: 'always'` — which would be wrong for the locale.
+	 * ⚠️ `en-GB` declares `minimumGroupingDigits: 1`, so grouping starts at four digits and not at five.
+	 * Asserted rather than avoided, because a locale that suppressed the separator here would render
+	 * `1234` beside `12,345` in the same column, and the first reaction to that is to add
+	 * `useGrouping: 'always'` — which changes nothing under this locale and hides the real rule.
 	 */
-	it('leaves a four-digit count unseparated, as Italian typography wants', () => {
-		expect(format.formatCount(1234)).toBe('1234')
+	it('groups a four-digit count, where some locales would not', () => {
+		expect(format.formatCount(1234)).toBe('1,234')
 	})
 
 	it('leaves a count below a thousand alone', () => {
@@ -170,7 +170,7 @@ describe('formatCount', () => {
 
 describe('formatTotal', () => {
 	it('writes the number when the resolver counted them all', () => {
-		expect(format.formatTotal(12_345, true)).toBe('12.345')
+		expect(format.formatTotal(12_345, true)).toBe('12,345')
 	})
 
 	/*

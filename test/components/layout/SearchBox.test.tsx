@@ -59,7 +59,7 @@ describe('SearchBox markup', () => {
 		expect(screen.getByLabelText('Search shops and items')).toBeInTheDocument()
 	})
 
-	// Echoed back so the header on `/search?q=pizza` shows what was searched for, instead of an empty box
+	// Echoed back so the header on `/search?q=ceramics` shows what was searched for, instead of an empty box
 	// above the results it produced.
 	it('shows the query it was given', async () => {
 		const { input } = await mount('ceramics')

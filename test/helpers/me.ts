@@ -29,21 +29,21 @@ export interface AddressFixture {
 export const HOME_ADDRESS: AddressFixture = {
 	_id: '66b0000000000000000000a1',
 	label: 'Home',
-	street: 'Via Roma 1',
-	postalCode: '20121',
-	city: 'Milano',
-	province: 'MI',
-	position: { type: 'Point', coordinates: [9.1895, 45.4642] }
+	street: '1 Main Street',
+	postalCode: '02108',
+	city: 'Boston',
+	province: 'MA',
+	position: { type: 'Point', coordinates: [-71.0589, 42.3601] }
 }
 
 /** Hand-typed: no geocoder match, so no position. It is still a saved address. */
 export const WORK_ADDRESS: AddressFixture = {
 	_id: '66b0000000000000000000a2',
 	label: null,
-	street: 'Via Dante 5',
-	postalCode: '20123',
-	city: 'Milano',
-	province: 'MI',
+	street: '5 Oak Street',
+	postalCode: '02115',
+	city: 'Boston',
+	province: 'MA',
 	position: null
 }
 
@@ -81,7 +81,7 @@ export const FRESH_ME: MeFixture = {
  */
 export const NAMED_ONLY_ME: MeFixture = {
 	...FRESH_ME,
-	personalData: { firstName: 'Giulia', lastName: 'Rossi', birth: null, contacts: null }
+	personalData: { firstName: 'Julia', lastName: 'Rivers', birth: null, contacts: null }
 }
 
 /** An account in use: details filled in, two addresses, the first of them the default. */
@@ -89,8 +89,8 @@ export const FULL_ME: MeFixture = {
 	...FRESH_ME,
 	defaultAddress: HOME_ADDRESS._id,
 	personalData: {
-		firstName: 'Giulia',
-		lastName: 'Rossi',
+		firstName: 'Julia',
+		lastName: 'Rivers',
 		birth: { date: '1990-04-17T00:00:00.000Z' },
 		contacts: { mobile: '3331234567', landline: null, email: 'orders@marketplace.it' }
 	},

@@ -76,7 +76,7 @@ describe('the account screens', () => {
 		const section = within(await screen.findByRole('region', { name: 'Your details' }))
 
 		expect(section.getByRole('heading', { level: 2, name: 'Your details' })).toBeInTheDocument()
-		expect(section.getByDisplayValue('Giulia')).toBeInTheDocument()
+		expect(section.getByDisplayValue('Julia')).toBeInTheDocument()
 	})
 
 	it('renders the address book', async () => {

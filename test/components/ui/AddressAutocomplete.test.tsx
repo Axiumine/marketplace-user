@@ -10,11 +10,11 @@ import { installOsm, resultOsm } from '../../helpers/nominatim'
 /** The component waits this long after the last keystroke before it asks the geocoder anything. */
 const DEBOUNCE_MS = 350
 
-const VIA_ROMA = resultOsm()
-const VIA_DANTE = resultOsm({
+const MAIN_STREET = resultOsm()
+const OAK_STREET = resultOsm({
 	place_id: 240109190,
-	display_name: 'Via Dante, 5, Milano, MI, 20121, Italia',
-	address: { ...VIA_ROMA.address, road: 'Via Dante', house_number: '5' }
+	display_name: 'Oak Street, 5, Boston, MA, 02108, USA',
+	address: { ...MAIN_STREET.address, road: 'Oak Street', house_number: '5' }
 })
 
 /*
@@ -26,7 +26,7 @@ const VIA_DANTE = resultOsm({
  *
  * The cost is the debounce itself, 350 ms per search, and it is paid honestly.
  */
-const setup = (replies: ResponseOsm | readonly ResponseOsm[] = { results: [VIA_ROMA] }) => {
+const setup = (replies: ResponseOsm | readonly ResponseOsm[] = { results: [MAIN_STREET] }) => {
 	const osm = installOsm(replies)
 	const onPick = vi.fn()
 	const user = userEvent.setup()
@@ -102,7 +102,7 @@ describe('the address search box', () => {
 		expect(listId).not.toBe('')
 		expect(listId).not.toBeNull()
 
-		await user.type(input, 'Via')
+		await user.type(input, 'Oak')
 
 		expect(await screen.findByRole('listbox')).toHaveAttribute('id', listId as string)
 	})
@@ -119,7 +119,7 @@ describe('the address search box', () => {
 
 describe('when to ask the geocoder', () => {
 	/*
-	 * ⚠️ Below three characters the query matches half of Italy and the lookup is the expensive part —
+	 * ⚠️ Below three characters the query matches half the country and the lookup is the expensive part —
 	 * Nominatim answers a full-text query against a PostgreSQL index, and it is the slowest thing this app
 	 * talks to.
 	 */
@@ -135,7 +135,7 @@ describe('when to ask the geocoder', () => {
 	it('asks once the query is long enough', async () => {
 		const { osm, user, input } = setup()
 
-		await user.type(input, 'Via')
+		await user.type(input, 'Oak')
 
 		await asked(osm, 1)
 	})
@@ -152,12 +152,12 @@ describe('when to ask the geocoder', () => {
 	it('sends the trimmed query', async () => {
 		const { osm, user, input } = setup()
 
-		await user.type(input, '  Via Roma  ')
+		await user.type(input, '  Main Street  ')
 		await asked(osm, 1)
 
 		// `URLSearchParams` spells a space `+`, not `%20`. Both are legal in a query string and Nominatim
 		// reads either; the assertion has to match what was actually sent.
-		expect(osm.calls[0]).toContain('q=Via+Roma')
+		expect(osm.calls[0]).toContain('q=Main+Street')
 	})
 
 	/*
@@ -167,7 +167,7 @@ describe('when to ask the geocoder', () => {
 	it('sends one request for a burst of keystrokes, not one each', async () => {
 		const { osm, user, input } = setup()
 
-		await user.type(input, 'Via Roma')
+		await user.type(input, 'Main Street')
 		await asked(osm, 1)
 		await past()
 
@@ -177,19 +177,19 @@ describe('when to ask the geocoder', () => {
 	it('asks again after a second pause', async () => {
 		const { osm, user, input } = setup()
 
-		await user.type(input, 'Via')
+		await user.type(input, 'Oak')
 		await asked(osm, 1)
 
-		await user.type(input, ' Roma')
+		await user.type(input, ' Street')
 		await asked(osm, 2)
 	})
 })
 
 describe('the suggestions', () => {
 	it('lists what the geocoder found', async () => {
-		const { user, input } = setup({ results: [VIA_ROMA, VIA_DANTE] })
+		const { user, input } = setup({ results: [MAIN_STREET, OAK_STREET] })
 
-		await user.type(input, 'Via')
+		await user.type(input, 'Oak')
 
 		expect(await screen.findByRole('listbox')).toBeInTheDocument()
 		expect(screen.getAllByRole('option')).toHaveLength(2)
@@ -198,7 +198,7 @@ describe('the suggestions', () => {
 	it('opens the combobox when there is something to show', async () => {
 		const { user, input } = setup()
 
-		await user.type(input, 'Via')
+		await user.type(input, 'Oak')
 		await screen.findByRole('listbox')
 
 		expect(input).toHaveAttribute('aria-expanded', 'true')
@@ -207,7 +207,7 @@ describe('the suggestions', () => {
 	it('shows no list when nothing matched', async () => {
 		const { osm, user, input } = setup({ results: [] })
 
-		await user.type(input, 'Via')
+		await user.type(input, 'Oak')
 		await asked(osm, 1)
 
 		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
@@ -216,9 +216,9 @@ describe('the suggestions', () => {
 	// The count is announced without moving focus off the box the customer is typing in — a list that
 	// appears silently is a list a screen reader user never learns about.
 	it('announces how many suggestions there are', async () => {
-		const { user, input } = setup({ results: [VIA_ROMA, VIA_DANTE] })
+		const { user, input } = setup({ results: [MAIN_STREET, OAK_STREET] })
 
-		await user.type(input, 'Via')
+		await user.type(input, 'Oak')
 
 		expect(await screen.findByText('2 suggestions')).toBeInTheDocument()
 	})
@@ -230,9 +230,9 @@ describe('the suggestions', () => {
 	 * answer.
 	 */
 	it('marks no suggestion as the selected one', async () => {
-		const { user, input } = setup({ results: [VIA_ROMA, VIA_DANTE] })
+		const { user, input } = setup({ results: [MAIN_STREET, OAK_STREET] })
 
-		await user.type(input, 'Via')
+		await user.type(input, 'Oak')
 		await screen.findByRole('listbox')
 
 		for (const option of screen.getAllByRole('option')) expect(option).toHaveAttribute('aria-selected', 'false')
@@ -241,7 +241,7 @@ describe('the suggestions', () => {
 	it('announces that it is searching while the request is in flight', async () => {
 		const { user, input } = setup({ pending: true })
 
-		await user.type(input, 'Via')
+		await user.type(input, 'Oak')
 
 		expect(await screen.findByText('Searching')).toBeInTheDocument()
 	})
@@ -249,10 +249,10 @@ describe('the suggestions', () => {
 
 describe('picking a suggestion', () => {
 	const pick = async () => {
-		const context = setup({ results: [VIA_ROMA] })
+		const context = setup({ results: [MAIN_STREET] })
 
-		await context.user.type(context.input, 'Via')
-		await context.user.click(await screen.findByRole('button', { name: VIA_ROMA.display_name }))
+		await context.user.type(context.input, 'Oak')
+		await context.user.click(await screen.findByRole('button', { name: MAIN_STREET.display_name }))
 
 		return context
 	}
@@ -267,20 +267,20 @@ describe('picking a suggestion', () => {
 
 		expect(onPick).toHaveBeenCalledWith({
 			id: '240109189',
-			label: VIA_ROMA.display_name,
-			street: 'Via Roma 1',
-			postalCode: '20121',
-			city: 'Milano',
-			province: 'MI',
-			lat: 45.4642,
-			lon: 9.1895
+			label: MAIN_STREET.display_name,
+			street: '1 Main Street',
+			postalCode: '02108',
+			city: 'Boston',
+			province: 'MA',
+			lat: 42.3601,
+			lon: -71.0589
 		})
 	})
 
 	it('writes the chosen address back into the box', async () => {
 		const { input } = await pick()
 
-		expect(input).toHaveValue(VIA_ROMA.display_name)
+		expect(input).toHaveValue(MAIN_STREET.display_name)
 	})
 
 	it('closes the list', async () => {
@@ -317,7 +317,7 @@ describe('clearing the box', () => {
 	it('drops the suggestions', async () => {
 		const { user, input } = setup()
 
-		await user.type(input, 'Via')
+		await user.type(input, 'Oak')
 		await screen.findByRole('listbox')
 
 		await user.clear(input)
@@ -338,7 +338,7 @@ describe('clearing the box', () => {
 	it('stops announcing a search that has nothing left to search for', async () => {
 		const { user, input } = setup({ pending: true })
 
-		await user.type(input, 'Via')
+		await user.type(input, 'Oak')
 		await screen.findByText('Searching')
 
 		await user.clear(input)
@@ -353,7 +353,7 @@ describe('clearing the box', () => {
 	 * reads as a flaky component rather than as an off-by-one.
 	 */
 	it('keeps the suggestions when a deletion leaves the query still long enough', async () => {
-		const { user, input } = setup([{ results: [VIA_ROMA] }, { results: [VIA_ROMA] }])
+		const { user, input } = setup([{ results: [MAIN_STREET] }, { results: [MAIN_STREET] }])
 
 		await user.type(input, 'Vial')
 		await screen.findByRole('listbox')
@@ -376,7 +376,7 @@ describe('clearing the box', () => {
 	it('treats a box holding only whitespace as an emptied one', async () => {
 		const { user, input } = setup()
 
-		await user.type(input, 'Via')
+		await user.type(input, 'Oak')
 		await screen.findByRole('listbox')
 
 		await user.tripleClick(input)
@@ -388,7 +388,7 @@ describe('clearing the box', () => {
 	it('clears a failure message too', async () => {
 		const { user, input } = setup({ status: 503 })
 
-		await user.type(input, 'Via')
+		await user.type(input, 'Oak')
 		await screen.findByText(/lookup is unavailable/)
 
 		await user.clear(input)
@@ -401,30 +401,30 @@ describe('when the geocoder does not answer', () => {
 	it('says so and points the customer at the fields below', async () => {
 		const { user, input } = setup({ status: 503 })
 
-		await user.type(input, 'Via')
+		await user.type(input, 'Oak')
 
 		expect(await screen.findByText(/Fill the fields in below by hand/)).toBeInTheDocument()
 	})
 
 	it('shows no stale suggestions alongside the failure', async () => {
-		const { user, input } = setup([{ results: [VIA_ROMA] }, { status: 503 }])
+		const { user, input } = setup([{ results: [MAIN_STREET] }, { status: 503 }])
 
-		await user.type(input, 'Via')
+		await user.type(input, 'Oak')
 		await screen.findByRole('listbox')
 
-		await user.type(input, ' Roma')
+		await user.type(input, ' Street')
 		await screen.findByText(/Fill the fields in below by hand/)
 
 		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
 	})
 
 	it('clears the failure once a later search succeeds', async () => {
-		const { user, input } = setup([{ status: 503 }, { results: [VIA_ROMA] }])
+		const { user, input } = setup([{ status: 503 }, { results: [MAIN_STREET] }])
 
-		await user.type(input, 'Via')
+		await user.type(input, 'Oak')
 		await screen.findByText(/Fill the fields in below by hand/)
 
-		await user.type(input, ' Roma')
+		await user.type(input, ' Street')
 		await screen.findByRole('listbox')
 
 		expect(screen.queryByText(/Fill the fields in below by hand/)).not.toBeInTheDocument()
@@ -439,19 +439,19 @@ describe('the abort', () => {
 	 * fixture answers slowly on purpose: without the abort it would overwrite the second one's results.
 	 */
 	it('abandons a request the next keystroke superseded', async () => {
-		const { osm, user, input } = setup([{ results: [VIA_ROMA], delay: 600 }, { results: [VIA_DANTE] }])
+		const { osm, user, input } = setup([{ results: [MAIN_STREET], delay: 600 }, { results: [OAK_STREET] }])
 
 		// Awaited between the two, or the debounce collapses them into one request and there is nothing to
 		// supersede.
-		await user.type(input, 'Via')
+		await user.type(input, 'Oak')
 		await asked(osm, 1)
-		await user.type(input, ' Dante')
+		await user.type(input, ' Oak')
 
-		expect(await screen.findByRole('button', { name: VIA_DANTE.display_name })).toBeInTheDocument()
+		expect(await screen.findByRole('button', { name: OAK_STREET.display_name })).toBeInTheDocument()
 
 		await past()
 
-		expect(screen.queryByRole('button', { name: VIA_ROMA.display_name })).not.toBeInTheDocument()
+		expect(screen.queryByRole('button', { name: MAIN_STREET.display_name })).not.toBeInTheDocument()
 	})
 
 	/*
@@ -459,11 +459,11 @@ describe('the abort', () => {
 	 * message on every fast typist's screen. `signal.aborted` is the only way to tell them apart.
 	 */
 	it('does not report an abandoned request as a failure', async () => {
-		const { osm, user, input } = setup([{ pending: true }, { results: [VIA_DANTE] }])
+		const { osm, user, input } = setup([{ pending: true }, { results: [OAK_STREET] }])
 
-		await user.type(input, 'Via')
+		await user.type(input, 'Oak')
 		await asked(osm, 1)
-		await user.type(input, ' Dante')
+		await user.type(input, ' Oak')
 		await screen.findByRole('listbox')
 
 		expect(screen.queryByText(/lookup is unavailable/)).not.toBeInTheDocument()
@@ -479,7 +479,7 @@ describe('the abort', () => {
 	it('does not report an abandoned request as a failure when nothing follows it', async () => {
 		const { osm, user, input } = setup({ pending: true })
 
-		await user.type(input, 'Via')
+		await user.type(input, 'Oak')
 		await asked(osm, 1)
 		await user.clear(input)
 		await past()
@@ -496,11 +496,11 @@ describe('the abort', () => {
 	it('leaves the search announcement standing when a keystroke supersedes the request', async () => {
 		const { osm, user, input } = setup([{ pending: true }, { pending: true }])
 
-		await user.type(input, 'Via')
+		await user.type(input, 'Oak')
 		await asked(osm, 1)
 		await screen.findByText('Searching')
 
-		await user.type(input, ' Dante')
+		await user.type(input, ' Oak')
 
 		expect(screen.getByText('Searching')).toBeInTheDocument()
 	})
@@ -513,7 +513,7 @@ describe('the abort', () => {
 	it('abandons a request when the field unmounts', async () => {
 		const { osm, user, input, unmount } = setup({ pending: true })
 
-		await user.type(input, 'Via')
+		await user.type(input, 'Oak')
 		await asked(osm, 1)
 
 		expect(() => {

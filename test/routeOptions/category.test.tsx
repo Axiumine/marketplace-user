@@ -21,20 +21,26 @@ const mount = async (path: string, items: GraphQLReply = itemsReply([itemOf()]),
 	return { ...result, stub }
 }
 
-const FOOD: FixtureCategory = { _id: 'cat-food', idParent: null, name: 'Alimentari', slug: 'alimentari', position: 1 }
-const BAKERY: FixtureCategory = { _id: 'cat-bakery', idParent: 'cat-food', name: 'Panetteria', slug: 'panetteria', position: 1 }
+const APPAREL: FixtureCategory = { _id: 'cat-apparel', idParent: null, name: 'Apparel', slug: 'apparel', position: 1 }
+const FOOTWEAR: FixtureCategory = {
+	_id: 'cat-footwear',
+	idParent: 'cat-apparel',
+	name: 'Footwear',
+	slug: 'footwear',
+	position: 1
+}
 
 const resultOf = (over: Partial<CategoryLoaderResult> = {}): CategoryLoaderResult =>
 	({
-		category: FOOD,
+		category: APPAREL,
 		children: [],
 		crumbs: [
 			{ name: 'Home', path: '/' },
-			{ name: 'Alimentari', path: '/category/alimentari' }
+			{ name: 'Apparel', path: '/category/apparel' }
 		],
 		items: { nodes: [], total: 0, totalIsExact: true, hasMore: false },
 		page: 1,
-		basePath: '/category/alimentari',
+		basePath: '/category/apparel',
 		...over
 	}) as CategoryLoaderResult
 
@@ -57,34 +63,34 @@ describe('the category route', () => {
 	 * whole — every public page needs it for the navigation, so one cached query beats a per-level fetch.
 	 */
 	it('resolves the slug against the tree, then loads the items by category id', async () => {
-		const { stub } = await mount('/category/alimentari')
+		const { stub } = await mount('/category/apparel')
 
 		expect(stub.calls.map((call) => call.operationName)).toEqual(['ItemCategories', 'Items'])
-		expect(stub.calls[1]?.variables).toEqual({ idCategory: 'cat-food', limit: 24, offset: 0 })
+		expect(stub.calls[1]?.variables).toEqual({ idCategory: 'cat-apparel', limit: 24, offset: 0 })
 	})
 
 	it('offsets the item query by the page in the URL', async () => {
-		const { stub } = await mount('/category/alimentari?page=2')
+		const { stub } = await mount('/category/apparel?page=2')
 
-		expect(stub.calls[1]?.variables).toEqual({ idCategory: 'cat-food', limit: 24, offset: 24 })
+		expect(stub.calls[1]?.variables).toEqual({ idCategory: 'cat-apparel', limit: 24, offset: 24 })
 	})
 
 	it('renders the category and its items', async () => {
-		await mount('/category/alimentari')
+		await mount('/category/apparel')
 
-		expect(screen.getByRole('heading', { level: 1, name: 'Alimentari' })).toBeInTheDocument()
+		expect(screen.getByRole('heading', { level: 1, name: 'Apparel' })).toBeInTheDocument()
 		expect(screen.getByRole('link', { name: /Leather satchel/ })).toHaveAttribute(
 			'href',
-			'/shop/bottega-rossi/item/leather-satchel'
+			'/shop/rivers-boutique/item/leather-satchel'
 		)
 	})
 
 	// A category the operator created and nobody has filled yet is a real page, not a 404 — it exists on
 	// purpose, and it is the URL the operator will link to once there is something in it.
 	it('renders an empty category rather than 404ing it', async () => {
-		await mount('/category/alimentari', itemsReply([]))
+		await mount('/category/apparel', itemsReply([]))
 
-		expect(screen.getByRole('heading', { level: 1, name: 'Alimentari' })).toBeInTheDocument()
+		expect(screen.getByRole('heading', { level: 1, name: 'Apparel' })).toBeInTheDocument()
 		expect(screen.getByText('Nothing published under this category yet')).toBeInTheDocument()
 	})
 
@@ -100,36 +106,33 @@ describe('the category route', () => {
 	 * stop reading.
 	 */
 	it('links its subcategories, ahead of the items', async () => {
-		await mount('/category/alimentari')
+		await mount('/category/apparel')
 
 		const subcategories = screen.getByRole('navigation', { name: 'Subcategories' })
 
-		expect(within(subcategories).getByRole('link', { name: 'Panetteria' })).toHaveAttribute(
-			'href',
-			'/category/alimentari/panetteria'
-		)
+		expect(within(subcategories).getByRole('link', { name: 'Footwear' })).toHaveAttribute('href', '/category/apparel/footwear')
 		expect(subcategories.compareDocumentPosition(screen.getByRole('link', { name: /Leather satchel/ }))).toBe(
 			Node.DOCUMENT_POSITION_FOLLOWING
 		)
 	})
 
-	// Ordered by the operator's `position`, ties broken by name with the same `it-IT` collator the
+	// Ordered by the operator's `position`, ties broken by name with the same `en-GB` collator the
 	// navigation uses, so the two orderings can never disagree.
 	it('orders the subcategories by position, then by name', async () => {
-		await mount('/category/alimentari', itemsReply([]), [
-			FOOD,
-			{ _id: 'cat-z', idParent: 'cat-food', name: 'Zafferano', slug: 'zafferano', position: 1 },
-			{ _id: 'cat-a', idParent: 'cat-food', name: 'Àcciughe', slug: 'acciughe', position: 1 },
-			{ _id: 'cat-first', idParent: 'cat-food', name: 'Pane', slug: 'pane', position: 0 }
+		await mount('/category/apparel', itemsReply([]), [
+			APPAREL,
+			{ _id: 'cat-z', idParent: 'cat-apparel', name: 'Zippers', slug: 'zippers', position: 1 },
+			{ _id: 'cat-a', idParent: 'cat-apparel', name: 'Àprons', slug: 'aprons', position: 1 },
+			{ _id: 'cat-first', idParent: 'cat-apparel', name: 'Bags', slug: 'bags', position: 0 }
 		])
 
 		const links = within(screen.getByRole('navigation', { name: 'Subcategories' })).getAllByRole('link')
 
-		expect(links.map((link) => link.textContent)).toEqual(['Pane', 'Àcciughe', 'Zafferano'])
+		expect(links.map((link) => link.textContent)).toEqual(['Bags', 'Àprons', 'Zippers'])
 	})
 
 	it('shows no subcategory navigation when there are none', async () => {
-		await mount('/category/artigianato')
+		await mount('/category/handmade')
 
 		expect(screen.queryByRole('navigation', { name: 'Subcategories' })).not.toBeInTheDocument()
 	})
@@ -148,15 +151,15 @@ describe('the category breadcrumb trail', () => {
 	const trail = () => within(screen.getByRole('navigation', { name: 'Breadcrumb' }))
 
 	it('walks Home → category on a top-level page, with the current page as text', async () => {
-		await mount('/category/alimentari')
+		await mount('/category/apparel')
 
 		expect(trail().getAllByRole('listitem')).toHaveLength(2)
 		expect(trail().getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/')
-		expect(trail().getByText('Alimentari')).toHaveAttribute('aria-current', 'page')
+		expect(trail().getByText('Apparel')).toHaveAttribute('aria-current', 'page')
 	})
 
 	it('inserts the parent between Home and the subcategory', async () => {
-		await mount('/category/alimentari/panetteria')
+		await mount('/category/apparel/footwear')
 
 		expect(trail().getAllByRole('listitem')).toHaveLength(3)
 		expect(
@@ -165,9 +168,9 @@ describe('the category breadcrumb trail', () => {
 				.map((link) => [link.textContent, link.getAttribute('href')])
 		).toEqual([
 			['Home', '/'],
-			['Alimentari', '/category/alimentari']
+			['Apparel', '/category/apparel']
 		])
-		expect(trail().getByText('Panetteria')).toHaveAttribute('aria-current', 'page')
+		expect(trail().getByText('Footwear')).toHaveAttribute('aria-current', 'page')
 	})
 })
 
@@ -183,32 +186,32 @@ describe('the category breadcrumb trail', () => {
  */
 describe('the canonical category URL', () => {
 	it('renders a subcategory requested under its real parent', async () => {
-		const { router } = await mount('/category/alimentari/panetteria')
+		const { router } = await mount('/category/apparel/footwear')
 
-		expect(router.state.location.pathname).toBe('/category/alimentari/panetteria')
-		expect(screen.getByRole('heading', { level: 1, name: 'Panetteria' })).toBeInTheDocument()
+		expect(router.state.location.pathname).toBe('/category/apparel/footwear')
+		expect(screen.getByRole('heading', { level: 1, name: 'Footwear' })).toBeInTheDocument()
 	})
 
 	it('sends a subcategory requested without its parent to the nested URL', async () => {
-		const { router } = await mount('/category/panetteria')
+		const { router } = await mount('/category/footwear')
 
-		expect(router.state.location.pathname).toBe('/category/alimentari/panetteria')
+		expect(router.state.location.pathname).toBe('/category/apparel/footwear')
 	})
 
 	it('sends a subcategory requested under the wrong parent to the right one', async () => {
-		const { router } = await mount('/category/artigianato/panetteria')
+		const { router } = await mount('/category/handmade/footwear')
 
-		expect(router.state.location.pathname).toBe('/category/alimentari/panetteria')
+		expect(router.state.location.pathname).toBe('/category/apparel/footwear')
 	})
 
 	it('sends a top-level category requested with a parent segment back up a level', async () => {
-		const { router } = await mount('/category/artigianato/alimentari')
+		const { router } = await mount('/category/handmade/apparel')
 
-		expect(router.state.location.pathname).toBe('/category/alimentari')
+		expect(router.state.location.pathname).toBe('/category/apparel')
 	})
 
 	it('404s an unknown child slug rather than redirecting somewhere plausible', async () => {
-		await mount('/category/alimentari/nowhere')
+		await mount('/category/apparel/nowhere')
 
 		expect(screen.getByRole('heading', { level: 1, name: 'This page does not exist' })).toBeInTheDocument()
 	})
@@ -229,8 +232,8 @@ describe('the category search parameter', () => {
 
 describe('the category head', () => {
 	it('titles the page with the category, and the page after the first', () => {
-		expect(titleOf(head(resultOf()))).toBe('Alimentari · Marketplace')
-		expect(titleOf(head(resultOf({ page: 2 })))).toBe('Alimentari — page 2 · Marketplace')
+		expect(titleOf(head(resultOf()))).toBe('Apparel · Marketplace')
+		expect(titleOf(head(resultOf({ page: 2 })))).toBe('Apparel — page 2 · Marketplace')
 	})
 
 	// Page 1 carries no `robots` tag at all. Asserted from both sides: a `noIndex` that is always true
@@ -242,25 +245,23 @@ describe('the category head', () => {
 	})
 
 	it('describes the category as a cross-shop listing', () => {
-		expect(metaOf(head(resultOf()), 'description')).toBe(
-			'Every item published under Alimentari, from every shop on the platform.'
-		)
+		expect(metaOf(head(resultOf()), 'description')).toBe('Every item published under Apparel, from every shop on the platform.')
 	})
 
 	// The canonical is the *nested* path for a subcategory, whichever URL was requested — that is the whole
 	// point of the 301 above, and a canonical pointing at the short form would undo it.
 	it('canonicalises a subcategory under its parent', () => {
-		const child = resultOf({ category: BAKERY, parent: FOOD, basePath: '/category/alimentari/panetteria' })
+		const child = resultOf({ category: FOOTWEAR, parent: APPAREL, basePath: '/category/apparel/footwear' })
 
-		expect(canonicalOf(head(child))).toBe('http://127.0.0.1:3045/category/alimentari/panetteria')
-		expect(canonicalOf(head(resultOf({ page: 3 })))).toBe('http://127.0.0.1:3045/category/alimentari?page=3')
+		expect(canonicalOf(head(child))).toBe('http://127.0.0.1:3045/category/apparel/footwear')
+		expect(canonicalOf(head(resultOf({ page: 3 })))).toBe('http://127.0.0.1:3045/category/apparel?page=3')
 	})
 
 	it('chains the pages together, absolutely', () => {
 		const middle = resultOf({ page: 2, items: { nodes: [], total: 0, totalIsExact: true, hasMore: true } })
 
-		expect(linkOf(head(middle), 'prev')).toBe('http://127.0.0.1:3045/category/alimentari')
-		expect(linkOf(head(middle), 'next')).toBe('http://127.0.0.1:3045/category/alimentari?page=3')
+		expect(linkOf(head(middle), 'prev')).toBe('http://127.0.0.1:3045/category/apparel')
+		expect(linkOf(head(middle), 'next')).toBe('http://127.0.0.1:3045/category/apparel?page=3')
 	})
 
 	/*
@@ -269,13 +270,13 @@ describe('the category head', () => {
 	 * is invisible to a reader that searches the array by `rel`.
 	 */
 	it('emits the canonical alone on a single-page category', () => {
-		expect(head(resultOf()).links).toEqual([{ rel: 'canonical', href: 'http://127.0.0.1:3045/category/alimentari' }])
+		expect(head(resultOf()).links).toEqual([{ rel: 'canonical', href: 'http://127.0.0.1:3045/category/apparel' }])
 	})
 
 	it('emits the same crumbs the page renders', () => {
 		expect(jsonLdTyped(head(resultOf()), 'BreadcrumbList')?.itemListElement).toEqual([
 			{ '@type': 'ListItem', position: 1, name: 'Home', item: 'http://127.0.0.1:3045/' },
-			{ '@type': 'ListItem', position: 2, name: 'Alimentari', item: 'http://127.0.0.1:3045/category/alimentari' }
+			{ '@type': 'ListItem', position: 2, name: 'Apparel', item: 'http://127.0.0.1:3045/category/apparel' }
 		])
 	})
 
@@ -283,7 +284,7 @@ describe('the category head', () => {
 		const second = resultOf({
 			page: 2,
 			items: {
-				nodes: [{ companySlug: 'bottega-rossi', slug: 'leather-satchel' }],
+				nodes: [{ companySlug: 'rivers-boutique', slug: 'leather-satchel' }],
 				total: 1,
 				totalIsExact: true,
 				hasMore: false
@@ -291,7 +292,7 @@ describe('the category head', () => {
 		} as Partial<CategoryLoaderResult>)
 
 		expect(jsonLdTyped(head(second), 'ItemList')?.itemListElement).toEqual([
-			{ '@type': 'ListItem', position: 25, url: 'http://127.0.0.1:3045/shop/bottega-rossi/item/leather-satchel' }
+			{ '@type': 'ListItem', position: 25, url: 'http://127.0.0.1:3045/shop/rivers-boutique/item/leather-satchel' }
 		])
 	})
 
@@ -310,7 +311,7 @@ describe('the category head', () => {
 	 * one; without it that page can lose its whole head and no test notices.
 	 */
 	it('describes a subcategory page with the same builder the parent uses', () => {
-		const child = resultOf({ category: BAKERY, basePath: '/category/alimentari/panetteria' })
+		const child = resultOf({ category: FOOTWEAR, basePath: '/category/apparel/footwear' })
 
 		expect(categoryChildRouteOptions.head({ loaderData: child })).toEqual(categoryHead(child))
 		expect(categoryChildRouteOptions.head({})).toEqual(categoryHead(undefined))

@@ -86,7 +86,7 @@ export const storeJsonLd = (company: JsonLdCompany): JsonLd => {
 	}
 
 	// ⚠️ GeoJSON is `[lng, lat]`; schema.org's `latitude`/`longitude` are named fields. Reading the tuple
-	// in the wrong order puts an Italian shop in the sea off Somalia, and nothing in the page looks wrong
+	// in the wrong order puts a shop in the Southern Ocean, and nothing in the page looks wrong
 	// — only the map pin in the search result does.
 	const coordinates = company.address.position?.coordinates
 	if (coordinates !== undefined && coordinates.length === 2) {

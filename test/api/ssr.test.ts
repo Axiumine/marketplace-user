@@ -113,11 +113,11 @@ describe('createSsrClient', () => {
 	 */
 	it('caches nothing between two clients', async () => {
 		const stub = stubGraphQL({
-			Shops: [{ data: { shops: [{ slug: 'primo' }] } }, { data: { shops: [{ slug: 'secondo' }] } }]
+			Shops: [{ data: { shops: [{ slug: 'first' }] } }, { data: { shops: [{ slug: 'second' }] } }]
 		})
 
-		expect(await runQuery(createSsrClient(DEFAULT_URL), ShopsDocument, {})).toEqual({ shops: [{ slug: 'primo' }] })
-		expect(await runQuery(createSsrClient(DEFAULT_URL), ShopsDocument, {})).toEqual({ shops: [{ slug: 'secondo' }] })
+		expect(await runQuery(createSsrClient(DEFAULT_URL), ShopsDocument, {})).toEqual({ shops: [{ slug: 'first' }] })
+		expect(await runQuery(createSsrClient(DEFAULT_URL), ShopsDocument, {})).toEqual({ shops: [{ slug: 'second' }] })
 		expect(stub.calls).toHaveLength(2)
 	})
 
@@ -128,12 +128,12 @@ describe('createSsrClient', () => {
 	it('caches nothing within one client', async () => {
 		const client = createSsrClient(DEFAULT_URL)
 		const stub = stubGraphQL({
-			Shops: [{ data: { shops: [{ slug: 'primo' }] } }, { data: { shops: [{ slug: 'secondo' }] } }]
+			Shops: [{ data: { shops: [{ slug: 'first' }] } }, { data: { shops: [{ slug: 'second' }] } }]
 		})
 
 		await runQuery(client, ShopsDocument, {})
 
-		expect(await runQuery(client, ShopsDocument, {})).toEqual({ shops: [{ slug: 'secondo' }] })
+		expect(await runQuery(client, ShopsDocument, {})).toEqual({ shops: [{ slug: 'second' }] })
 		expect(stub.calls).toHaveLength(2)
 	})
 

@@ -18,8 +18,8 @@ const itemOf = (n: number): ItemCardItem => ({
 	name: `Satchel ${String(n)}`,
 	description: 'Stitched by hand.',
 	slug: `satchel-${String(n)}`,
-	companySlug: 'bottega-rossi',
-	companyPublicName: 'Bottega Rossi'
+	companySlug: 'rivers-boutique',
+	companyPublicName: 'Rivers Boutique'
 })
 
 const mount = async (items: readonly ItemCardItem[]) => {

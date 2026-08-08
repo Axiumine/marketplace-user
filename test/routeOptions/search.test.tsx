@@ -73,15 +73,15 @@ describe('the search route', () => {
 	})
 
 	it('renders the shops and the items it found, as real links', async () => {
-		await mount('/search?q=rossi')
+		await mount('/search?q=rivers')
 
-		expect(within(screen.getByRole('region', { name: 'Shops' })).getByRole('link', { name: /Bottega Rossi/ })).toHaveAttribute(
+		expect(within(screen.getByRole('region', { name: 'Shops' })).getByRole('link', { name: /Rivers Boutique/ })).toHaveAttribute(
 			'href',
-			'/shop/bottega-rossi'
+			'/shop/rivers-boutique'
 		)
 		expect(within(screen.getByRole('region', { name: 'Items' })).getByRole('link', { name: /Leather satchel/ })).toHaveAttribute(
 			'href',
-			'/shop/bottega-rossi/item/leather-satchel'
+			'/shop/rivers-boutique/item/leather-satchel'
 		)
 	})
 
@@ -94,7 +94,7 @@ describe('the search route', () => {
 		['no shops matched', searchReply([], [itemOf()]), 'Shops', 'Items'],
 		['no items matched', searchReply([companyOf()], []), 'Items', 'Shops']
 	])('drops the empty half of the results when %s', async (_label, reply, absent, present) => {
-		await mount('/search?q=rossi', reply)
+		await mount('/search?q=rivers', reply)
 
 		expect(screen.queryByRole('region', { name: absent })).not.toBeInTheDocument()
 		expect(screen.getByRole('region', { name: present })).toBeInTheDocument()
@@ -123,11 +123,11 @@ describe('the search route', () => {
  */
 describe('the search parameters', () => {
 	it('reads a location out of one parameter', async () => {
-		const { stub } = await mount('/search?q=pane&near=9.19%2C45.46%2C5000')
+		const { stub } = await mount('/search?q=bags&near=-71.06%2C42.36%2C5000')
 
 		expect(stub.calls[0]?.variables).toEqual({
-			q: 'pane',
-			near: { lng: 9.19, lat: 45.46, radiusMeters: 5000 },
+			q: 'bags',
+			near: { lng: -71.06, lat: 42.36, radiusMeters: 5000 },
 			limit: 24
 		})
 	})
@@ -138,21 +138,21 @@ describe('the search parameters', () => {
 	 * request with a server error, where a plain text search answers with results.
 	 */
 	it.each([
-		['two of the three numbers', '9.19,45.46'],
-		['a fourth number', '9.19,45.46,5000,7'],
-		['a longitude off the globe', '181,45.46,5000'],
-		['a latitude off the globe', '9.19,91,5000'],
+		['two of the three numbers', '-71.06,42.36'],
+		['a fourth number', '-71.06,42.36,5000,7'],
+		['a longitude off the globe', '181,42.36,5000'],
+		['a latitude off the globe', '-71.06,91,5000'],
 		['words instead of numbers', 'here,there,near'],
-		['a radius of nothing', '9.19,45.46,0'],
+		['a radius of nothing', '-71.06,42.36,0'],
 		// Capped rather than merely positive: an unbounded radius is a scan over the whole collection dressed
 		// up as a geo search, and it is reachable by anyone who can edit a URL.
-		['a radius past 100 km', '9.19,45.46,100001']
+		['a radius past 100 km', '-71.06,42.36,100001']
 	])('drops a location carrying %s', (_label, near) => {
-		expect(parse({ q: 'pane', near }).near).toBeUndefined()
+		expect(parse({ q: 'bags', near }).near).toBeUndefined()
 	})
 
 	it('accepts the radius exactly at the cap', () => {
-		expect(parse({ q: 'pane', near: '9.19,45.46,100000' }).near?.radiusMeters).toBe(100_000)
+		expect(parse({ q: 'bags', near: '-71.06,42.36,100000' }).near?.radiusMeters).toBe(100_000)
 	})
 
 	// `q` is `.catch('')` for the same reason: a missing or non-string `q` renders the search box, never an
@@ -162,7 +162,7 @@ describe('the search parameters', () => {
 	})
 
 	it('keys the loader on the whole search, so a new location refetches', () => {
-		const search = { q: 'pane', near: { lng: 9.19, lat: 45.46, radiusMeters: 5000 } }
+		const search = { q: 'bags', near: { lng: -71.06, lat: 42.36, radiusMeters: 5000 } }
 
 		expect(searchRouteOptions.loaderDeps({ search })).toEqual(search)
 	})

@@ -178,17 +178,17 @@ const maplibre = vi.hoisted(() => {
 vi.mock('maplibre-gl', () => maplibre.module)
 vi.mock('pmtiles', () => maplibre.pmtiles)
 
-const CENTER: readonly [number, number] = [9.19, 45.4642]
+const CENTER: readonly [number, number] = [-71.06, 42.3601]
 
 const SEED_PINS: NonNullable<ShopMapProps['initialPins']> = [
-	{ _id: '66b0000000000000000000a1', publicName: 'Bottega Rossi', slug: 'bottega-rossi', coordinates: [9.1895, 45.4642] }
+	{ _id: '66b0000000000000000000a1', publicName: 'Rivers Boutique', slug: 'rivers-boutique', coordinates: [-71.0589, 42.3601] }
 ]
 
 const nodeOf = (n: number) => ({
 	_id: `66b00000000000000000010${String(n)}`,
 	publicName: `Shop ${String(n)}`,
 	slug: `shop-${String(n)}`,
-	position: { type: 'Point', coordinates: [9.18 + n / 100, 45.46] },
+	position: { type: 'Point', coordinates: [9.18 + n / 100, 42.36] },
 	distanceMeters: null
 })
 
@@ -233,7 +233,7 @@ const clusterEvent = (coordinates: readonly number[], clusterId = 7) => ({
 	features: [{ geometry: { type: 'Point', coordinates: [...coordinates] }, properties: { cluster_id: clusterId } }]
 })
 
-const shopEvent = (coordinates: readonly number[], slug = 'bottega-rossi', publicName = 'Bottega Rossi') => ({
+const shopEvent = (coordinates: readonly number[], slug = 'rivers-boutique', publicName = 'Rivers Boutique') => ({
 	features: [{ geometry: { type: 'Point', coordinates: [...coordinates] }, properties: { slug, publicName } }]
 })
 
@@ -328,7 +328,7 @@ describe('ShopMap', () => {
 
 		expect(map.options.container).toBe(container.querySelector('div.relative > div'))
 		expect(map.options.style).toBe('/map/style.json')
-		expect(map.options.center).toEqual([9.19, 45.4642])
+		expect(map.options.center).toEqual([-71.06, 42.3601])
 		expect(map.options.zoom).toBe(14)
 	})
 
@@ -393,8 +393,8 @@ describe('ShopMap and its layers', () => {
 		const [feature] = featuresOf(sourceOf(map).data)
 
 		expect(feature?.id).toBe('66b0000000000000000000a1')
-		expect(feature?.geometry.coordinates).toEqual([9.1895, 45.4642])
-		expect(feature?.properties).toEqual({ slug: 'bottega-rossi', publicName: 'Bottega Rossi' })
+		expect(feature?.geometry.coordinates).toEqual([-71.0589, 42.3601])
+		expect(feature?.properties).toEqual({ slug: 'rivers-boutique', publicName: 'Rivers Boutique' })
 	})
 
 	it('starts empty when the page had no pins to hand over', async () => {
@@ -744,13 +744,13 @@ describe('ShopMap and a click on a shop', () => {
 	it('opens a popup carrying a real link to the shop', async () => {
 		const { map } = mount()
 		await fire(map, 'load')
-		await fire(map, 'click:shop', shopEvent([9.1895, 45.4642]))
+		await fire(map, 'click:shop', shopEvent([-71.0589, 42.3601]))
 
 		const popup = maplibre.state.popups[0]
 
 		expect(popup?.content?.tagName).toBe('A')
-		expect(popup?.content).toHaveAttribute('href', '/shop/bottega-rossi')
-		expect(popup?.content?.textContent).toBe('Bottega Rossi')
+		expect(popup?.content).toHaveAttribute('href', '/shop/rivers-boutique')
+		expect(popup?.content?.textContent).toBe('Rivers Boutique')
 	})
 
 	/*
@@ -761,7 +761,7 @@ describe('ShopMap and a click on a shop', () => {
 	it('styles the popup link so it reads as a link', async () => {
 		const { map } = mount()
 		await fire(map, 'load')
-		await fire(map, 'click:shop', shopEvent([9.1895, 45.4642]))
+		await fire(map, 'click:shop', shopEvent([-71.0589, 42.3601]))
 
 		expect(maplibre.state.popups[0]?.content).toHaveAttribute('class', 'font-semibold underline')
 	})
@@ -769,9 +769,9 @@ describe('ShopMap and a click on a shop', () => {
 	it('anchors the popup to the pin, on the map it was clicked on', async () => {
 		const { map } = mount()
 		await fire(map, 'load')
-		await fire(map, 'click:shop', shopEvent([9.1895, 45.4642]))
+		await fire(map, 'click:shop', shopEvent([-71.0589, 42.3601]))
 
-		expect(maplibre.state.popups[0]?.lngLat).toEqual([9.1895, 45.4642])
+		expect(maplibre.state.popups[0]?.lngLat).toEqual([-71.0589, 42.3601])
 		expect(maplibre.state.popups[0]?.map).toBe(map)
 	})
 
@@ -780,9 +780,9 @@ describe('ShopMap and a click on a shop', () => {
 	it('encodes the slug into the address', async () => {
 		const { map } = mount()
 		await fire(map, 'load')
-		await fire(map, 'click:shop', shopEvent([9.1895, 45.4642], 'bottega rossi & co'))
+		await fire(map, 'click:shop', shopEvent([-71.0589, 42.3601], 'boutique rivers & co'))
 
-		expect(maplibre.state.popups[0]?.content).toHaveAttribute('href', '/shop/bottega%20rossi%20%26%20co')
+		expect(maplibre.state.popups[0]?.content).toHaveAttribute('href', '/shop/boutique%20rivers%20%26%20co')
 	})
 
 	it('opens nothing when the click carries no feature', async () => {
@@ -796,7 +796,7 @@ describe('ShopMap and a click on a shop', () => {
 	it('opens nothing for a pin whose position is not a pair of numbers', async () => {
 		const { map } = mount()
 		await fire(map, 'load')
-		await fire(map, 'click:shop', shopEvent([9.1895]))
+		await fire(map, 'click:shop', shopEvent([-71.0589]))
 
 		expect(maplibre.state.popups).toHaveLength(0)
 	})

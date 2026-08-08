@@ -39,7 +39,7 @@ describe('passwordSchema length', () => {
 
 describe('passwordSchema byte counting', () => {
 	/*
-	 * ⚠️ The limit counts **bytes** and the field counts characters. An accented Italian passphrase spends
+	 * ⚠️ The limit counts **bytes** and the field counts characters. An accented passphrase spends
 	 * two bytes per accent, so a `.max(72)` on the string would pass a 70-character password that the
 	 * server rejects at 75 bytes — a failure the customer cannot see the cause of. `TextEncoder` is what
 	 * the two sides agree on.
@@ -57,7 +57,7 @@ describe('passwordSchema byte counting', () => {
 	})
 
 	// The minimum is characters, not bytes — an accented phrase is not held to a higher standard than an
-	// ASCII one for being written in Italian.
+	// ASCII one for carrying an accent.
 	it('counts characters, not bytes, for the minimum', () => {
 		expect(failureOf(repeated('é', MIN_PWD_LENGTH))).toBeUndefined()
 	})

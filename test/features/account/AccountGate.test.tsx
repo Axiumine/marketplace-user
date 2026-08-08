@@ -50,7 +50,7 @@ const WithSave = () => {
 			<button
 				type="button"
 				onClick={() => {
-					void save({ personalData: { firstName: 'Giulia', lastName: 'Rossi' } }, CTX_ACCOUNT_WRITE)
+					void save({ personalData: { firstName: 'Julia', lastName: 'Rivers' } }, CTX_ACCOUNT_WRITE)
 				}}
 			>
 				Save

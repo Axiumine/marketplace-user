@@ -50,7 +50,7 @@ decision nobody has taken.
 | Data | urql + `cacheExchange` + `@urql/exchange-auth`, graphql-codegen `client-preset` |
 | Forms | react-hook-form + zod |
 | Map | MapLibre GL + Protomaps PMTiles, client-only island |
-| Geocoding | on-premises Nominatim (Docker, Italy extract) |
+| Geocoding | on-premises Nominatim (Docker, regional extract) |
 | Search | MongoDB `2dsphere` + `text` index |
 | Sessions | opaque tokens in Redis, signed httpOnly refresh cookie (unchanged from the rest of the platform) |
 | Bot gate | Cloudflare Turnstile |
@@ -224,7 +224,7 @@ Setup instructions are in [`docs/nominatim/`](docs/nominatim/README.md).
 
 - It is a service to run: PostgreSQL with PostGIS, a multi-hour import, disk for the flatnode file, and a
   replication cron if the data should stay current. The doc gives concrete figures.
-- Quality is exactly OpenStreetMap's quality. For Italian street addresses that is good; for a brand-new
+- Quality is exactly OpenStreetMap's quality. For well-mapped street addresses that is good; for a brand-new
   building it may be missing where a commercial geocoder would have it.
 
 **Rejected: staying on the public Nominatim** (what both existing apps do today). Fine for two internal
@@ -472,14 +472,14 @@ Writes exist **only** in the admin resource service. Shop owners and the public 
 category tree becomes a synonym swamp within a month and takes the facets down with it.
 
 **Rejected: unlimited nesting.** More flexible, and it makes every breadcrumb, every menu and every query
-recursive. Two levels covers "Food → Bakery" and stops.
+recursive. Two levels covers "Home → Kitchen" and stops.
 
 **Rejected: tags instead of a tree.** Better for search, worse for browsing, and browsing is what the
 public pages are for. Tags remain an option later, alongside the tree rather than instead of it.
 
 ### 4.5 `company` gains the fields a public page needs
 
-`company` today is a legal entity: `legalName`, `vatNumber` (partita IVA), `certifiedEmail` (PEC),
+`company` today is a legal entity: `legalName`, `vatNumber` (VAT number), `certifiedEmail` (PEC),
 `registryExtract` (visura), and an address with a required position. None of that is a shop listing.
 
 Added: `publicName` (the trading name — `legalName` is a legal instrument and reads wrong on a card),

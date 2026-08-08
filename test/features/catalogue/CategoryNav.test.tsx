@@ -19,10 +19,10 @@ const REPLIES: GraphQLReplies = {
 	ItemCategories: {
 		data: {
 			itemCategories: [
-				{ _id: 'cat-food', idParent: null, name: 'Alimentari', slug: 'alimentari', position: 1 },
-				{ _id: 'cat-craft', idParent: null, name: 'Artigianato', slug: 'artigianato', position: 2 },
-				{ _id: 'child-panetteria', idParent: 'cat-food', name: 'Panetteria', slug: 'panetteria', position: 1 },
-				{ _id: 'child-macelleria', idParent: 'cat-food', name: 'Macelleria', slug: 'macelleria', position: 2 }
+				{ _id: 'cat-apparel', idParent: null, name: 'Apparel', slug: 'apparel', position: 1 },
+				{ _id: 'cat-craft', idParent: null, name: 'Handmade', slug: 'handmade', position: 2 },
+				{ _id: 'child-footwear', idParent: 'cat-apparel', name: 'Footwear', slug: 'footwear', position: 1 },
+				{ _id: 'child-headwear', idParent: 'cat-apparel', name: 'Headwear', slug: 'headwear', position: 2 }
 			]
 		}
 	}
@@ -36,18 +36,18 @@ const child = (name: string, slug: string, position: number): CategoryNode => ({
 	children: []
 })
 
-const FOOD: CategoryNode = {
-	_id: 'cat-food',
-	name: 'Alimentari',
-	slug: 'alimentari',
+const APPAREL: CategoryNode = {
+	_id: 'cat-apparel',
+	name: 'Apparel',
+	slug: 'apparel',
 	position: 1,
-	children: [child('Panetteria', 'panetteria', 1), child('Macelleria', 'macelleria', 2)]
+	children: [child('Footwear', 'footwear', 1), child('Headwear', 'headwear', 2)]
 }
 
 const CRAFT: CategoryNode = {
 	_id: 'cat-craft',
-	name: 'Artigianato',
-	slug: 'artigianato',
+	name: 'Handmade',
+	slug: 'handmade',
 	position: 2,
 	children: []
 }
@@ -60,16 +60,16 @@ const mount = async (categories: readonly CategoryNode[], path = '/') => {
 
 describe('CategoryNav', () => {
 	it('is a labelled landmark of its own', async () => {
-		await mount([FOOD, CRAFT])
+		await mount([APPAREL, CRAFT])
 
 		expect(screen.getByRole('navigation', { name: 'Categories' })).toBeInTheDocument()
 	})
 
 	it('links every top-level category', async () => {
-		await mount([FOOD, CRAFT])
+		await mount([APPAREL, CRAFT])
 
-		expect(screen.getByRole('link', { name: 'Alimentari' })).toHaveAttribute('href', '/category/alimentari')
-		expect(screen.getByRole('link', { name: 'Artigianato' })).toHaveAttribute('href', '/category/artigianato')
+		expect(screen.getByRole('link', { name: 'Apparel' })).toHaveAttribute('href', '/category/apparel')
+		expect(screen.getByRole('link', { name: 'Handmade' })).toHaveAttribute('href', '/category/handmade')
 	})
 
 	/*
@@ -79,17 +79,17 @@ describe('CategoryNav', () => {
 	 * be visited.
 	 */
 	it('links every subcategory too, without waiting for a click', async () => {
-		await mount([FOOD, CRAFT])
+		await mount([APPAREL, CRAFT])
 
-		expect(screen.getByRole('link', { name: 'Panetteria' })).toHaveAttribute('href', '/category/alimentari/panetteria')
-		expect(screen.getByRole('link', { name: 'Macelleria' })).toHaveAttribute('href', '/category/alimentari/macelleria')
+		expect(screen.getByRole('link', { name: 'Footwear' })).toHaveAttribute('href', '/category/apparel/footwear')
+		expect(screen.getByRole('link', { name: 'Headwear' })).toHaveAttribute('href', '/category/apparel/headwear')
 	})
 
 	// A child's URL carries its parent's slug, so the nesting is in the address and not only in the markup.
 	it('nests a child under the parent it was given, not under its own slug', async () => {
-		await mount([FOOD])
+		await mount([APPAREL])
 
-		const parent = screen.getByRole('link', { name: 'Alimentari' }).closest('li')
+		const parent = screen.getByRole('link', { name: 'Apparel' }).closest('li')
 
 		expect(parent).not.toBeNull()
 		expect(within(parent as HTMLElement).getAllByRole('link')).toHaveLength(3)
@@ -98,7 +98,7 @@ describe('CategoryNav', () => {
 	it('renders no child list for a category that has none', async () => {
 		await mount([CRAFT])
 
-		const parent = screen.getByRole('link', { name: 'Artigianato' }).closest('li')
+		const parent = screen.getByRole('link', { name: 'Handmade' }).closest('li')
 
 		expect(within(parent as HTMLElement).queryAllByRole('list')).toHaveLength(0)
 	})
@@ -113,24 +113,24 @@ describe('CategoryNav', () => {
 	 * attribute alone tests TanStack rather than this file.
 	 */
 	it('marks the category the visitor is standing on', async () => {
-		await mount([FOOD, CRAFT], '/category/artigianato')
+		await mount([APPAREL, CRAFT], '/category/handmade')
 
-		const active = screen.getByRole('link', { name: 'Artigianato' })
+		const active = screen.getByRole('link', { name: 'Handmade' })
 
 		expect(active).toHaveAttribute('aria-current', 'page')
 		expect(active).toHaveClass('font-semibold')
-		expect(screen.getByRole('link', { name: 'Alimentari' })).not.toHaveAttribute('aria-current')
-		expect(screen.getByRole('link', { name: 'Alimentari' })).not.toHaveClass('font-semibold')
+		expect(screen.getByRole('link', { name: 'Apparel' })).not.toHaveAttribute('aria-current')
+		expect(screen.getByRole('link', { name: 'Apparel' })).not.toHaveClass('font-semibold')
 	})
 
 	it('marks a subcategory the visitor is standing on', async () => {
-		await mount([FOOD], '/category/alimentari/panetteria')
+		await mount([APPAREL], '/category/apparel/footwear')
 
-		const active = screen.getByRole('link', { name: 'Panetteria' })
+		const active = screen.getByRole('link', { name: 'Footwear' })
 
 		expect(active).toHaveAttribute('aria-current', 'page')
 		expect(active).toHaveClass('font-semibold')
-		expect(screen.getByRole('link', { name: 'Macelleria' })).not.toHaveClass('font-semibold')
+		expect(screen.getByRole('link', { name: 'Headwear' })).not.toHaveClass('font-semibold')
 	})
 
 	/*

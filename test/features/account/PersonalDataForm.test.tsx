@@ -49,12 +49,12 @@ describe('PersonalDataForm on a fresh account', () => {
 	it('creates the personal data with one save', async () => {
 		const { user, stub } = await mount(FRESH_ME)
 
-		await user.type(screen.getByLabelText('First name'), 'Giulia')
-		await user.type(screen.getByLabelText('Last name'), 'Rossi')
+		await user.type(screen.getByLabelText('First name'), 'Julia')
+		await user.type(screen.getByLabelText('Last name'), 'Rivers')
 		await save(user)
 
 		await waitFor(() => {
-			expect(personalDataOf(stub)).toMatchObject({ firstName: 'Giulia', lastName: 'Rossi' })
+			expect(personalDataOf(stub)).toMatchObject({ firstName: 'Julia', lastName: 'Rivers' })
 		})
 	})
 })
@@ -63,8 +63,8 @@ describe('PersonalDataForm on an account in use', () => {
 	it('opens with what is stored', async () => {
 		await mount()
 
-		expect(screen.getByLabelText('First name')).toHaveValue('Giulia')
-		expect(screen.getByLabelText('Last name')).toHaveValue('Rossi')
+		expect(screen.getByLabelText('First name')).toHaveValue('Julia')
+		expect(screen.getByLabelText('Last name')).toHaveValue('Rivers')
 		expect(screen.getByLabelText('Mobile')).toHaveValue('3331234567')
 	})
 
@@ -93,7 +93,7 @@ describe('PersonalDataForm on an account in use', () => {
 	it('opens without crashing on a name saved with no birth date and no contacts', async () => {
 		await mount(NAMED_ONLY_ME)
 
-		expect(screen.getByLabelText('First name')).toHaveValue('Giulia')
+		expect(screen.getByLabelText('First name')).toHaveValue('Julia')
 		expect(screen.getByLabelText('Date of birth')).toHaveValue('')
 		expect(screen.getByLabelText('Mobile')).toHaveValue('')
 		expect(screen.getByLabelText('Landline')).toHaveValue('')
@@ -141,7 +141,7 @@ describe('PersonalDataForm validation', () => {
 		const { user } = await mount(FRESH_ME)
 
 		await user.type(screen.getByLabelText('First name'), '   ')
-		await user.type(screen.getByLabelText('Last name'), 'Rossi')
+		await user.type(screen.getByLabelText('Last name'), 'Rivers')
 		await save(user)
 
 		expect(await screen.findByText('First name is required.')).toBeInTheDocument()
@@ -152,12 +152,12 @@ describe('PersonalDataForm validation', () => {
 	it('sends the trimmed name, not the typed one', async () => {
 		const { user, stub } = await mount(FRESH_ME)
 
-		await user.type(screen.getByLabelText('First name'), '  Giulia  ')
-		await user.type(screen.getByLabelText('Last name'), 'Rossi')
+		await user.type(screen.getByLabelText('First name'), '  Julia  ')
+		await user.type(screen.getByLabelText('Last name'), 'Rivers')
 		await save(user)
 
 		await waitFor(() => {
-			expect(personalDataOf(stub)).toMatchObject({ firstName: 'Giulia' })
+			expect(personalDataOf(stub)).toMatchObject({ firstName: 'Julia' })
 		})
 	})
 
@@ -189,7 +189,7 @@ describe('PersonalDataForm validation', () => {
 		const { user } = await mount(FRESH_ME)
 
 		await user.type(screen.getByLabelText('First name'), 'a'.repeat(51))
-		await user.type(screen.getByLabelText('Last name'), 'Rossi')
+		await user.type(screen.getByLabelText('Last name'), 'Rivers')
 		await save(user)
 
 		expect(await screen.findByText('First name must be at most 50 characters.')).toBeInTheDocument()
@@ -230,8 +230,8 @@ describe('PersonalDataForm empty optionals', () => {
 	it('omits the whole contacts object when every field is blank', async () => {
 		const { user, stub } = await mount(FRESH_ME)
 
-		await user.type(screen.getByLabelText('First name'), 'Giulia')
-		await user.type(screen.getByLabelText('Last name'), 'Rossi')
+		await user.type(screen.getByLabelText('First name'), 'Julia')
+		await user.type(screen.getByLabelText('Last name'), 'Rivers')
 		await save(user)
 
 		await waitFor(() => {
@@ -249,12 +249,12 @@ describe('PersonalDataForm empty optionals', () => {
 	it.each([
 		['Landline', '0212345678', 'landline'],
 		['Mobile', '3339876543', 'mobile'],
-		['Contact email', 'giulia@example.it', 'email']
+		['Contact email', 'julia@example.test', 'email']
 	])('sends the contacts when only the %s is filled', async (label, value, key) => {
 		const { user, stub } = await mount(FRESH_ME)
 
-		await user.type(screen.getByLabelText('First name'), 'Giulia')
-		await user.type(screen.getByLabelText('Last name'), 'Rossi')
+		await user.type(screen.getByLabelText('First name'), 'Julia')
+		await user.type(screen.getByLabelText('Last name'), 'Rivers')
 		await user.type(screen.getByLabelText(label), value)
 		await save(user)
 
@@ -282,8 +282,8 @@ describe('PersonalDataForm empty optionals', () => {
 	it('omits the birth date when it was left blank', async () => {
 		const { user, stub } = await mount(FRESH_ME)
 
-		await user.type(screen.getByLabelText('First name'), 'Giulia')
-		await user.type(screen.getByLabelText('Last name'), 'Rossi')
+		await user.type(screen.getByLabelText('First name'), 'Julia')
+		await user.type(screen.getByLabelText('Last name'), 'Rivers')
 		await save(user)
 
 		await waitFor(() => {

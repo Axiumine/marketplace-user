@@ -82,7 +82,7 @@ describe('AddressList rendering', () => {
 	it('marks the row actions as pressable', async () => {
 		await mount()
 
-		expect(within(rowOf('Via Dante 5')).getByRole('button', { name: 'Edit' })).toHaveClass(
+		expect(within(rowOf('5 Oak Street')).getByRole('button', { name: 'Edit' })).toHaveClass(
 			'text-sm',
 			'underline',
 			'text-slate-600'
@@ -92,13 +92,13 @@ describe('AddressList rendering', () => {
 	it('writes each address on one line', async () => {
 		await mount()
 
-		expect(screen.getByText('Via Roma 1, 20121 Milano (MI)')).toBeInTheDocument()
+		expect(screen.getByText('1 Main Street, 02108 Boston (MA)')).toBeInTheDocument()
 	})
 
 	it('shows the name the customer gave it', async () => {
 		await mount()
 
-		expect(within(rowOf('Via Roma 1')).getByText('Home')).toBeInTheDocument()
+		expect(within(rowOf('1 Main Street')).getByText('Home')).toBeInTheDocument()
 	})
 
 	// An address with no label still needs something to head the card, or it opens with the street repeated
@@ -106,7 +106,7 @@ describe('AddressList rendering', () => {
 	it('falls back to a generic heading for an unnamed address', async () => {
 		await mount()
 
-		expect(within(rowOf('Via Dante 5')).getByText('Address')).toBeInTheDocument()
+		expect(within(rowOf('5 Oak Street')).getByText('Address')).toBeInTheDocument()
 	})
 
 	// The customer is told which addresses cannot be used for distance sorting, on the card rather than in
@@ -114,8 +114,8 @@ describe('AddressList rendering', () => {
 	it('marks an address that has no map position', async () => {
 		await mount()
 
-		expect(within(rowOf('Via Dante 5')).getByText('Not placed on the map')).toBeInTheDocument()
-		expect(within(rowOf('Via Roma 1')).queryByText('Not placed on the map')).not.toBeInTheDocument()
+		expect(within(rowOf('5 Oak Street')).getByText('Not placed on the map')).toBeInTheDocument()
+		expect(within(rowOf('1 Main Street')).queryByText('Not placed on the map')).not.toBeInTheDocument()
 	})
 })
 
@@ -130,7 +130,7 @@ describe('AddressList default address', () => {
 		await mount()
 
 		expect(screen.getAllByText('Default')).toHaveLength(1)
-		expect(within(rowOf('Via Roma 1')).getByText('Default')).toBeInTheDocument()
+		expect(within(rowOf('1 Main Street')).getByText('Default')).toBeInTheDocument()
 	})
 
 	it('badges none when no default has been named', async () => {
@@ -143,7 +143,7 @@ describe('AddressList default address', () => {
 		await mount()
 
 		expect(screen.getAllByRole('button', { name: 'Make default' })).toHaveLength(1)
-		expect(within(rowOf('Via Dante 5')).getByRole('button', { name: 'Make default' })).toBeInTheDocument()
+		expect(within(rowOf('5 Oak Street')).getByRole('button', { name: 'Make default' })).toBeInTheDocument()
 	})
 
 	/*
@@ -153,7 +153,7 @@ describe('AddressList default address', () => {
 	it('sets the default with a single write naming the new one', async () => {
 		const { user, stub } = await mount()
 
-		await user.click(within(rowOf('Via Dante 5')).getByRole('button', { name: 'Make default' }))
+		await user.click(within(rowOf('5 Oak Street')).getByRole('button', { name: 'Make default' }))
 
 		await waitFor(() => {
 			expect(written(stub)).toHaveLength(1)
@@ -171,7 +171,7 @@ describe('AddressList default address', () => {
 			UserDefaultAddressSet: { errors: [graphQLError('That address is not yours')], status: 403 }
 		})
 
-		await user.click(within(rowOf('Via Dante 5')).getByRole('button', { name: 'Make default' }))
+		await user.click(within(rowOf('5 Oak Street')).getByRole('button', { name: 'Make default' }))
 
 		expect(await screen.findByRole('alert')).toHaveTextContent('That address is not yours')
 	})
@@ -186,7 +186,7 @@ describe('AddressList default address', () => {
 	it('says so when the answer reported neither a payload nor an error', async () => {
 		const { user } = await mount(FULL_ME, { UserDefaultAddressSet: { body: '{"data":null}' } })
 
-		await user.click(within(rowOf('Via Dante 5')).getByRole('button', { name: 'Make default' }))
+		await user.click(within(rowOf('5 Oak Street')).getByRole('button', { name: 'Make default' }))
 
 		expect(await screen.findByRole('alert')).toHaveTextContent('That change did not go through. Try again.')
 	})
@@ -201,17 +201,17 @@ describe('AddressList deleting', () => {
 	it('does not delete on the first click', async () => {
 		const { user, stub } = await mount()
 
-		await user.click(within(rowOf('Via Dante 5')).getByRole('button', { name: 'Delete' }))
+		await user.click(within(rowOf('5 Oak Street')).getByRole('button', { name: 'Delete' }))
 
-		expect(within(rowOf('Via Dante 5')).getByRole('button', { name: 'Delete for good' })).toBeInTheDocument()
+		expect(within(rowOf('5 Oak Street')).getByRole('button', { name: 'Delete for good' })).toBeInTheDocument()
 		expect(written(stub)).toHaveLength(0)
 	})
 
 	it('deletes on the second', async () => {
 		const { user, stub } = await mount()
 
-		await user.click(within(rowOf('Via Dante 5')).getByRole('button', { name: 'Delete' }))
-		await user.click(within(rowOf('Via Dante 5')).getByRole('button', { name: 'Delete for good' }))
+		await user.click(within(rowOf('5 Oak Street')).getByRole('button', { name: 'Delete' }))
+		await user.click(within(rowOf('5 Oak Street')).getByRole('button', { name: 'Delete for good' }))
 
 		await waitFor(() => {
 			expect(written(stub)).toHaveLength(1)
@@ -223,10 +223,10 @@ describe('AddressList deleting', () => {
 	it('lets the customer back out', async () => {
 		const { user, stub } = await mount()
 
-		await user.click(within(rowOf('Via Dante 5')).getByRole('button', { name: 'Delete' }))
-		await user.click(within(rowOf('Via Dante 5')).getByRole('button', { name: 'Keep it' }))
+		await user.click(within(rowOf('5 Oak Street')).getByRole('button', { name: 'Delete' }))
+		await user.click(within(rowOf('5 Oak Street')).getByRole('button', { name: 'Keep it' }))
 
-		expect(within(rowOf('Via Dante 5')).getByRole('button', { name: 'Delete' })).toBeInTheDocument()
+		expect(within(rowOf('5 Oak Street')).getByRole('button', { name: 'Delete' })).toBeInTheDocument()
 		expect(written(stub)).toHaveLength(0)
 	})
 
@@ -235,9 +235,9 @@ describe('AddressList deleting', () => {
 	it('asks about one address at a time', async () => {
 		const { user } = await mount()
 
-		await user.click(within(rowOf('Via Dante 5')).getByRole('button', { name: 'Delete' }))
+		await user.click(within(rowOf('5 Oak Street')).getByRole('button', { name: 'Delete' }))
 
-		expect(within(rowOf('Via Roma 1')).getByRole('button', { name: 'Delete' })).toBeInTheDocument()
+		expect(within(rowOf('1 Main Street')).getByRole('button', { name: 'Delete' })).toBeInTheDocument()
 		expect(screen.getAllByRole('button', { name: 'Delete for good' })).toHaveLength(1)
 	})
 
@@ -250,8 +250,8 @@ describe('AddressList deleting', () => {
 	it('deletes the default address like any other', async () => {
 		const { user, stub } = await mount()
 
-		await user.click(within(rowOf('Via Roma 1')).getByRole('button', { name: 'Delete' }))
-		await user.click(within(rowOf('Via Roma 1')).getByRole('button', { name: 'Delete for good' }))
+		await user.click(within(rowOf('1 Main Street')).getByRole('button', { name: 'Delete' }))
+		await user.click(within(rowOf('1 Main Street')).getByRole('button', { name: 'Delete for good' }))
 
 		await waitFor(() => {
 			expect(written(stub)).toHaveLength(1)
@@ -264,8 +264,8 @@ describe('AddressList deleting', () => {
 			UserAddressDel: { errors: [graphQLError('That address is in use')], status: 409 }
 		})
 
-		await user.click(within(rowOf('Via Dante 5')).getByRole('button', { name: 'Delete' }))
-		await user.click(within(rowOf('Via Dante 5')).getByRole('button', { name: 'Delete for good' }))
+		await user.click(within(rowOf('5 Oak Street')).getByRole('button', { name: 'Delete' }))
+		await user.click(within(rowOf('5 Oak Street')).getByRole('button', { name: 'Delete for good' }))
 
 		expect(await screen.findByRole('alert')).toHaveTextContent('That address is in use')
 	})
@@ -273,8 +273,8 @@ describe('AddressList deleting', () => {
 	it('falls back to the generic message when the server is unreachable', async () => {
 		const { user } = await mount(FULL_ME, { UserAddressDel: { networkError: 'ECONNREFUSED 127.0.0.1:4032' } })
 
-		await user.click(within(rowOf('Via Dante 5')).getByRole('button', { name: 'Delete' }))
-		await user.click(within(rowOf('Via Dante 5')).getByRole('button', { name: 'Delete for good' }))
+		await user.click(within(rowOf('5 Oak Street')).getByRole('button', { name: 'Delete' }))
+		await user.click(within(rowOf('5 Oak Street')).getByRole('button', { name: 'Delete for good' }))
 
 		expect(await screen.findByRole('alert')).toHaveTextContent('Error while communicating with the server')
 	})
@@ -319,10 +319,10 @@ describe('AddressList adding', () => {
 		const { user } = await mount(FULL_ME, { ...WRITES, UserAddressAdd: { data: { userAddressAdd: true } } })
 
 		await user.click(screen.getByRole('button', { name: 'Add an address' }))
-		await user.type(screen.getByLabelText('Street and number'), 'Via Manzoni 3')
-		await user.type(screen.getByLabelText('Postal code'), '20121')
-		await user.type(screen.getByLabelText('City'), 'Milano')
-		await user.type(screen.getByLabelText('Province'), 'MI')
+		await user.type(screen.getByLabelText('Street and number'), '3 Elm Street')
+		await user.type(screen.getByLabelText('Postal code'), '02108')
+		await user.type(screen.getByLabelText('City'), 'Boston')
+		await user.type(screen.getByLabelText('Province'), 'MA')
 		await user.click(screen.getByRole('button', { name: 'Add address' }))
 
 		await waitFor(() => {
@@ -344,10 +344,10 @@ describe('AddressList editing', () => {
 	it('opens the form filled in with that address', async () => {
 		const { user } = await mount()
 
-		await user.click(within(rowOf('Via Roma 1')).getByRole('button', { name: 'Edit' }))
+		await user.click(within(rowOf('1 Main Street')).getByRole('button', { name: 'Edit' }))
 
 		expect(screen.getByRole('button', { name: 'Save changes' })).toBeInTheDocument()
-		expect(screen.getByLabelText('Street and number')).toHaveValue('Via Roma 1')
+		expect(screen.getByLabelText('Street and number')).toHaveValue('1 Main Street')
 	})
 
 	// The card is replaced by the form rather than sitting above it: two copies of the same address, one
@@ -355,26 +355,26 @@ describe('AddressList editing', () => {
 	it('replaces the card it is editing', async () => {
 		const { user } = await mount()
 
-		await user.click(within(rowOf('Via Roma 1')).getByRole('button', { name: 'Edit' }))
+		await user.click(within(rowOf('1 Main Street')).getByRole('button', { name: 'Edit' }))
 
-		expect(screen.queryByText('Via Roma 1, 20121 Milano (MI)')).not.toBeInTheDocument()
+		expect(screen.queryByText('1 Main Street, 02108 Boston (MA)')).not.toBeInTheDocument()
 	})
 
 	it('leaves the other addresses alone', async () => {
 		const { user } = await mount()
 
-		await user.click(within(rowOf('Via Roma 1')).getByRole('button', { name: 'Edit' }))
+		await user.click(within(rowOf('1 Main Street')).getByRole('button', { name: 'Edit' }))
 
-		expect(screen.getByText('Via Dante 5, 20123 Milano (MI)')).toBeInTheDocument()
+		expect(screen.getByText('5 Oak Street, 02115 Boston (MA)')).toBeInTheDocument()
 	})
 
 	it('closes on cancel and shows the card again', async () => {
 		const { user } = await mount()
 
-		await user.click(within(rowOf('Via Roma 1')).getByRole('button', { name: 'Edit' }))
+		await user.click(within(rowOf('1 Main Street')).getByRole('button', { name: 'Edit' }))
 		await user.click(screen.getByRole('button', { name: 'Cancel' }))
 
-		expect(screen.getByText('Via Roma 1, 20121 Milano (MI)')).toBeInTheDocument()
+		expect(screen.getByText('1 Main Street, 02108 Boston (MA)')).toBeInTheDocument()
 	})
 
 	it('closes once the change is saved', async () => {
@@ -383,7 +383,7 @@ describe('AddressList editing', () => {
 			UserAddressUpdate: { data: { userAddressUpdate: true } }
 		})
 
-		await user.click(within(rowOf('Via Roma 1')).getByRole('button', { name: 'Edit' }))
+		await user.click(within(rowOf('1 Main Street')).getByRole('button', { name: 'Edit' }))
 		await user.click(screen.getByRole('button', { name: 'Save changes' }))
 
 		await waitFor(() => {

@@ -29,7 +29,7 @@ vi.mock('@/features/map/MapIsland', async () => {
 	}
 })
 
-const OTHER = companyOf({ _id: '66b0000000000000000000c2', publicName: 'Panificio Verdi', slug: 'panificio-verdi' })
+const OTHER = companyOf({ _id: '66b0000000000000000000c2', publicName: 'Green Boutique', slug: 'green-boutique' })
 
 const homeReplies = (companies: GraphQLReplies['Companies']): GraphQLReplies => ({
 	Companies: companies,
@@ -63,15 +63,15 @@ describe('the home route', () => {
 		await mount()
 
 		expect(screen.getByRole('heading', { level: 1, name: 'Shops near you' })).toBeInTheDocument()
-		expect(screen.getByRole('heading', { name: 'Bottega Rossi' })).toBeInTheDocument()
-		expect(screen.getByRole('heading', { name: 'Panificio Verdi' })).toBeInTheDocument()
+		expect(screen.getByRole('heading', { name: 'Rivers Boutique' })).toBeInTheDocument()
+		expect(screen.getByRole('heading', { name: 'Green Boutique' })).toBeInTheDocument()
 	})
 
 	it('offers the categories beside the shops', async () => {
 		await mount()
 
 		expect(
-			within(screen.getByRole('navigation', { name: 'Categories' })).getByRole('link', { name: 'Alimentari' })
+			within(screen.getByRole('navigation', { name: 'Categories' })).getByRole('link', { name: 'Apparel' })
 		).toBeInTheDocument()
 	})
 
@@ -83,13 +83,13 @@ describe('the home route', () => {
 	it('links every shop it shows, whatever the map does', async () => {
 		await mount()
 
-		expect(screen.getByRole('link', { name: /Bottega Rossi/ })).toHaveAttribute('href', '/shop/bottega-rossi')
+		expect(screen.getByRole('link', { name: /Rivers Boutique/ })).toHaveAttribute('href', '/shop/rivers-boutique')
 	})
 
 	it('hands the map the shops it already has, so it does not refetch them', async () => {
 		await mount()
 
-		expect(screen.getByTestId('map')).toHaveTextContent('bottega-rossi panificio-verdi')
+		expect(screen.getByTestId('map')).toHaveTextContent('rivers-boutique green-boutique')
 	})
 
 	/*
@@ -101,7 +101,7 @@ describe('the home route', () => {
 	 *
 	 * ⚠️ The map's text is asserted **whole**, not by substring. What the dropped branch contributes is
 	 * *nothing*, and nothing is invisible to an assertion that only looks for the pin that is there — a
-	 * second pin appended after `bottega-rossi` would satisfy `toHaveTextContent` just as well.
+	 * second pin appended after `rivers-boutique` would satisfy `toHaveTextContent` just as well.
 	 */
 	it.each([
 		['a null position', null],
@@ -109,21 +109,21 @@ describe('the home route', () => {
 	])('leaves a shop with %s off the map, and on the page', async (_label, position) => {
 		const placeless = companyOf({
 			_id: '66b0000000000000000000c3',
-			publicName: 'Sartoria Bianchi',
-			slug: 'sartoria-bianchi',
+			publicName: 'White Tailoring',
+			slug: 'white-tailoring',
 			address: { ...companyOf().address, position }
 		})
 
 		await mount(companiesReply([companyOf(), placeless]))
 
-		expect(screen.getByTestId('map').textContent).toBe('12.4964,41.9028 @ 5 · bottega-rossi')
-		expect(screen.getByRole('heading', { name: 'Sartoria Bianchi' })).toBeInTheDocument()
+		expect(screen.getByTestId('map').textContent).toBe('-98.5795,39.8283 @ 5 · rivers-boutique')
+		expect(screen.getByRole('heading', { name: 'White Tailoring' })).toBeInTheDocument()
 	})
 
-	it('frames Italy rather than asking for the visitor’s location', async () => {
+	it('frames the country rather than asking for the visitor’s location', async () => {
 		await mount()
 
-		expect(screen.getByTestId('map')).toHaveTextContent('12.4964,41.9028 @ 5')
+		expect(screen.getByTestId('map')).toHaveTextContent('-98.5795,39.8283 @ 5')
 	})
 
 	it('offers the full listing only when there is more to see', async () => {
@@ -163,11 +163,11 @@ describe('the home route head', () => {
 	})
 
 	it('lists the shops it rendered, as absolute URLs', () => {
-		const list = jsonLdTyped(head([{ slug: 'bottega-rossi' }, { slug: 'panificio-verdi' }]), 'ItemList')
+		const list = jsonLdTyped(head([{ slug: 'rivers-boutique' }, { slug: 'green-boutique' }]), 'ItemList')
 
 		expect(list?.itemListElement).toEqual([
-			{ '@type': 'ListItem', position: 1, url: 'http://127.0.0.1:3045/shop/bottega-rossi' },
-			{ '@type': 'ListItem', position: 2, url: 'http://127.0.0.1:3045/shop/panificio-verdi' }
+			{ '@type': 'ListItem', position: 1, url: 'http://127.0.0.1:3045/shop/rivers-boutique' },
+			{ '@type': 'ListItem', position: 2, url: 'http://127.0.0.1:3045/shop/green-boutique' }
 		])
 	})
 

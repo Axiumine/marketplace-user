@@ -21,7 +21,7 @@ export interface CategoryNode extends FlatCategory {
 	readonly children: readonly CategoryNode[]
 }
 
-const byPosition = (a: FlatCategory, b: FlatCategory): number => a.position - b.position || a.name.localeCompare(b.name, 'it-IT')
+const byPosition = (a: FlatCategory, b: FlatCategory): number => a.position - b.position || a.name.localeCompare(b.name, 'en-GB')
 
 /**
  * Groups children under their parent, both levels ordered by `position`.
@@ -33,7 +33,7 @@ const byPosition = (a: FlatCategory, b: FlatCategory): number => a.position - b.
  * tier prevents — so this branch is a guard against a state the database should never reach, not a
  * routine case.
  *
- * `position` ties are broken by name with an `it-IT` collator: the operator UI does not force distinct
+ * `position` ties are broken by name with an `en-GB` collator: the operator UI does not force distinct
  * positions, and without a tiebreak the order of two equal entries depends on the order Mongo happened
  * to return them in, which is not stable between requests.
  */

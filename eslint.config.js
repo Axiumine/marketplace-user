@@ -36,7 +36,7 @@ import globals from 'globals'
  * zero rules checked, exit 0. When adding a block, verify it resolves with
  * `npx eslint --print-config <file>` — ~400 rules, never `undefined`.
  */
-const SORGENTI = ['src/**/*.{ts,tsx}', 'test/**/*.{ts,tsx}']
+const SOURCES = ['src/**/*.{ts,tsx}', 'test/**/*.{ts,tsx}']
 const CONFIG_ROOT = ['*.{ts,js,mjs}']
 
 export default [
@@ -57,9 +57,9 @@ export default [
 			'src/routeTree.gen.ts'
 		]
 	},
-	{ ...js.configs.recommended, files: [...SORGENTI, ...CONFIG_ROOT] },
+	{ ...js.configs.recommended, files: [...SOURCES, ...CONFIG_ROOT] },
 	{
-		files: [...SORGENTI, '*.ts'],
+		files: [...SOURCES, '*.ts'],
 		languageOptions: {
 			parser: tsParser,
 			parserOptions: { ecmaVersion: 'latest', sourceType: 'module', ecmaFeatures: { jsx: true } },
@@ -133,5 +133,5 @@ export default [
 	// with `prettier --write` about formatting. Scoped like the rest — a bare entry here would be
 	// harmless (it only switches rules off) but would still say the config applies to files this repo
 	// does not own.
-	{ ...prettierConfig, files: [...SORGENTI, ...CONFIG_ROOT] }
+	{ ...prettierConfig, files: [...SOURCES, ...CONFIG_ROOT] }
 ]

@@ -7,7 +7,7 @@ import { installOsm, NOMINATIM_SEARCH, resultOsm } from '../helpers/nominatim'
 /** A signal that is never aborted, for the cases that are not about abandoning a request. */
 const live = (): AbortSignal => new AbortController().signal
 
-const search = (query = 'via roma 1', signal: AbortSignal = live()) => searchAddresses(query, signal)
+const search = (query = 'main street 1', signal: AbortSignal = live()) => searchAddresses(query, signal)
 
 describe('the request', () => {
 	it('asks the on-premises instance on this origin, not openstreetmap.org', async () => {
@@ -24,17 +24,17 @@ describe('the request', () => {
 	 * with an IP block rather than a throttle — so a public site would take the whole platform's egress
 	 * address down, not just its own address field.
 	 */
-	it('sends the parameters an Italian address form needs', async () => {
+	it('sends the parameters a domestic address form needs', async () => {
 		const stub = installOsm({ results: [] })
-		await search('via roma 1')
+		await search('main street 1')
 
 		const params = new URLSearchParams(stub.calls[0]?.split('?')[1] ?? '')
 
-		expect(params.get('q')).toBe('via roma 1')
+		expect(params.get('q')).toBe('main street 1')
 		expect(params.get('format')).toBe('jsonv2')
 		expect(params.get('addressdetails')).toBe('1')
-		expect(params.get('countrycodes')).toBe('it')
-		expect(params.get('accept-language')).toBe('it')
+		expect(params.get('countrycodes')).toBe('us')
+		expect(params.get('accept-language')).toBe('en')
 		expect(params.get('limit')).toBe(String(MAX_RESULTS))
 	})
 
@@ -42,11 +42,11 @@ describe('the request', () => {
 	// `limit` a caller appended by hand would otherwise be the caller's, not this module's.
 	it('encodes a query that carries a reserved character', async () => {
 		const stub = installOsm({ results: [] })
-		await search('via a&b 1')
+		await search('avia a&b 1b street 1')
 
 		const params = new URLSearchParams(stub.calls[0]?.split('?')[1] ?? '')
 
-		expect(params.get('q')).toBe('via a&b 1')
+		expect(params.get('q')).toBe('avia a&b 1b street 1')
 		expect(params.get('limit')).toBe(String(MAX_RESULTS))
 	})
 
@@ -58,14 +58,14 @@ describe('the request', () => {
 
 	/*
 	 * The signal is a required parameter rather than an option because a customer types faster than the
-	 * network answers: without it, the request for `via r` can land after the request for `via roma` and
+	 * network answers: without it, the request for `mai` can land after the request for `main street` and
 	 * overwrite the newer suggestions with older ones. This asserts it actually reaches `fetch`.
 	 */
 	it('rejects when the caller abandons the request', async () => {
 		installOsm({ pending: true })
 		const controller = new AbortController()
 
-		const pending = search('via roma', controller.signal)
+		const pending = search('main street', controller.signal)
 		controller.abort()
 
 		await expect(pending).rejects.toThrow('The operation was aborted.')
@@ -79,20 +79,20 @@ describe('the mapping', () => {
 		expect(await search()).toEqual([
 			{
 				id: '240109189',
-				label: 'Via Roma, 1, Milano, MI, 20121, Italia',
-				street: 'Via Roma 1',
-				postalCode: '20121',
-				city: 'Milano',
-				province: 'MI',
-				lat: 45.4642,
-				lon: 9.1895
+				label: 'Main Street, 1, Boston, MA, 02108, USA',
+				street: '1 Main Street',
+				postalCode: '02108',
+				city: 'Boston',
+				province: 'MA',
+				lat: 42.3601,
+				lon: -71.0589
 			}
 		])
 	})
 
 	/*
 	 * jsonv2 puts `lat`/`lon` on the wire as strings and `place_id` as a number. Coercing rather than
-	 * declaring the types is what keeps `lat` out of the map as the string `"45.46420"`, which MapLibre
+	 * declaring the types is what keeps `lat` out of the map as the string `"42.36010"`, which MapLibre
 	 * accepts and centres nowhere.
 	 */
 	it('coerces the wire types rather than trusting them', async () => {
@@ -105,20 +105,20 @@ describe('the mapping', () => {
 	})
 
 	/*
-	 * ⚠️ The province comes from `ISO3166-2-lvl6`, never from `county`. Level 6 already *is* the code the
-	 * form wants; `county` is the name as whichever mapper typed it — `Milano`, `Città Metropolitana di
-	 * Milano`, `Provincia di Milano` — and there is no route from any of those to `MI`.
+	 * ⚠️ The province comes from `ISO3166-2-lvl4`, never from `county`. Level 6 already *is* the code the
+	 * form wants; `county` is the name as whichever mapper typed it — `Boston`, `Suffolk County,
+	 * or `Suffolk` — and there is no route from any of those to `MA`.
 	 */
 	it('reads the province from the ISO code and drops the country prefix', async () => {
 		installOsm({
-			results: [resultOsm({ address: { 'ISO3166-2-lvl6': 'IT-RM', county: 'Città Metropolitana di Roma Capitale' } })]
+			results: [resultOsm({ address: { 'ISO3166-2-lvl4': 'US-NY', county: 'New York County' } })]
 		})
 
-		expect((await search())[0]?.province).toBe('RM')
+		expect((await search())[0]?.province).toBe('NY')
 	})
 
 	it('leaves the province empty when OSM has no ISO code for the point', async () => {
-		installOsm({ results: [resultOsm({ address: { road: 'Via Roma' } })] })
+		installOsm({ results: [resultOsm({ address: { road: 'Main Street' } })] })
 
 		expect((await search())[0]?.province).toBe('')
 	})
@@ -128,7 +128,7 @@ describe('the mapping', () => {
 	 * one is an OSM classification decision the address form has no business knowing about.
 	 */
 	it.each([
-		['city', 'Milano'],
+		['city', 'Boston'],
 		['town', 'Desio'],
 		['village', 'Introbio']
 	])('reads the locality from %s', async (key, name) => {
@@ -138,13 +138,13 @@ describe('the mapping', () => {
 	})
 
 	it('prefers city over the smaller tags when more than one is present', async () => {
-		installOsm({ results: [resultOsm({ address: { city: 'Milano', town: 'Desio', village: 'Introbio' } })] })
+		installOsm({ results: [resultOsm({ address: { city: 'Boston', town: 'Desio', village: 'Introbio' } })] })
 
-		expect((await search())[0]?.city).toBe('Milano')
+		expect((await search())[0]?.city).toBe('Boston')
 	})
 
 	it('leaves the city empty when the point carries none of the three', async () => {
-		installOsm({ results: [resultOsm({ address: { road: 'Strada Provinciale 32' } })] })
+		installOsm({ results: [resultOsm({ address: { road: 'County Road 32' } })] })
 
 		expect((await search())[0]?.city).toBe('')
 	})
@@ -152,13 +152,13 @@ describe('the mapping', () => {
 	// A trailing space in a street field is invisible on screen and reaches the database, where it breaks
 	// the exact-match a later lookup does.
 	it('joins street and house number without a trailing space when there is no number', async () => {
-		installOsm({ results: [resultOsm({ address: { road: 'Strada Provinciale 32' } })] })
+		installOsm({ results: [resultOsm({ address: { road: 'County Road 32' } })] })
 
-		expect((await search())[0]?.street).toBe('Strada Provinciale 32')
+		expect((await search())[0]?.street).toBe('County Road 32')
 	})
 
 	it('answers an empty street for a point with neither road nor number', async () => {
-		installOsm({ results: [resultOsm({ address: { postcode: '20121' } })] })
+		installOsm({ results: [resultOsm({ address: { postcode: '02108' } })] })
 
 		expect((await search())[0]?.street).toBe('')
 	})
@@ -174,13 +174,13 @@ describe('the mapping', () => {
 		expect(await search()).toEqual([
 			{
 				id: '240109189',
-				label: 'Via Roma, 1, Milano, MI, 20121, Italia',
+				label: 'Main Street, 1, Boston, MA, 02108, USA',
 				street: '',
 				postalCode: '',
 				city: '',
 				province: '',
-				lat: 45.4642,
-				lon: 9.1895
+				lat: 42.3601,
+				lon: -71.0589
 			}
 		])
 	})
@@ -205,7 +205,7 @@ describe('the mapping', () => {
 	it('answers an empty list when the geocoder found nothing', async () => {
 		installOsm({ results: [] })
 
-		expect(await search('via che non esiste')).toEqual([])
+		expect(await search('no such street')).toEqual([])
 	})
 })
 

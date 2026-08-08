@@ -15,15 +15,15 @@ import { SITE_NAME } from '@/lib/seo'
 const ORIGIN = 'http://127.0.0.1:3045'
 
 const COMPANY: JsonLdCompany = {
-	publicName: 'Panificio Rossi',
-	slug: 'panificio-rossi',
-	description: 'Pane e focacce dal 1975.',
+	publicName: 'Rivers Boutique',
+	slug: 'rivers-boutique',
+	description: 'Artisan boutique since 1975.',
 	address: {
-		street: 'Via Dante 3',
-		postalCode: '20121',
-		city: 'Milano',
-		province: 'MI',
-		position: { coordinates: [9.1859, 45.4668] }
+		street: '3 Oak Street',
+		postalCode: '02108',
+		city: 'Boston',
+		province: 'MA',
+		position: { coordinates: [-71.0636, 42.3626] }
 	}
 }
 
@@ -58,7 +58,7 @@ describe('serializeJsonLd', () => {
 	})
 
 	it('leaves ordinary text alone', () => {
-		expect(serializeJsonLd({ name: 'Panificio Rossi' })).toBe('{"name":"Panificio Rossi"}')
+		expect(serializeJsonLd({ name: 'Rivers Boutique' })).toBe('{"name":"Rivers Boutique"}')
 	})
 })
 
@@ -96,33 +96,33 @@ describe('storeJsonLd', () => {
 
 		expect(data['@context']).toBe('https://schema.org')
 		expect(data['@type']).toBe('Store')
-		expect(data.name).toBe('Panificio Rossi')
-		expect(data.url).toBe(`${ORIGIN}/shop/panificio-rossi`)
+		expect(data.name).toBe('Rivers Boutique')
+		expect(data.url).toBe(`${ORIGIN}/shop/rivers-boutique`)
 	})
 
-	// The trading name, not the *ragione sociale*: `legalName` on a shop card is wrong, and it is wrong
+	// The trading name, not the legal name: `legalName` on a shop card is wrong, and it is wrong
 	// in structured data for the same reason — it is not what the page shows.
-	it('publishes the address as a PostalAddress, in Italy', () => {
+	it('publishes the address as a PostalAddress, with its country', () => {
 		expect(storeJsonLd(COMPANY).address).toEqual({
 			'@type': 'PostalAddress',
-			streetAddress: 'Via Dante 3',
-			postalCode: '20121',
-			addressLocality: 'Milano',
-			addressRegion: 'MI',
+			streetAddress: '3 Oak Street',
+			postalCode: '02108',
+			addressLocality: 'Boston',
+			addressRegion: 'MA',
 			addressCountry: 'IT'
 		})
 	})
 
 	/*
 	 * ⚠️ GeoJSON is `[longitude, latitude]` and schema.org names its two fields. Swapping them puts a
-	 * Milanese bakery in the sea off Somalia — and nothing on the page looks wrong, only the pin in the
+	 * Boston shop in the Southern Ocean — and nothing on the page looks wrong, only the pin in the
 	 * search result does, which is the one place nobody is looking.
 	 */
 	it('reads the GeoJSON pair longitude first', () => {
 		expect(storeJsonLd(COMPANY).geo).toEqual({
 			'@type': 'GeoCoordinates',
-			longitude: 9.1859,
-			latitude: 45.4668
+			longitude: -71.0636,
+			latitude: 42.3626
 		})
 	})
 
@@ -149,7 +149,7 @@ describe('storeJsonLd', () => {
 	// A one-element array reaches `latitude: undefined`, which serialises to a `GeoCoordinates` with one
 	// field. Consumers treat that as a broken pin rather than as an absent one.
 	it('omits geo for coordinates that are not a pair', () => {
-		const data = storeJsonLd({ ...COMPANY, address: { ...COMPANY.address, position: { coordinates: [9.1859] } } })
+		const data = storeJsonLd({ ...COMPANY, address: { ...COMPANY.address, position: { coordinates: [-71.0636] } } })
 
 		expect('geo' in data).toBe(false)
 	})
@@ -170,27 +170,27 @@ describe('storeJsonLd', () => {
 	})
 
 	it('publishes the description when there is one', () => {
-		expect(storeJsonLd(COMPANY).description).toBe('Pane e focacce dal 1975.')
+		expect(storeJsonLd(COMPANY).description).toBe('Artisan boutique since 1975.')
 	})
 })
 
 describe('productJsonLd', () => {
 	const ITEM = {
-		name: 'Focaccia genovese',
-		description: 'Alta due centimetri, olio e sale grosso.',
-		slug: 'focaccia-genovese',
-		companySlug: 'panificio-rossi',
-		companyPublicName: 'Panificio Rossi'
+		name: 'Leather shoe',
+		description: 'Hand-stitched, rubber sole.',
+		slug: 'leather-shoe',
+		companySlug: 'rivers-boutique',
+		companyPublicName: 'Rivers Boutique'
 	}
 
 	it('describes the item as a Product at its own absolute URL', () => {
 		expect(productJsonLd(ITEM)).toEqual({
 			'@context': 'https://schema.org',
 			'@type': 'Product',
-			name: 'Focaccia genovese',
-			description: 'Alta due centimetri, olio e sale grosso.',
-			url: `${ORIGIN}/shop/panificio-rossi/item/focaccia-genovese`,
-			brand: { '@type': 'Organization', name: 'Panificio Rossi' }
+			name: 'Leather shoe',
+			description: 'Hand-stitched, rubber sole.',
+			url: `${ORIGIN}/shop/rivers-boutique/item/leather-shoe`,
+			brand: { '@type': 'Organization', name: 'Rivers Boutique' }
 		})
 	})
 
@@ -212,14 +212,14 @@ describe('breadcrumbJsonLd', () => {
 		expect(
 			breadcrumbJsonLd([
 				{ name: 'Home', path: '/' },
-				{ name: 'Negozi', path: '/shops' }
+				{ name: 'Shops', path: '/shops' }
 			])
 		).toEqual({
 			'@context': 'https://schema.org',
 			'@type': 'BreadcrumbList',
 			itemListElement: [
 				{ '@type': 'ListItem', position: 1, name: 'Home', item: `${ORIGIN}/` },
-				{ '@type': 'ListItem', position: 2, name: 'Negozi', item: `${ORIGIN}/shops` }
+				{ '@type': 'ListItem', position: 2, name: 'Shops', item: `${ORIGIN}/shops` }
 			]
 		})
 	})

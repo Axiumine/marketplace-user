@@ -34,7 +34,7 @@ const mount = ({ address, replies = ADDED, osm = {} }: MountOptions = {}) => {
 	return { ...result, stub, geocoder, onDone, onCancel, user: userEvent.setup() }
 }
 
-const VALID = { street: 'Via Dante 5', postalCode: '20123', city: 'Milano', province: 'MI' } as const
+const VALID = { street: '5 Oak Street', postalCode: '02115', city: 'Boston', province: 'MA' } as const
 
 // `Record<…, string>` rather than `Partial<typeof VALID>`: the fixture is `as const`, so a partial of it
 // accepts only the exact strings it already holds — and every override here exists to type a different one.
@@ -101,10 +101,10 @@ describe('AddressForm editing', () => {
 		mount({ address: HOME_ADDRESS, replies: UPDATED })
 
 		expect(screen.getByLabelText('Name this address')).toHaveValue('Home')
-		expect(screen.getByLabelText('Street and number')).toHaveValue('Via Roma 1')
-		expect(screen.getByLabelText('Postal code')).toHaveValue('20121')
-		expect(screen.getByLabelText('City')).toHaveValue('Milano')
-		expect(screen.getByLabelText('Province')).toHaveValue('MI')
+		expect(screen.getByLabelText('Street and number')).toHaveValue('1 Main Street')
+		expect(screen.getByLabelText('Postal code')).toHaveValue('02108')
+		expect(screen.getByLabelText('City')).toHaveValue('Boston')
+		expect(screen.getByLabelText('Province')).toHaveValue('MA')
 	})
 
 	it('names its action for what it does', () => {
@@ -136,8 +136,8 @@ describe('AddressForm editing', () => {
 describe('AddressForm position', () => {
 	/*
 	 * ⚠️ GeoJSON is `[longitude, latitude]`, the reverse of how every map UI, every URL and every human
-	 * says it. Swapping them does not throw — `[45.46, 9.19]` is a valid point, it is simply in Somalia —
-	 * and the `2dsphere` index then answers "no shops near you" forever. Milan is 9.19 E, 45.46 N, so the
+	 * says it. Swapping them does not throw — `[42.36, -71.06]` is a valid point, it is simply in the Southern Ocean —
+	 * and the `2dsphere` index then answers "no shops near you" forever. Boston is 71.06 W, 42.36 N, so the
 	 * pair below is wrong in the only way that matters if the order is ever "tidied up".
 	 */
 	it('sends longitude first', async () => {
@@ -146,7 +146,7 @@ describe('AddressForm position', () => {
 		await submit(user, 'Save changes')
 
 		await waitFor(() => {
-			expect(addressOf(stub)?.position).toEqual({ coordinates: [9.1895, 45.4642] })
+			expect(addressOf(stub)?.position).toEqual({ coordinates: [-71.0589, 42.3601] })
 		})
 	})
 
@@ -185,7 +185,7 @@ describe('AddressForm position', () => {
 	 * which leaves them able to fix it by picking a suggestion.
 	 */
 	it.each([
-		['one coordinate', [9.1895]],
+		['one coordinate', [-71.0589]],
 		['none at all', []]
 	])('treats a position of %s as no position at all', async (_label, coordinates) => {
 		const { user, stub } = mount({
@@ -218,8 +218,8 @@ describe('AddressForm position', () => {
 
 describe('AddressForm geocoder', () => {
 	const pick = async (user: ReturnType<typeof userEvent.setup>) => {
-		await user.type(screen.getByLabelText('Find your address'), 'Via Roma 1')
-		await user.click(await screen.findByRole('button', { name: /Via Roma, 1, Milano/ }))
+		await user.type(screen.getByLabelText('Find your address'), '1 Main Street')
+		await user.click(await screen.findByRole('button', { name: /Main Street, 1, Boston/ }))
 	}
 
 	it('fills the fields from the suggestion', async () => {
@@ -227,10 +227,10 @@ describe('AddressForm geocoder', () => {
 
 		await pick(user)
 
-		expect(screen.getByLabelText('Street and number')).toHaveValue('Via Roma 1')
-		expect(screen.getByLabelText('Postal code')).toHaveValue('20121')
-		expect(screen.getByLabelText('City')).toHaveValue('Milano')
-		expect(screen.getByLabelText('Province')).toHaveValue('MI')
+		expect(screen.getByLabelText('Street and number')).toHaveValue('1 Main Street')
+		expect(screen.getByLabelText('Postal code')).toHaveValue('02108')
+		expect(screen.getByLabelText('City')).toHaveValue('Boston')
+		expect(screen.getByLabelText('Province')).toHaveValue('MA')
 	})
 
 	// ⚠️ Nominatim answers named `lat`/`lon` fields; GeoJSON wants an array with longitude first. The
@@ -242,7 +242,7 @@ describe('AddressForm geocoder', () => {
 		await submit(user, 'Add address')
 
 		await waitFor(() => {
-			expect(addressOf(stub)?.position).toEqual({ coordinates: [9.1895, 45.4642] })
+			expect(addressOf(stub)?.position).toEqual({ coordinates: [-71.0589, 42.3601] })
 		})
 	})
 
@@ -318,7 +318,7 @@ describe('AddressForm validation', () => {
 		await fillIn(user, { province: 'M' })
 		await submit(user, 'Add address')
 
-		expect(await screen.findByText('A province is two letters, like MI.')).toBeInTheDocument()
+		expect(await screen.findByText('A province is two letters, like MA.')).toBeInTheDocument()
 		expect(written(stub)).toBeUndefined()
 	})
 
@@ -329,12 +329,12 @@ describe('AddressForm validation', () => {
 	 * is why the schema repeats the limit and why these two go in through a change event rather than a
 	 * keystroke.
 	 *
-	 * Losing `$` accepts `MIL` and stores `MI`-plus-something; losing `^` accepts `1MI`. Both are a province
+	 * Losing `$` accepts `MAS` and stores `MA`-plus-something; losing `^` accepts `1MA`. Both are a province
 	 * code that matches nothing on an equality filter, in a field the customer cannot see is wrong.
 	 */
 	it.each([
-		['trailing rubbish', 'MIL'],
-		['a leading digit', '1MI']
+		['trailing rubbish', 'MAS'],
+		['a leading digit', '1MA']
 	])('refuses a province with %s, however it got into the field', async (_label, province) => {
 		const { user, stub } = mount()
 
@@ -342,7 +342,7 @@ describe('AddressForm validation', () => {
 		fireEvent.change(screen.getByLabelText('Province'), { target: { value: province } })
 		await submit(user, 'Add address')
 
-		expect(await screen.findByText('A province is two letters, like MI.')).toBeInTheDocument()
+		expect(await screen.findByText('A province is two letters, like MA.')).toBeInTheDocument()
 		expect(written(stub)).toBeUndefined()
 	})
 
@@ -352,24 +352,24 @@ describe('AddressForm validation', () => {
 		const { user, stub } = mount()
 
 		await fillIn(user)
-		fireEvent.change(screen.getByLabelText('Province'), { target: { value: ' mi ' } })
+		fireEvent.change(screen.getByLabelText('Province'), { target: { value: ' ma ' } })
 		await submit(user, 'Add address')
 
 		await waitFor(() => {
-			expect(addressOf(stub)?.province).toBe('MI')
+			expect(addressOf(stub)?.province).toBe('MA')
 		})
 	})
 
-	// Typed in lower case and stored upper: the province code is `MI`, and a `mi` in the database is a
+	// Typed in lower case and stored upper: the province code is `MA`, and a `ma` in the database is a
 	// second spelling of the same province that no equality filter will match.
 	it('upper-cases the province before sending it', async () => {
 		const { user, stub } = mount()
 
-		await fillIn(user, { province: 'mi' })
+		await fillIn(user, { province: 'ma' })
 		await submit(user, 'Add address')
 
 		await waitFor(() => {
-			expect(addressOf(stub)?.province).toBe('MI')
+			expect(addressOf(stub)?.province).toBe('MA')
 		})
 	})
 
@@ -377,13 +377,13 @@ describe('AddressForm validation', () => {
 	 * ⚠️ Every text field trims, and each one has to be checked on its own — they are five separate schema
 	 * entries, not one shared rule. Untrimmed, the two that carry a pattern (`postalCode`, `province`) reject
 	 * a value the customer will swear they typed correctly, and the three that do not (`label`, `street`,
-	 * `city`) store the padding: `" Milano "` is a second city as far as any equality filter is concerned,
+	 * `city`) store the padding: `" Boston "` is a second city as far as any equality filter is concerned,
 	 * and the address it belongs to sorts and groups on its own forever.
 	 */
 	it.each([
-		['Street and number', 'street', '  Via Dante 5  ', 'Via Dante 5'],
-		['City', 'city', '  Milano  ', 'Milano'],
-		['Postal code', 'postalCode', '  20123  ', '20123']
+		['Street and number', 'street', '  5 Oak Street  ', '5 Oak Street'],
+		['City', 'city', '  Boston  ', 'Boston'],
+		['Postal code', 'postalCode', '  02115  ', '02115']
 	])('trims %s rather than storing the spaces', async (label, key, typed, stored) => {
 		const { user, stub } = mount()
 
@@ -422,7 +422,7 @@ describe('AddressForm validation', () => {
 
 	/*
 	 * The two long fields have their own caps and their own messages. A shared "too long" would be wrong in
-	 * both directions here — 250 characters of street is a legitimate Italian address with a *frazione* in
+	 * both directions here — 250 characters of street is a legitimate address with a hamlet name in
 	 * it, while 250 of city is a paste accident — so the number in each message has to name its own field's
 	 * limit, and only the field it belongs to can prove it.
 	 */
@@ -517,7 +517,7 @@ describe('AddressForm result', () => {
 
 		await screen.findByRole('alert')
 		expect(onDone).not.toHaveBeenCalled()
-		expect(screen.getByLabelText('Street and number')).toHaveValue('Via Dante 5')
+		expect(screen.getByLabelText('Street and number')).toHaveValue('5 Oak Street')
 	})
 
 	it('falls back to the generic message when the server is unreachable', async () => {

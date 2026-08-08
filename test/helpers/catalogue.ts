@@ -47,35 +47,35 @@ export interface FixtureCategory {
 
 export const companyOf = (over: Partial<FixtureCompany> = {}): FixtureCompany => ({
 	_id: '66b0000000000000000000c1',
-	publicName: 'Bottega Rossi',
-	slug: 'bottega-rossi',
+	publicName: 'Rivers Boutique',
+	slug: 'rivers-boutique',
 	description: 'Leather goods, made two streets away.',
 	address: {
-		street: 'Via Roma 1',
-		postalCode: '20121',
-		city: 'Milano',
-		province: 'MI',
-		position: { type: 'Point', coordinates: [9.1895, 45.4642] }
+		street: '1 Main Street',
+		postalCode: '02108',
+		city: 'Boston',
+		province: 'MA',
+		position: { type: 'Point', coordinates: [-71.0589, 42.3601] }
 	},
 	...over
 })
 
 export const itemOf = (over: Partial<FixtureItem> = {}): FixtureItem => ({
 	_id: '66b0000000000000000000e1',
-	idCategory: 'cat-food',
+	idCategory: 'cat-apparel',
 	name: 'Leather satchel',
 	description: 'Stitched by hand.',
 	slug: 'leather-satchel',
-	companySlug: 'bottega-rossi',
-	companyPublicName: 'Bottega Rossi',
+	companySlug: 'rivers-boutique',
+	companyPublicName: 'Rivers Boutique',
 	...over
 })
 
 /** The flat rows the resolver answers with — `nestCategories` is what turns them into a two-level tree. */
 export const CATEGORIES: readonly FixtureCategory[] = [
-	{ _id: 'cat-food', idParent: null, name: 'Alimentari', slug: 'alimentari', position: 1 },
-	{ _id: 'cat-craft', idParent: null, name: 'Artigianato', slug: 'artigianato', position: 2 },
-	{ _id: 'cat-bakery', idParent: 'cat-food', name: 'Panetteria', slug: 'panetteria', position: 1 }
+	{ _id: 'cat-apparel', idParent: null, name: 'Apparel', slug: 'apparel', position: 1 },
+	{ _id: 'cat-craft', idParent: null, name: 'Handmade', slug: 'handmade', position: 2 },
+	{ _id: 'cat-footwear', idParent: 'cat-apparel', name: 'Footwear', slug: 'footwear', position: 1 }
 ]
 
 export interface PageOptions {
