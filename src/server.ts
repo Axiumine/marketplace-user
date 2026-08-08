@@ -28,7 +28,7 @@ const SESSION_COOKIE = 'refresh_token'
  * `stale-while-revalidate` is what makes the 60 tolerable. Without it, every minute the first visitor to
  * a popular page waits for a full SSR round trip; with it they are served the old copy instantly and the
  * refresh happens behind them. That is the whole of "ISR" here, and it is done by nginx rather than by
- * the framework — see `docs/nginx/`.
+ * the framework — see the parent workspace's `nginx/`.
  */
 const ANONYMOUS_CACHE = 'public, s-maxage=60, stale-while-revalidate=600'
 

@@ -324,7 +324,8 @@ Two auth models in one platform is worse than one.
 ### 3.8 Caching in nginx, not in the app
 
 **Adopted.** Anonymous HTML is cached by nginx with `stale-while-revalidate`; the cache is bypassed
-whenever a session cookie is present. Configs are in [`docs/nginx/`](docs/nginx/).
+whenever a session cookie is present. Configs are in the parent workspace’s [`nginx/`](../nginx/) — see
+its `conf.d/30-cache.conf` and `sites-available/marketplace-domain.com.conf`.
 
 **Pros**
 
@@ -553,7 +554,8 @@ to `localStorage` or a readable cookie · the tier assertion of §3.7.
 
 ## 8. Related documents
 
-- [`docs/nginx/`](docs/nginx/) — TLS, CSP, the HTML cache, PMTiles range serving, rate-limit zones.
+- [`../nginx/README.md`](../nginx/README.md) — the whole platform edge: three vhosts, TLS, CSP, the HTML
+  cache, PMTiles range serving, rate-limit zones, and the container that tests them.
 - [`docs/nominatim/README.md`](docs/nominatim/README.md) — on-premises geocoder setup, start to finish.
 - `../CLAUDE.md` — the platform-wide conventions this app is bound by.
 - `../marketplace-shopowner/README.md` — the app this one borrows its client-side conventions from.

@@ -13,7 +13,7 @@ import { Client, fetchExchange } from '@urql/core'
  *
  * - **No `cacheExchange`.** Caching a single request's results has nothing to serve them to, and a
  *   cache that outlives the request is the bug above. HTTP caching happens in nginx instead, where it
- *   can be keyed and bypassed properly (see docs/nginx/cache.conf).
+ *   can be keyed and bypassed properly (see nginx/conf.d/30-cache.conf in the parent workspace).
  * - **No `authExchange`.** This client only ever talks to `public-resource`, which has no auth
  *   middleware at all. That absence is the reason the public pages can be server-rendered for a crawler
  *   without the server ever handling a visitor's token.

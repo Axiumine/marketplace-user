@@ -443,7 +443,7 @@ describe('ShopMap and its layers', () => {
 	/*
 	 * ⚠️ A symbol layer with no `glyphs` URL in the style document renders nothing and logs one warning, so
 	 * the counts vanish while the circles stay. This test pins the layer that depends on it — see the note
-	 * in `docs/nginx/` about the style the basemap is served with.
+	 * in the parent workspace's `nginx/` about the style the basemap is served with.
 	 */
 	it('labels a cluster with the abbreviated count', async () => {
 		const { map } = mount()

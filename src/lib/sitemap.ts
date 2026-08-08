@@ -18,7 +18,7 @@ import { absoluteUrl } from './seo'
  *
  * The index page pays for this once: it walks the whole keyset to learn where the boundaries are. That
  * is unavoidable — nothing can list N shards without knowing N — and it is one URL, cached hard by
- * nginx (see docs/nginx/cache.conf).
+ * nginx (see nginx/conf.d/30-cache.conf in the parent workspace).
  */
 
 /**

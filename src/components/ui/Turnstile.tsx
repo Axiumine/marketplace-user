@@ -16,8 +16,8 @@ import { env } from '@/env'
  * third-party origin a request for every anonymous visitor who never signs in.
  *
  * ⚠️ The script URL must be in the CSP `script-src` and `frame-src` — the widget renders in an iframe.
- * See docs/nginx/security.conf; a strict CSP without those two entries fails silently, showing an empty
- * box and no console error worth reading.
+ * See `nginx/snippets/security-headers-public.conf` in the parent workspace; a strict CSP without those
+ * two entries fails silently, showing an empty box and no console error worth reading.
  */
 const SCRIPT_SRC = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'
 const SCRIPT_ID = 'cf-turnstile-script'

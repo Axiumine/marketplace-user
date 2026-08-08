@@ -65,7 +65,8 @@ services:
     container_name: nominatim
     restart: unless-stopped
     ports:
-      # Loopback only. nginx is the sole way in — see docs/nginx/marketplace-user.conf.
+      # Loopback only. nginx is the sole way in — see the parent workspace’s
+      # nginx/sites-available/marketplace-domain.com.conf.
       - "127.0.0.1:8080:8080"
     environment:
       PBF_URL: https://download.geofabrik.de/north-america/us-northeast-latest.osm.pbf
@@ -155,7 +156,8 @@ do it deliberately.
 
 ## The reverse proxy
 
-The browser must never reach Nominatim directly. `docs/nginx/marketplace-user.conf` already carries the block:
+The browser must never reach Nominatim directly. The parent workspace’s
+`nginx/sites-available/marketplace-domain.com.conf` already carries the block:
 
 ```nginx
 location /geocode/ {
@@ -165,7 +167,7 @@ location /geocode/ {
     proxy_cache_valid 200 1h;
     proxy_cache_key   "$scheme$request_method$host$request_uri";
     add_header X-Cache-Status $upstream_cache_status always;
-    include snippets/security-headers.conf;
+    include snippets/security-headers-public.conf;
 }
 ```
 
