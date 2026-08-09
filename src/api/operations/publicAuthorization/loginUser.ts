@@ -17,10 +17,11 @@ import { graphql } from '@gql/publicAuthorization'
  * `rememberMe` picks the cookie's lifetime server-side, session vs. 90 days. It is not a client-side
  * "stay signed in" checkbox that this app then honours; the value decides what the browser is given.
  *
- * ⚠️ `turnstileToken` is nullable and is the one argument `login` and `loginAdmin` do not take. It is
- * nullable because the widget renders nothing when no site key is configured — the normal state of a
- * developer machine — and the server verifies a token only when it holds a secret of its own. Omitting
- * it cannot weaken the gate on a deployment that has one; it can only fail to satisfy it.
+ * ⚠️ `turnstileToken` is nullable, and so is the same argument on `login` and `loginAdmin` — all three
+ * tier logins take it and all three run `guardPublicLogin` first. It is nullable because the widget
+ * renders nothing when no site key is configured — the normal state of a developer machine — and the
+ * server verifies a token only when it holds a secret of its own. Omitting it cannot weaken the gate on
+ * a deployment that has one; it can only fail to satisfy it.
  */
 export const LoginUserDocument = graphql(`
 	mutation LoginUser($email: String!, $password: String!, $rememberMe: Boolean!, $turnstileToken: String) {
