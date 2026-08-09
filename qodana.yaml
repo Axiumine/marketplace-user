@@ -46,10 +46,34 @@ raiseLicenseProblems: true
 # but Qodana Cloud counts it in the license inventory as one suspicious license — which is
 # how a terminal can report 0 while the dashboard does not. CC0-1.0 is a public-domain
 # dedication: it grants strictly more than MIT and asks nothing back.
+# ⚠️ Two keys, not one. This project declares GPL-3.0-or-later in package.json since the LICENSE
+# file landed, and Qodana derives the project key from that field — a rule keyed only on
+# PROPRIETARY-LICENSE now matches nothing, and a rule that matches no project does not fail: it
+# silently does nothing while the audit still reports green. `allowed` below is unchanged.
+# ⚠️ `Python-2.0` is allowed here and in neither sibling frontend, and the difference is real rather
+# than an oversight. argparse@2.0.1 carries that license, and in this app alone it is reachable from
+# *production*: @tanstack/react-start -> @tanstack/start-plugin-core -> xmlbuilder2 -> js-yaml ->
+# argparse. marketplace-admin and marketplace-shopowner resolve the identical package only under
+# @graphql-codegen/cli, a devDependency, and Qodana's audit walks the production graph — so there the
+# entry would be dead configuration, and a copy of it would quietly widen a gate nothing is testing.
+#
+# The grant is safe, not merely convenient: the FSF classes the license of Python 2.0.1 and newer as
+# GPL-compatible, so a GPL-3.0-or-later project may ship it. It only became visible when this repo
+# stopped declaring UNLICENSED — before that the audit had no copyleft project license to compare a
+# dependency against, so the same graph raised nothing.
 licenseRules:
-  - keys: ['PROPRIETARY-LICENSE']
+  - keys: ['GPL-3.0-or-later', 'PROPRIETARY-LICENSE']
     allowed:
-      ['PROPRIETARY-LICENSE', 'GPL-3.0-or-later', 'GPL-3.0-only', 'LGPL-3.0-or-later', 'LGPL-3.0-only', 'MPL-2.0', 'CC0-1.0']
+      [
+        'PROPRIETARY-LICENSE',
+        'GPL-3.0-or-later',
+        'GPL-3.0-only',
+        'LGPL-3.0-or-later',
+        'LGPL-3.0-only',
+        'MPL-2.0',
+        'CC0-1.0',
+        'Python-2.0'
+      ]
 
 # Vulnerable-dependency check (SCA) and taint/SAST run automatically as part of
 # the recommended profile on the Ultimate linter — no extra key required.

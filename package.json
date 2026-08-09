@@ -1,7 +1,7 @@
 {
 	"name": "marketplace-user",
 	"description": "Marketplace — public site and customer area (User)",
-	"license": "UNLICENSED",
+	"license": "GPL-3.0-or-later",
 	"author": "Giovanni Manzoni <dev@giovannimanzoni.com> (https://www.giovannimanzoni.com)",
 	"repository": {
 		"type": "git",
