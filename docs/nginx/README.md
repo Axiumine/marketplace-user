@@ -4,10 +4,10 @@ The nginx configuration that used to live here is gone. It now lives in the **pa
 level above every repo:
 
 ```
-fullstack-marketplace-blueprint/nginx/
+fullstack-marketplace-blueprint/marketplace-nginx/
 ```
 
-Read `nginx/README.md` there. Nothing in this repo needs to be edited to change the edge.
+Read `marketplace-nginx/README.md` there. Nothing in this repo needs to be edited to change the edge.
 
 ## Why it moved
 
@@ -18,7 +18,7 @@ the wrong shape: the platform terminates TLS for **three** hostnames, and two of
 kept inside one of the three frontends' repos cannot describe the other two without lying about where
 it belongs.
 
-It also could not be tested from here. The workspace copy ships `nginx/test/`, a container that runs
+It also could not be tested from here. The workspace copy ships `marketplace-nginx/test/`, a container that runs
 `nginx -t` over the real files and then drives ~150 assertions through a live nginx against stand-in
 backends. That needs every vhost, every snippet and every `conf.d` fragment in one tree.
 
@@ -43,6 +43,6 @@ Several documents under `docs/devprotocol/` in the parent workspace quote these 
 — `SECURITY_AUTH.md`, `INFRA.md`, `RISK_REGISTER.md`, `ADR-019`, `CONSTRAINTS.md`. Those are dated
 audit records and describe the tree as it stood when they were written; they have not been rewritten,
 because falsifying an audit record to match a later change is worse than a dangling line number. Read
-them as history and take `nginx/` in the parent workspace as the current state.
+them as history and take `marketplace-nginx/` in the parent workspace as the current state.
 
 `git log --follow` on the deleted paths in this repo still reaches the full content if you need it.
