@@ -559,3 +559,7 @@ to `localStorage` or a readable cookie · the tier assertion of §3.7.
 - [`docs/nominatim/README.md`](docs/nominatim/README.md) — on-premises geocoder setup, start to finish.
 - `../CLAUDE.md` — the platform-wide conventions this app is bound by.
 - `../marketplace-shopowner/README.md` — the app this one borrows its client-side conventions from.
+
+## License
+
+GPL-3.0-or-later — see [LICENSE](./LICENSE).
