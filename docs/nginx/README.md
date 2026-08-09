@@ -7,7 +7,7 @@ level above every repo:
 fullstack-marketplace-blueprint/marketplace-nginx/
 ```
 
-Read `marketplace-nginx/README.md` there. Nothing in this repo needs to be edited to change the edge.
+Read [`marketplace-nginx/README.md`](https://github.com/Axiumine/marketplace-nginx/blob/main/README.md) there. Nothing in this repo needs to be edited to change the edge.
 
 ## Why it moved
 
