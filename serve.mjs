@@ -13,7 +13,7 @@
  * installed is a break waiting for the day the transitive path changes.
  *
  * ⚠️ **This process serves SSR responses only. It does not serve `dist/client`.** nginx does, straight
- * off disk with an immutable cache header (`nginx/sites-available/marketplace-domain.com.conf` in the
+ * off disk with an immutable cache header (`marketplace-nginx/sites-available/marketplace-domain.com.conf` in the
  * parent workspace roots at `/srv/marketplace-user/dist/client`), which is both faster and one less
  * thing for Node to do while it is rendering. The consequence to know about: run this without nginx in
  * front and every asset 404s. For looking at a production build locally, `yarn preview` serves both.

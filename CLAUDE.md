@@ -26,7 +26,7 @@ as ceremony is there because a request renders on a shared Node process before a
 
 ⚠️ **Never turn SSR on for an `/account` route.** Rendering authenticated HTML on a server that sits
 behind a shared `proxy_cache` is how one customer's personal data ends up in another customer's response.
-The cache bypasses on the session cookie (`nginx/conf.d/30-cache.conf` in the **parent workspace**), so the
+The cache bypasses on the session cookie (`marketplace-nginx/conf.d/30-cache.conf` in the **parent workspace**), so the
 two rules are one mechanism — weakening either alone is enough to leak. Nothing to gain either: an account
 page has no SEO value.
 

@@ -66,7 +66,7 @@ services:
     restart: unless-stopped
     ports:
       # Loopback only. nginx is the sole way in — see the parent workspace’s
-      # nginx/sites-available/marketplace-domain.com.conf.
+      # marketplace-nginx/sites-available/marketplace-domain.com.conf.
       - "127.0.0.1:8080:8080"
     environment:
       PBF_URL: https://download.geofabrik.de/north-america/us-northeast-latest.osm.pbf
@@ -157,7 +157,7 @@ do it deliberately.
 ## The reverse proxy
 
 The browser must never reach Nominatim directly. The parent workspace’s
-`nginx/sites-available/marketplace-domain.com.conf` already carries the block:
+`marketplace-nginx/sites-available/marketplace-domain.com.conf` already carries the block:
 
 ```nginx
 location /geocode/ {

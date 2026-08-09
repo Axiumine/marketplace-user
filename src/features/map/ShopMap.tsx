@@ -197,7 +197,7 @@ export const ShopMap = ({ center, zoom, initialPins = [] }: ShopMapProps) => {
 			/*
 			 * ⚠️ This layer needs a `glyphs` URL in the style document — a symbol layer with no font source
 			 * renders nothing and logs one warning, so the count silently disappears while the circles stay.
-			 * The parent workspace's `nginx/` serves the Protomaps style, which carries one; a hand-written
+			 * The parent workspace's `marketplace-nginx/` serves the Protomaps style, which carries one; a hand-written
 			 * style must too.
 			 */
 			map.addLayer({

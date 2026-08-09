@@ -31,7 +31,7 @@ export interface AppEnv {
 	readonly siteUrl: string
 	/** Public half of the Turnstile key pair. Empty disables the widget, which is what a dev box wants. */
 	readonly turnstileSiteKey: string
-	/** MapLibre style JSON. Points at the self-hosted Protomaps basemap; see the parent workspace's `nginx/`. */
+	/** MapLibre style JSON. Points at the self-hosted Protomaps basemap; see the parent workspace's `marketplace-nginx/`. */
 	readonly mapStyleUrl: string
 	/** The PMTiles archive the style's source resolves through `pmtiles://`. */
 	readonly pmtilesUrl: string
