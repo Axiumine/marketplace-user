@@ -324,7 +324,7 @@ Two auth models in one platform is worse than one.
 ### 3.8 Caching in nginx, not in the app
 
 **Adopted.** Anonymous HTML is cached by nginx with `stale-while-revalidate`; the cache is bypassed
-whenever a session cookie is present. Configs are in the parent workspace’s [`marketplace-nginx/`](../marketplace-nginx/) — see
+whenever a session cookie is present. Configs are in the parent workspace’s [`marketplace-nginx/`](https://github.com/Axiumine/marketplace-nginx) — see
 its `conf.d/30-cache.conf` and `sites-available/marketplace-domain.com.conf`.
 
 **Pros**
@@ -554,11 +554,11 @@ to `localStorage` or a readable cookie · the tier assertion of §3.7.
 
 ## 8. Related documents
 
-- [`../marketplace-nginx/README.md`](../marketplace-nginx/README.md) — the whole platform edge: three vhosts, TLS, CSP, the HTML
+- [`marketplace-nginx/README.md`](https://github.com/Axiumine/marketplace-nginx/blob/main/README.md) — the whole platform edge: three vhosts, TLS, CSP, the HTML
   cache, PMTiles range serving, rate-limit zones, and the container that tests them.
 - [`docs/nominatim/README.md`](docs/nominatim/README.md) — on-premises geocoder setup, start to finish.
-- `../CLAUDE.md` — the platform-wide conventions this app is bound by.
-- `../marketplace-shopowner/README.md` — the app this one borrows its client-side conventions from.
+- [`../CLAUDE.md`](https://github.com/Axiumine/fullstack-marketplace-blueprint/blob/main/CLAUDE.md) — the platform-wide conventions this app is bound by.
+- [`../marketplace-shopowner/README.md`](https://github.com/Axiumine/marketplace-shopowner/blob/main/README.md) — the app this one borrows its client-side conventions from.
 
 ## License
 

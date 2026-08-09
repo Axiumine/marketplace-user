@@ -18,7 +18,7 @@ Two numbers, both 100, both blocking — plus a scan that re-checks the first on
 All three run in `.githooks/pre-push`, after `yarn lint:check` and `tsc --noEmit`; coverage and Qodana run
 again in `.githooks/pre-commit`. The reasons both hooks scan, why `SKIP_TESTS=1` is passed, and why a
 backend service's `QODANA_TOKEN` is not interchangeable with this repo's are identical to
-`../marketplace-shopowner/COVERAGE.md` — read that file for the long form; nothing here diverges from it.
+[`../marketplace-shopowner/COVERAGE.md`](https://github.com/Axiumine/marketplace-shopowner/blob/main/COVERAGE.md) — read that file for the long form; nothing here diverges from it.
 
 ## What is excluded, and why each exclusion is not a hole
 

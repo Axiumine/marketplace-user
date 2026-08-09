@@ -236,7 +236,7 @@ volume the OSM tile policy permits.
 
 **`marketplace-user` does not use it.** The customer map is MapLibre GL over a self-hosted PMTiles archive,
 for the same reason the geocoder moved in-house: `tile.openstreetmap.org` forbids that traffic class outright.
-See the map section of `marketplace-user/README.md`.
+See the map section of [`marketplace-user/README.md`](../../README.md).
 
 ## Verifying
 

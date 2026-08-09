@@ -2,14 +2,13 @@
 
 Customer app, `User` tier. Public indexed site **and** private account area, one codebase.
 
-**Read parent first** — `../CLAUDE.md`
-(<https://github.com/Axiumine/fullstack-marketplace-blueprint> if you are reading this on GitHub).
+**Read parent first** — [`../CLAUDE.md`](https://github.com/Axiumine/fullstack-marketplace-blueprint/blob/main/CLAUDE.md)
 One of fifteen sub-repos; almost nothing here is changeable on its own.
 
 | Need | File |
 |---|---|
-| strategy, every rejected alternative, chunk numbers | `README.md` |
-| gate policy | `COVERAGE.md` |
+| strategy, every rejected alternative, chunk numbers | [`README.md`](./README.md) |
+| gate policy | [`COVERAGE.md`](./COVERAGE.md) |
 | anything cross-repo | parent `CLAUDE.md` |
 
 ⚠️ **Only server-rendered app on the platform.** Other two frontends are SPAs. Anything below that reads
