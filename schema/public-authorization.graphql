@@ -21,11 +21,12 @@ type Hello2Type {
 }
 
 type MutationsPublic {
-	# ⚠️ Neither of these takes a `turnstileToken`, and `loginUser` does. Not an inconsistency in this
-	# slice — it is the resolvers': the two shipped panels that call these mint no token, so gating them
-	# is a coordinated frontend change nobody has made. See the header of loginUser.mts on 4028.
-	login(email: String!, password: String!, rememberMe: Boolean!): LoginAppType!
-	loginAdmin(email: String!, password: String!, rememberMe: Boolean!): LoginAppType!
+	# ⚠️ All three logins take a `turnstileToken` now, and all three are metered by `guardPublicLogin`
+	# before the database is touched — only the hourly ceilings differ (`loginAdmin` is the tightest at
+	# 10 per IP / 30 per email, `login` and `loginUser` 20 / 60). Declared here for completeness; this
+	# app must only ever send `loginUser`.
+	login(email: String!, password: String!, rememberMe: Boolean!, turnstileToken: String): LoginAppType!
+	loginAdmin(email: String!, password: String!, rememberMe: Boolean!, turnstileToken: String): LoginAppType!
 
 	"""
 	Log a customer in

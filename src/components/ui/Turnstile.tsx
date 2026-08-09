@@ -7,9 +7,10 @@ import { env } from '@/env'
  *
  * ⚠️ **An empty `VITE_TURNSTILE_SITE_KEY` disables it entirely, and the form still submits.** That is
  * the normal state of a developer machine and of the integration suites, and it is safe because the
- * server is the side that decides: `guardPublicWrite` verifies a token only when it holds a secret key
- * of its own, so a deployment with the secret configured rejects the tokenless request this component
- * would send. The client cannot weaken the gate by not rendering — it can only fail to help.
+ * server is the side that decides: `guardPublicWrite` on 4027 and `guardPublicLogin` on 4028 verify a
+ * token only when the service holds a secret key of its own, so a deployment with the secret configured
+ * rejects the tokenless request this component would send. The client cannot weaken the gate by not
+ * rendering — it can only fail to help.
  *
  * The script is loaded on demand rather than in `<head>`: it is third-party JavaScript on the critical
  * path of four pages out of the whole site, and preloading it on the shop pages would hand a
