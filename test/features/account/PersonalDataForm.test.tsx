@@ -32,6 +32,25 @@ const written = (stub: { calls: readonly { operationName: string; variables: Rec
 const personalDataOf = (stub: Parameters<typeof written>[0]) =>
 	written(stub)?.variables.personalData as Record<string, unknown> | undefined
 
+/**
+ * A fresh account saved with the two fields the form requires and nothing else — the arrangement every
+ * "what does an omitted field become on the wire?" test needs before it can read the mutation's payload.
+ * Returns once the write has actually left, so the caller can assert on it without a `waitFor` of its own.
+ */
+const saveNameOnly = async () => {
+	const { user, stub } = await mount(FRESH_ME)
+
+	await user.type(screen.getByLabelText('First name'), 'Julia')
+	await user.type(screen.getByLabelText('Last name'), 'Rivers')
+	await save(user)
+
+	await waitFor(() => {
+		expect(written(stub)).toBeDefined()
+	})
+
+	return stub
+}
+
 describe('PersonalDataForm on a fresh account', () => {
 	/*
 	 * ⚠️ `personalData` is null on a fresh account and this form is what creates it. Registration takes an
@@ -234,15 +253,8 @@ describe('PersonalDataForm empty optionals', () => {
 	 * difference is whether the stored document grows an empty subdocument for nothing.
 	 */
 	it('omits the whole contacts object when every field is blank', async () => {
-		const { user, stub } = await mount(FRESH_ME)
+		const stub = await saveNameOnly()
 
-		await user.type(screen.getByLabelText('First name'), 'Julia')
-		await user.type(screen.getByLabelText('Last name'), 'Rivers')
-		await save(user)
-
-		await waitFor(() => {
-			expect(written(stub)).toBeDefined()
-		})
 		expect(personalDataOf(stub)?.contacts).toBeUndefined()
 	})
 
@@ -286,15 +298,8 @@ describe('PersonalDataForm empty optionals', () => {
 	})
 
 	it('omits the birth date when it was left blank', async () => {
-		const { user, stub } = await mount(FRESH_ME)
+		const stub = await saveNameOnly()
 
-		await user.type(screen.getByLabelText('First name'), 'Julia')
-		await user.type(screen.getByLabelText('Last name'), 'Rivers')
-		await save(user)
-
-		await waitFor(() => {
-			expect(written(stub)).toBeDefined()
-		})
 		expect(personalDataOf(stub)?.birth).toBeUndefined()
 	})
 

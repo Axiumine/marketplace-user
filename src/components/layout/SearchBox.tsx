@@ -1,5 +1,5 @@
 import { useNavigate } from '@tanstack/react-router'
-import type { FormEvent } from 'react'
+import type { SubmitEvent } from 'react'
 
 /**
  * The header search field.
@@ -17,7 +17,9 @@ import type { FormEvent } from 'react'
 export const SearchBox = ({ initialQuery = '' }: { readonly initialQuery?: string }) => {
 	const navigate = useNavigate()
 
-	const onSubmit = (event: FormEvent<HTMLFormElement>) => {
+	// React's `SubmitEvent`, not the DOM global of the same name and not `FormEvent`: `@types/react` 19
+	// deprecated `FormEvent` ("doesn't actually exist") and types `onSubmit` as `SubmitEventHandler`.
+	const onSubmit = (event: SubmitEvent<HTMLFormElement>) => {
 		event.preventDefault()
 
 		const query = new FormData(event.currentTarget).get('q')

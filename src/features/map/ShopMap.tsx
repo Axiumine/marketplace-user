@@ -145,7 +145,10 @@ export const ShopMap = ({ center, zoom, initialPins = [] }: ShopMapProps) => {
 			const source = map.getSource(SOURCE)
 			if (source === undefined) return
 
-			;(source as maplibregl.GeoJSONSource).setData(
+			// `setData` answers a promise — it hands the data to the worker that re-tiles it and resolves when
+			// that is done. Awaited so a failure there rejects this `load()` rather than floating away as an
+			// unhandled rejection with no line of ours in its stack.
+			await (source as maplibregl.GeoJSONSource).setData(
 				toFeatureCollection(
 					nodes.map((node) => ({
 						_id: node._id,
