@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import type { SubmitEvent } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { SubmitButton } from '@/components/ui/SubmitButton'
@@ -20,7 +21,7 @@ describe('SubmitButton', () => {
 	})
 
 	it('is clickable when idle', async () => {
-		const onSubmit = vi.fn((event: React.FormEvent) => {
+		const onSubmit = vi.fn((event: SubmitEvent) => {
 			event.preventDefault()
 		})
 		render(
@@ -80,7 +81,7 @@ describe('SubmitButton while busy', () => {
 	 * The server rate-limits as well — this is the cheap half of that pair, not a replacement for it.
 	 */
 	it('refuses a second click', async () => {
-		const onSubmit = vi.fn((event: React.FormEvent) => {
+		const onSubmit = vi.fn((event: SubmitEvent) => {
 			event.preventDefault()
 		})
 		render(

@@ -11,20 +11,9 @@ import type { RouteHead } from '../helpers/head'
 import { canonicalOf, jsonLdTyped, linkOf, metaOf, titleOf } from '../helpers/head'
 import { renderRoute } from '../helpers/render'
 
-/* The island is stubbed for the same reason as on the home page: MapLibre needs a WebGL context jsdom
- * does not have. What this page owes the map is one pin on the shop itself, and the stub renders it. */
-vi.mock('@/features/map/MapIsland', async () => {
-	const { createElement } = await import('react')
-
-	return {
-		MapIsland: (props: { center: readonly [number, number]; zoom: number; initialPins?: readonly { slug: string }[] }) =>
-			createElement(
-				'div',
-				{ 'data-testid': 'map' },
-				`${String(props.center[0])},${String(props.center[1])} @ ${String(props.zoom)} · ${(props.initialPins ?? []).map((pin) => pin.slug).join(' ')}`
-			)
-	}
-})
+/* The island is stubbed for the same reason as on the home page. What this page owes the map is one pin
+ * on the shop itself, and the stub renders it. */
+vi.mock('@/features/map/MapIsland', async () => (await import('../helpers/mapIsland')).mapIslandStub())
 
 const shopReply = (company: FixtureCompany | null): GraphQLReply => ({ data: { companyBySlug: company } })
 

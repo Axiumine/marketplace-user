@@ -1,4 +1,4 @@
-import type { AnyVariables, OperationResult } from '@urql/core'
+import type { OperationResult } from '@urql/core'
 import { useState } from 'react'
 import { useMutation } from 'urql'
 
@@ -46,11 +46,12 @@ export const AddressList = () => {
 	/**
 	 * Both single-argument mutations answer the same way, so they share one handler.
 	 *
-	 * Typed against `OperationResult<unknown, AnyVariables>` rather than either mutation's own result:
-	 * nothing in here reads a field off `data`, only whether one arrived, and naming a concrete type
-	 * would mean a second copy of this function for the second mutation.
+	 * Typed against `OperationResult<unknown>` rather than either mutation's own result: nothing in here
+	 * reads a field off `data`, only whether one arrived, and naming a concrete type would mean a second
+	 * copy of this function for the second mutation. The variables parameter is left off — its default
+	 * already is `AnyVariables`, and spelling it out is the same type written twice.
 	 */
-	const run = async (action: Promise<OperationResult<unknown, AnyVariables>>): Promise<void> => {
+	const run = async (action: Promise<OperationResult<unknown>>): Promise<void> => {
 		setFailure(undefined)
 
 		const result = await action

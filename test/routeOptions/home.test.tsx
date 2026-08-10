@@ -10,24 +10,9 @@ import type { RouteHead } from '../helpers/head'
 import { canonicalOf, jsonLdTyped, metaOf, titleOf } from '../helpers/head'
 import { renderRoute } from '../helpers/render'
 
-/*
- * ⚠️ The island is stubbed, and only the island. MapLibre reaches for a WebGL context that jsdom does not
- * have, so the real `MapIsland` would tear the page down on the effect that builds the map — a failure of
- * the environment, not of the page. What matters here is *what the page hands the map*, which the stub
- * renders as text. `MapIsland` and `ShopMap` have their own tests.
- */
-vi.mock('@/features/map/MapIsland', async () => {
-	const { createElement } = await import('react')
-
-	return {
-		MapIsland: (props: { center: readonly [number, number]; zoom: number; initialPins?: readonly { slug: string }[] }) =>
-			createElement(
-				'div',
-				{ 'data-testid': 'map' },
-				`${String(props.center[0])},${String(props.center[1])} @ ${String(props.zoom)} · ${(props.initialPins ?? []).map((pin) => pin.slug).join(' ')}`
-			)
-	}
-})
+/* ⚠️ The island is stubbed, and only the island: it needs a WebGL context jsdom does not have, and what
+ * matters here is what the page hands it. `test/helpers/mapIsland.ts` says the rest. */
+vi.mock('@/features/map/MapIsland', async () => (await import('../helpers/mapIsland')).mapIslandStub())
 
 const OTHER = companyOf({ _id: '66b0000000000000000000c2', publicName: 'Green Boutique', slug: 'green-boutique' })
 
