@@ -99,6 +99,18 @@ describe('AccountNav links', () => {
 		expect(screen.getByRole('link', { name: 'Profile' })).not.toHaveClass('bg-palette-bg')
 		expect(screen.getByRole('link', { name: 'Password' })).not.toHaveClass('bg-palette-bg')
 	})
+
+	it('matches the snapshot', async () => {
+		const { container } = await mount()
+
+		expect(container.firstChild).toMatchSnapshot()
+	})
+
+	it('matches the snapshot on a sibling screen', async () => {
+		const { container } = await mount('/account/addresses')
+
+		expect(container.firstChild).toMatchSnapshot()
+	})
 })
 
 describe('AccountNav sign out', () => {

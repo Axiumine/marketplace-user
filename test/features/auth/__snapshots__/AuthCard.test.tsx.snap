@@ -1,0 +1,49 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`AuthCard > matches the snapshot with an intro and a footer 1`] = `
+<div
+  class="mx-auto max-w-md px-4 py-10"
+>
+  <h1
+    class="text-2xl font-semibold text-palette-bg"
+  >
+    Reset your password
+  </h1>
+  <p
+    class="mt-2 text-sm text-slate-600"
+  >
+    Enter the address you registered with.
+  </p>
+  <div
+    class="mt-6 rounded-box border border-slate-200 bg-white p-5"
+  >
+    the reset form
+  </div>
+  <div
+    class="mt-4 text-sm text-slate-600"
+  >
+    <a
+      href="/register"
+    >
+      Create an account
+    </a>
+  </div>
+</div>
+`;
+
+exports[`AuthCard > matches the snapshot with neither 1`] = `
+<div
+  class="mx-auto max-w-md px-4 py-10"
+>
+  <h1
+    class="text-2xl font-semibold text-palette-bg"
+  >
+    Sign in
+  </h1>
+  <div
+    class="mt-6 rounded-box border border-slate-200 bg-white p-5"
+  >
+    the login form
+  </div>
+</div>
+`;

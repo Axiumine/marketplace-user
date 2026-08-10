@@ -1,0 +1,69 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`AccountNav links > matches the snapshot 1`] = `
+<nav
+  aria-label="Account"
+  class="flex flex-wrap items-center gap-1"
+>
+  <a
+    aria-current="page"
+    class="rounded-box px-3 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-box px-3 py-2 text-sm bg-palette-bg text-palette-white hover:bg-palette-bg"
+    data-status="active"
+    href="/account"
+  >
+    Profile
+  </a>
+  <a
+    class="rounded-box px-3 py-2 text-sm text-slate-600 hover:bg-slate-100"
+    href="/account/addresses"
+  >
+    Addresses
+  </a>
+  <a
+    class="rounded-box px-3 py-2 text-sm text-slate-600 hover:bg-slate-100"
+    href="/account/password"
+  >
+    Password
+  </a>
+  <button
+    class="rounded-box px-3 py-2 text-sm text-slate-600 hover:bg-slate-100 ml-auto underline"
+    type="button"
+  >
+    Sign out
+  </button>
+</nav>
+`;
+
+exports[`AccountNav links > matches the snapshot on a sibling screen 1`] = `
+<nav
+  aria-label="Account"
+  class="flex flex-wrap items-center gap-1"
+>
+  <a
+    class="rounded-box px-3 py-2 text-sm text-slate-600 hover:bg-slate-100"
+    href="/account"
+  >
+    Profile
+  </a>
+  <a
+    aria-current="page"
+    class="rounded-box px-3 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-box px-3 py-2 text-sm bg-palette-bg text-palette-white hover:bg-palette-bg"
+    data-status="active"
+    href="/account/addresses"
+  >
+    Addresses
+  </a>
+  <a
+    class="rounded-box px-3 py-2 text-sm text-slate-600 hover:bg-slate-100"
+    href="/account/password"
+  >
+    Password
+  </a>
+  <button
+    class="rounded-box px-3 py-2 text-sm text-slate-600 hover:bg-slate-100 ml-auto underline"
+    type="button"
+  >
+    Sign out
+  </button>
+</nav>
+`;

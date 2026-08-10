@@ -123,6 +123,13 @@ describe('AccountGate loading', () => {
 		expect(stub.calls.find((call) => call.operationName === 'Me')?.url).toBe(ENDPOINT.userResource)
 	})
 
+	it('matches the snapshot while loading', async () => {
+		const { container } = await mount({ Me: { pending: true } })
+
+		await screen.findByRole('status')
+		expect(container.firstChild).toMatchSnapshot()
+	})
+
 	/*
 	 * ⚠️ The query is fired once, here, and shared through context. urql's document cache would dedupe a
 	 * second `useQuery(MeDocument)` anyway, so the duplication would be invisible in the network tab — the
@@ -234,6 +241,15 @@ describe('AccountGate on a failure that is not the session', () => {
 		await mount({ Me: { body: '{}' } })
 
 		expect(await screen.findByRole('alert')).toHaveTextContent('Error while communicating with the server')
+	})
+
+	it('matches the snapshot on a failure', async () => {
+		const { container } = await mount({
+			Me: { errors: [graphQLError('Database unavailable')], status: HTTP.internal }
+		})
+
+		await screen.findByRole('alert')
+		expect(container.firstChild).toMatchSnapshot()
 	})
 })
 

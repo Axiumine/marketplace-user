@@ -63,6 +63,12 @@ describe('RegisterForm fields', () => {
 
 		expect(screen.getByText(/At least 10 characters/)).toBeInTheDocument()
 	})
+
+	it('matches the snapshot', () => {
+		const { container } = mount()
+
+		expect(container.firstChild).toMatchSnapshot()
+	})
 })
 
 describe('RegisterForm validation', () => {
@@ -186,6 +192,16 @@ describe('RegisterForm success screen', () => {
 
 		await screen.findByRole('status')
 		expect(screen.getByText(/three days/)).toHaveTextContent('a second request replaces the first link')
+	})
+
+	it('matches the snapshot', async () => {
+		const { user, container } = mount()
+
+		await fillIn(user)
+		await submit(user)
+
+		await screen.findByRole('status')
+		expect(container.firstChild).toMatchSnapshot()
 	})
 })
 

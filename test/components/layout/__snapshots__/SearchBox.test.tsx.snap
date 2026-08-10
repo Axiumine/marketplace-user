@@ -1,0 +1,32 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`SearchBox snapshot > renders 1`] = `
+<form
+  action="/search"
+  class="flex w-full max-w-xl items-center gap-2"
+  method="get"
+  role="search"
+>
+  <label
+    class="sr-only"
+    for="site-search"
+  >
+    Search shops and items
+  </label>
+  <input
+    autocomplete="off"
+    class="w-full rounded-box border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-slate-500"
+    id="site-search"
+    name="q"
+    placeholder="Search shops and items"
+    type="search"
+    value="ceramics"
+  />
+  <button
+    class="rounded-box bg-palette-bg px-4 py-2 text-sm font-medium text-palette-white hover:bg-palette-bg3"
+    type="submit"
+  >
+    Search
+  </button>
+</form>
+`;

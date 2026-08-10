@@ -52,6 +52,12 @@ describe('AddressList with nothing saved', () => {
 
 		expect(screen.getByRole('button', { name: 'Add an address' })).toBeInTheDocument()
 	})
+
+	it('matches the snapshot', async () => {
+		const { container } = await mount(FRESH_ME)
+
+		expect(container.firstChild).toMatchSnapshot()
+	})
 })
 
 describe('AddressList rendering', () => {
@@ -116,6 +122,12 @@ describe('AddressList rendering', () => {
 
 		expect(within(rowOf('5 Oak Street')).getByText('Not placed on the map')).toBeInTheDocument()
 		expect(within(rowOf('1 Main Street')).queryByText('Not placed on the map')).not.toBeInTheDocument()
+	})
+
+	it('matches the snapshot', async () => {
+		const { container } = await mount()
+
+		expect(container.firstChild).toMatchSnapshot()
 	})
 })
 

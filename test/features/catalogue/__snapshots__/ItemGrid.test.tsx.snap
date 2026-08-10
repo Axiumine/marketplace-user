@@ -1,0 +1,60 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ItemGrid > matches the snapshot 1`] = `
+<ul
+  class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
+>
+  <li>
+    <article
+      class="h-full"
+    >
+      <a
+        class="flex h-full flex-col gap-2 rounded-box border border-slate-200 bg-white p-4 hover:border-slate-400"
+        href="/shop/rivers-boutique/item/satchel-1"
+      >
+        <h2
+          class="text-base font-semibold text-palette-bg"
+        >
+          Satchel 1
+        </h2>
+        <p
+          class="text-sm text-slate-500"
+        >
+          Rivers Boutique
+        </p>
+        <p
+          class="text-sm text-slate-600"
+        >
+          Stitched by hand.
+        </p>
+      </a>
+    </article>
+  </li>
+  <li>
+    <article
+      class="h-full"
+    >
+      <a
+        class="flex h-full flex-col gap-2 rounded-box border border-slate-200 bg-white p-4 hover:border-slate-400"
+        href="/shop/rivers-boutique/item/satchel-2"
+      >
+        <h2
+          class="text-base font-semibold text-palette-bg"
+        >
+          Satchel 2
+        </h2>
+        <p
+          class="text-sm text-slate-500"
+        >
+          Rivers Boutique
+        </p>
+        <p
+          class="text-sm text-slate-600"
+        >
+          Stitched by hand.
+        </p>
+      </a>
+    </article>
+  </li>
+</ul>
+`;

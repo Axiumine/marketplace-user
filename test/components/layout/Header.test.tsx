@@ -104,3 +104,17 @@ describe('Header session link', () => {
 		expect(mainNav().getByRole('link', { name: 'Account' })).toBeVisible()
 	})
 })
+
+describe('Header snapshot', () => {
+	it('renders signed out', async () => {
+		await mount()
+
+		expect(screen.getByRole('banner')).toMatchSnapshot()
+	})
+
+	it('renders signed in', async () => {
+		await mount(CUSTOMER_EMAIL)
+
+		expect(screen.getByRole('banner')).toMatchSnapshot()
+	})
+})

@@ -1,0 +1,19 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`FormStatus snapshot > renders the error tone 1`] = `
+<p
+  class="rounded-box border px-3 py-2 text-sm border-app-error/40 bg-app-error/10 text-app-error"
+  role="alert"
+>
+  Message
+</p>
+`;
+
+exports[`FormStatus snapshot > renders the ok tone 1`] = `
+<p
+  class="rounded-box border px-3 py-2 text-sm border-app-ok/40 bg-app-ok/10 text-app-ok"
+  role="status"
+>
+  Message
+</p>
+`;

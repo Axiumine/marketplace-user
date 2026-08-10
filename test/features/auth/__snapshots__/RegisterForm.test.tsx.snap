@@ -1,0 +1,92 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`RegisterForm fields > matches the snapshot 1`] = `
+<form
+  class="flex flex-col gap-4"
+  novalidate=""
+>
+  <div
+    class="flex flex-col gap-1"
+  >
+    <label
+      class="text-sm font-medium text-palette-bg"
+      for="email"
+    >
+      Email
+    </label>
+    <input
+      autocomplete="username"
+      class="rounded-box border px-3 py-2 text-sm outline-none focus:border-palette-bg border-slate-300"
+      id="email"
+      name="email"
+      type="email"
+    />
+  </div>
+  <div
+    class="flex flex-col gap-1"
+  >
+    <label
+      class="text-sm font-medium text-palette-bg"
+      for="password"
+    >
+      Password
+    </label>
+    <input
+      aria-describedby="password-hint"
+      autocomplete="new-password"
+      class="rounded-box border px-3 py-2 text-sm outline-none focus:border-palette-bg border-slate-300"
+      id="password"
+      name="password"
+      type="password"
+    />
+    <p
+      class="text-xs text-tip"
+      id="password-hint"
+    >
+      At least 10 characters. Length beats symbols: a phrase you can remember is stronger than a short password full of punctuation.
+    </p>
+  </div>
+  <div
+    class="flex flex-col gap-1"
+  >
+    <label
+      class="text-sm font-medium text-palette-bg"
+      for="repeatPassword"
+    >
+      Repeat password
+    </label>
+    <input
+      autocomplete="new-password"
+      class="rounded-box border px-3 py-2 text-sm outline-none focus:border-palette-bg border-slate-300"
+      id="repeatPassword"
+      name="repeatPassword"
+      type="password"
+    />
+  </div>
+  <button
+    aria-busy="false"
+    class="rounded-box bg-palette-bg px-4 py-2 text-sm font-medium text-palette-white disabled:opacity-60"
+    type="submit"
+  >
+    Create account
+  </button>
+</form>
+`;
+
+exports[`RegisterForm success screen > matches the snapshot 1`] = `
+<div
+  class="flex flex-col gap-3"
+>
+  <p
+    class="rounded-box border px-3 py-2 text-sm border-app-ok/40 bg-app-ok/10 text-app-ok"
+    role="status"
+  >
+    If customer@marketplace.it can be registered, an activation link is on its way.
+  </p>
+  <p
+    class="text-sm text-slate-600"
+  >
+    The link is good for three days. Check the spam folder before asking for another one — a second request replaces the first link, so an old mail stops working.
+  </p>
+</div>
+`;

@@ -371,6 +371,13 @@ describe('ShopMap', () => {
 		expect(maplibre.state.addProtocol).toHaveBeenCalledTimes(1)
 		expect(maplibre.state.addProtocol).toHaveBeenCalledWith('pmtiles', expect.any(Function))
 	})
+
+	it('matches the snapshot', async () => {
+		const { container, map } = mount()
+		await fire(map, 'load')
+
+		expect(container.firstChild).toMatchSnapshot()
+	})
 })
 
 describe('ShopMap and its layers', () => {
@@ -583,6 +590,15 @@ describe('ShopMap and the viewport query', () => {
 		await fire(map, 'load')
 
 		expect(await screen.findByText(/Showing the first 500 shops in view/)).toBeInTheDocument()
+	})
+
+	it('matches the snapshot when the answer was truncated', async () => {
+		const { container, map } = mount({ replies: nearby([nodeOf(1)], true) })
+		await fire(map, 'load')
+
+		await screen.findByText(/Showing the first 500 shops in view/)
+
+		expect(container.firstChild).toMatchSnapshot()
 	})
 
 	// Before anything has been asked, nothing has been truncated. A notice that shows on the first paint and

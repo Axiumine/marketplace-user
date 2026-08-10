@@ -144,4 +144,10 @@ describe('CategoryNav', () => {
 		expect(container).toBeEmptyDOMElement()
 		expect(screen.queryByRole('navigation', { name: 'Categories' })).not.toBeInTheDocument()
 	})
+
+	it('matches the snapshot', async () => {
+		const { container } = await mount([APPAREL, CRAFT])
+
+		expect(container.firstChild).toMatchSnapshot()
+	})
 })

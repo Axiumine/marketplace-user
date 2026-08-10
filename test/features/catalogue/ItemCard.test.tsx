@@ -72,4 +72,10 @@ describe('ItemCard', () => {
 		expect(screen.getByText(/…$/)).toBeInTheDocument()
 		expect(screen.queryByText(/fine/)).not.toBeInTheDocument()
 	})
+
+	it('matches the snapshot', async () => {
+		const { container } = await mount()
+
+		expect(container.firstChild).toMatchSnapshot()
+	})
 })

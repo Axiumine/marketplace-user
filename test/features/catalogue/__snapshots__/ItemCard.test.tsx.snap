@@ -1,0 +1,28 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ItemCard > matches the snapshot 1`] = `
+<article
+  class="h-full"
+>
+  <a
+    class="flex h-full flex-col gap-2 rounded-box border border-slate-200 bg-white p-4 hover:border-slate-400"
+    href="/shop/rivers-boutique/item/leather-satchel"
+  >
+    <h2
+      class="text-base font-semibold text-palette-bg"
+    >
+      Leather satchel
+    </h2>
+    <p
+      class="text-sm text-slate-500"
+    >
+      Rivers Boutique
+    </p>
+    <p
+      class="text-sm text-slate-600"
+    >
+      Vegetable-tanned, stitched by hand.
+    </p>
+  </a>
+</article>
+`;

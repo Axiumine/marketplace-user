@@ -1,0 +1,53 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Breadcrumbs > matches the snapshot 1`] = `
+<nav
+  aria-label="Breadcrumb"
+  class="mb-4 text-sm text-slate-500"
+>
+  <ol
+    class="flex flex-wrap items-center gap-1"
+  >
+    <li
+      class="flex items-center gap-1"
+    >
+      <a
+        class="hover:underline"
+        href="/"
+      >
+        Home
+      </a>
+    </li>
+    <li
+      class="flex items-center gap-1"
+    >
+      <span
+        aria-hidden="true"
+      >
+        /
+      </span>
+      <a
+        class="hover:underline"
+        href="/category/apparel"
+      >
+        Apparel
+      </a>
+    </li>
+    <li
+      class="flex items-center gap-1"
+    >
+      <span
+        aria-hidden="true"
+      >
+        /
+      </span>
+      <span
+        aria-current="page"
+        class="text-slate-700"
+      >
+        Footwear
+      </span>
+    </li>
+  </ol>
+</nav>
+`;

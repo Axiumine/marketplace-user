@@ -521,3 +521,22 @@ describe('the abort', () => {
 		}).not.toThrow()
 	})
 })
+
+describe('the address search box snapshot', () => {
+	it('renders idle, with nothing found yet', () => {
+		const { container } = render(<AddressAutocomplete label="Search for an address" onPick={vi.fn()} />)
+
+		expect(container.firstChild).toMatchSnapshot()
+	})
+
+	it('renders the open list of suggestions', async () => {
+		installOsm({ results: [MAIN_STREET, OAK_STREET] })
+		const user = userEvent.setup()
+		const { container } = render(<AddressAutocomplete label="Search for an address" onPick={vi.fn()} />)
+
+		await user.type(screen.getByRole('combobox'), 'Oak')
+		await screen.findByRole('listbox')
+
+		expect(container.firstChild).toMatchSnapshot()
+	})
+})

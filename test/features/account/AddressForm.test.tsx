@@ -94,6 +94,12 @@ describe('AddressForm adding', () => {
 		})
 		expect(written(stub)?.variables._id).toBeUndefined()
 	})
+
+	it('matches the snapshot', () => {
+		const { container } = mount()
+
+		expect(container.firstChild).toMatchSnapshot()
+	})
 })
 
 describe('AddressForm editing', () => {
@@ -130,6 +136,12 @@ describe('AddressForm editing', () => {
 		mount({ address: WORK_ADDRESS, replies: UPDATED })
 
 		expect(screen.getByLabelText('Name this address')).toHaveValue('')
+	})
+
+	it('matches the snapshot', () => {
+		const { container } = mount({ address: HOME_ADDRESS, replies: UPDATED })
+
+		expect(container.firstChild).toMatchSnapshot()
 	})
 })
 

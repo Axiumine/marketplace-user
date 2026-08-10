@@ -1,0 +1,91 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`the address search box snapshot > renders idle, with nothing found yet 1`] = `
+<div
+  class="flex flex-col gap-1"
+>
+  <label
+    class="text-sm font-medium text-palette-bg"
+    for=":id-0:"
+  >
+    Search for an address
+  </label>
+  <input
+    aria-autocomplete="list"
+    aria-controls=":id-0:-list"
+    aria-expanded="false"
+    autocomplete="off"
+    class="rounded-box border border-slate-300 px-3 py-2 text-sm outline-none focus:border-palette-bg"
+    id=":id-0:"
+    placeholder="Start typing a street and number"
+    role="combobox"
+    type="text"
+    value=""
+  />
+  <p
+    aria-live="polite"
+    class="sr-only"
+  >
+    0 suggestions
+  </p>
+</div>
+`;
+
+exports[`the address search box snapshot > renders the open list of suggestions 1`] = `
+<div
+  class="flex flex-col gap-1"
+>
+  <label
+    class="text-sm font-medium text-palette-bg"
+    for=":id-0:"
+  >
+    Search for an address
+  </label>
+  <input
+    aria-autocomplete="list"
+    aria-controls=":id-0:-list"
+    aria-expanded="true"
+    autocomplete="off"
+    class="rounded-box border border-slate-300 px-3 py-2 text-sm outline-none focus:border-palette-bg"
+    id=":id-0:"
+    placeholder="Start typing a street and number"
+    role="combobox"
+    type="text"
+    value="Oak"
+  />
+  <p
+    aria-live="polite"
+    class="sr-only"
+  >
+    2 suggestions
+  </p>
+  <ul
+    class="mt-1 divide-y divide-slate-200 rounded-box border border-slate-200 bg-white"
+    id=":id-0:-list"
+    role="listbox"
+  >
+    <li
+      aria-selected="false"
+      role="option"
+    >
+      <button
+        class="block w-full px-3 py-2 text-left text-sm hover:bg-slate-100"
+        type="button"
+      >
+        Main Street, 1, Boston, MA, 02108, USA
+      </button>
+    </li>
+    <li
+      aria-selected="false"
+      role="option"
+    >
+      <button
+        class="block w-full px-3 py-2 text-left text-sm hover:bg-slate-100"
+        type="button"
+      >
+        Oak Street, 5, Boston, MA, 02108, USA
+      </button>
+    </li>
+  </ul>
+</div>
+`;

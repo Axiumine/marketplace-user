@@ -1,0 +1,323 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`AddressForm adding > matches the snapshot 1`] = `
+<form
+  class="flex flex-col gap-4 rounded-box border border-slate-200 bg-white p-4"
+  novalidate=""
+>
+  <div
+    class="flex flex-col gap-1"
+  >
+    <label
+      class="text-sm font-medium text-palette-bg"
+      for=":id-0:"
+    >
+      Find your address
+    </label>
+    <input
+      aria-autocomplete="list"
+      aria-controls=":id-0:-list"
+      aria-expanded="false"
+      autocomplete="off"
+      class="rounded-box border border-slate-300 px-3 py-2 text-sm outline-none focus:border-palette-bg"
+      id=":id-0:"
+      placeholder="Start typing a street and number"
+      role="combobox"
+      type="text"
+      value=""
+    />
+    <p
+      class="text-xs text-tip"
+    >
+      Pick a suggestion to fill the fields below, or type them in yourself.
+    </p>
+    <p
+      aria-live="polite"
+      class="sr-only"
+    >
+      0 suggestions
+    </p>
+  </div>
+  <div
+    class="flex flex-col gap-1"
+  >
+    <label
+      class="text-sm font-medium text-palette-bg"
+      for="label"
+    >
+      Name this address
+    </label>
+    <input
+      aria-describedby="label-hint"
+      autocomplete="off"
+      class="rounded-box border px-3 py-2 text-sm outline-none focus:border-palette-bg border-slate-300"
+      id="label"
+      name="label"
+    />
+    <p
+      class="text-xs text-tip"
+      id="label-hint"
+    >
+      Home, work, anything that helps you tell them apart. Optional.
+    </p>
+  </div>
+  <div
+    class="flex flex-col gap-1"
+  >
+    <label
+      class="text-sm font-medium text-palette-bg"
+      for="street"
+    >
+      Street and number
+    </label>
+    <input
+      autocomplete="street-address"
+      class="rounded-box border px-3 py-2 text-sm outline-none focus:border-palette-bg border-slate-300"
+      id="street"
+      name="street"
+    />
+  </div>
+  <div
+    class="grid gap-4 sm:grid-cols-3"
+  >
+    <div
+      class="flex flex-col gap-1"
+    >
+      <label
+        class="text-sm font-medium text-palette-bg"
+        for="postalCode"
+      >
+        Postal code
+      </label>
+      <input
+        autocomplete="postal-code"
+        class="rounded-box border px-3 py-2 text-sm outline-none focus:border-palette-bg border-slate-300"
+        id="postalCode"
+        inputmode="numeric"
+        name="postalCode"
+      />
+    </div>
+    <div
+      class="flex flex-col gap-1"
+    >
+      <label
+        class="text-sm font-medium text-palette-bg"
+        for="city"
+      >
+        City
+      </label>
+      <input
+        autocomplete="address-level2"
+        class="rounded-box border px-3 py-2 text-sm outline-none focus:border-palette-bg border-slate-300"
+        id="city"
+        name="city"
+      />
+    </div>
+    <div
+      class="flex flex-col gap-1"
+    >
+      <label
+        class="text-sm font-medium text-palette-bg"
+        for="province"
+      >
+        Province
+      </label>
+      <input
+        autocomplete="address-level1"
+        class="rounded-box border px-3 py-2 text-sm outline-none focus:border-palette-bg border-slate-300"
+        id="province"
+        maxlength="2"
+        name="province"
+      />
+    </div>
+  </div>
+  <input
+    name="position"
+    type="hidden"
+    value=""
+  />
+  <p
+    class="text-xs text-tip"
+  >
+    This address has no map position yet. It will still be saved — pick a suggestion above to place it.
+  </p>
+  <div
+    class="flex gap-2"
+  >
+    <button
+      aria-busy="false"
+      class="rounded-box bg-palette-bg px-4 py-2 text-sm font-medium text-palette-white disabled:opacity-60"
+      type="submit"
+    >
+      Add address
+    </button>
+    <button
+      class="rounded-box px-4 py-2 text-sm text-slate-600 underline"
+      type="button"
+    >
+      Cancel
+    </button>
+  </div>
+</form>
+`;
+
+exports[`AddressForm editing > matches the snapshot 1`] = `
+<form
+  class="flex flex-col gap-4 rounded-box border border-slate-200 bg-white p-4"
+  novalidate=""
+>
+  <div
+    class="flex flex-col gap-1"
+  >
+    <label
+      class="text-sm font-medium text-palette-bg"
+      for=":id-0:"
+    >
+      Find your address
+    </label>
+    <input
+      aria-autocomplete="list"
+      aria-controls=":id-0:-list"
+      aria-expanded="false"
+      autocomplete="off"
+      class="rounded-box border border-slate-300 px-3 py-2 text-sm outline-none focus:border-palette-bg"
+      id=":id-0:"
+      placeholder="Start typing a street and number"
+      role="combobox"
+      type="text"
+      value=""
+    />
+    <p
+      class="text-xs text-tip"
+    >
+      Pick a suggestion to fill the fields below, or type them in yourself.
+    </p>
+    <p
+      aria-live="polite"
+      class="sr-only"
+    >
+      0 suggestions
+    </p>
+  </div>
+  <div
+    class="flex flex-col gap-1"
+  >
+    <label
+      class="text-sm font-medium text-palette-bg"
+      for="label"
+    >
+      Name this address
+    </label>
+    <input
+      aria-describedby="label-hint"
+      autocomplete="off"
+      class="rounded-box border px-3 py-2 text-sm outline-none focus:border-palette-bg border-slate-300"
+      id="label"
+      name="label"
+    />
+    <p
+      class="text-xs text-tip"
+      id="label-hint"
+    >
+      Home, work, anything that helps you tell them apart. Optional.
+    </p>
+  </div>
+  <div
+    class="flex flex-col gap-1"
+  >
+    <label
+      class="text-sm font-medium text-palette-bg"
+      for="street"
+    >
+      Street and number
+    </label>
+    <input
+      autocomplete="street-address"
+      class="rounded-box border px-3 py-2 text-sm outline-none focus:border-palette-bg border-slate-300"
+      id="street"
+      name="street"
+    />
+  </div>
+  <div
+    class="grid gap-4 sm:grid-cols-3"
+  >
+    <div
+      class="flex flex-col gap-1"
+    >
+      <label
+        class="text-sm font-medium text-palette-bg"
+        for="postalCode"
+      >
+        Postal code
+      </label>
+      <input
+        autocomplete="postal-code"
+        class="rounded-box border px-3 py-2 text-sm outline-none focus:border-palette-bg border-slate-300"
+        id="postalCode"
+        inputmode="numeric"
+        name="postalCode"
+      />
+    </div>
+    <div
+      class="flex flex-col gap-1"
+    >
+      <label
+        class="text-sm font-medium text-palette-bg"
+        for="city"
+      >
+        City
+      </label>
+      <input
+        autocomplete="address-level2"
+        class="rounded-box border px-3 py-2 text-sm outline-none focus:border-palette-bg border-slate-300"
+        id="city"
+        name="city"
+      />
+    </div>
+    <div
+      class="flex flex-col gap-1"
+    >
+      <label
+        class="text-sm font-medium text-palette-bg"
+        for="province"
+      >
+        Province
+      </label>
+      <input
+        autocomplete="address-level1"
+        class="rounded-box border px-3 py-2 text-sm outline-none focus:border-palette-bg border-slate-300"
+        id="province"
+        maxlength="2"
+        name="province"
+      />
+    </div>
+  </div>
+  <input
+    name="position"
+    type="hidden"
+    value="-71.0589,42.3601"
+  />
+  <p
+    class="text-xs text-tip"
+  >
+    This address is placed on the map, so we can sort shops by how close they are to it.
+  </p>
+  <div
+    class="flex gap-2"
+  >
+    <button
+      aria-busy="false"
+      class="rounded-box bg-palette-bg px-4 py-2 text-sm font-medium text-palette-white disabled:opacity-60"
+      type="submit"
+    >
+      Save changes
+    </button>
+    <button
+      class="rounded-box px-4 py-2 text-sm text-slate-600 underline"
+      type="button"
+    >
+      Cancel
+    </button>
+  </div>
+</form>
+`;

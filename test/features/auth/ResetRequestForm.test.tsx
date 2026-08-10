@@ -85,6 +85,12 @@ describe('ResetRequestForm', () => {
 
 		expect(await screen.findByRole('button', { name: 'Sending…' })).toBeDisabled()
 	})
+
+	it('matches the snapshot', () => {
+		const { container } = mount()
+
+		expect(container.firstChild).toMatchSnapshot()
+	})
 })
 
 describe('ResetRequestForm confirmation', () => {
@@ -131,6 +137,15 @@ describe('ResetRequestForm confirmation', () => {
 		await screen.findByRole('status')
 		// The duration is inside a `<strong>`, so the sentence around it is on the paragraph.
 		expect(screen.getByText(/60 minutes/).closest('p')).toHaveTextContent('ask for a new link rather than retrying the old one')
+	})
+
+	it('matches the snapshot', async () => {
+		const { user, container } = mount()
+
+		await ask(user)
+
+		await screen.findByRole('status')
+		expect(container.firstChild).toMatchSnapshot()
 	})
 })
 

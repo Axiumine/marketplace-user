@@ -1,0 +1,129 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Header snapshot > renders signed in 1`] = `
+<header
+  class="border-b border-slate-200 bg-white"
+>
+  <div
+    class="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 md:flex-row md:items-center md:gap-6"
+  >
+    <a
+      aria-current="page"
+      class="text-lg font-semibold whitespace-nowrap text-palette-bg active"
+      data-status="active"
+      href="/"
+    >
+      Marketplace
+    </a>
+    <form
+      action="/search"
+      class="flex w-full max-w-xl items-center gap-2"
+      method="get"
+      role="search"
+    >
+      <label
+        class="sr-only"
+        for="site-search"
+      >
+        Search shops and items
+      </label>
+      <input
+        autocomplete="off"
+        class="w-full rounded-box border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-slate-500"
+        id="site-search"
+        name="q"
+        placeholder="Search shops and items"
+        type="search"
+        value=""
+      />
+      <button
+        class="rounded-box bg-palette-bg px-4 py-2 text-sm font-medium text-palette-white hover:bg-palette-bg3"
+        type="submit"
+      >
+        Search
+      </button>
+    </form>
+    <nav
+      aria-label="Main"
+      class="flex items-center gap-4 text-sm whitespace-nowrap"
+    >
+      <a
+        class="text-slate-600 hover:text-palette-bg"
+        href="/shops"
+      >
+        Shops
+      </a>
+      <a
+        class="font-medium text-palette-bg hover:underline"
+        href="/account"
+      >
+        Account
+      </a>
+    </nav>
+  </div>
+</header>
+`;
+
+exports[`Header snapshot > renders signed out 1`] = `
+<header
+  class="border-b border-slate-200 bg-white"
+>
+  <div
+    class="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 md:flex-row md:items-center md:gap-6"
+  >
+    <a
+      aria-current="page"
+      class="text-lg font-semibold whitespace-nowrap text-palette-bg active"
+      data-status="active"
+      href="/"
+    >
+      Marketplace
+    </a>
+    <form
+      action="/search"
+      class="flex w-full max-w-xl items-center gap-2"
+      method="get"
+      role="search"
+    >
+      <label
+        class="sr-only"
+        for="site-search"
+      >
+        Search shops and items
+      </label>
+      <input
+        autocomplete="off"
+        class="w-full rounded-box border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-slate-500"
+        id="site-search"
+        name="q"
+        placeholder="Search shops and items"
+        type="search"
+        value=""
+      />
+      <button
+        class="rounded-box bg-palette-bg px-4 py-2 text-sm font-medium text-palette-white hover:bg-palette-bg3"
+        type="submit"
+      >
+        Search
+      </button>
+    </form>
+    <nav
+      aria-label="Main"
+      class="flex items-center gap-4 text-sm whitespace-nowrap"
+    >
+      <a
+        class="text-slate-600 hover:text-palette-bg"
+        href="/shops"
+      >
+        Shops
+      </a>
+      <a
+        class="font-medium text-palette-bg hover:underline"
+        href="/login"
+      >
+        Sign in
+      </a>
+    </nav>
+  </div>
+</header>
+`;

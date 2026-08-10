@@ -67,3 +67,11 @@ describe('NotFound', () => {
 		expect(container.querySelector('main')).not.toBeNull()
 	})
 })
+
+describe('NotFound snapshot', () => {
+	it('renders', async () => {
+		await mount()
+
+		expect(screen.getByRole('main')).toMatchSnapshot()
+	})
+})

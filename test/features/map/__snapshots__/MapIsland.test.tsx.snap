@@ -1,0 +1,17 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`MapIsland > matches the snapshot before the map has arrived 1`] = `
+<div
+  aria-hidden="true"
+  class="w-full animate-pulse rounded-box border border-slate-200 bg-white"
+  style="height: var(--map-height);"
+/>
+`;
+
+exports[`MapIsland > matches the snapshot once the map has swapped in 1`] = `
+<div
+  data-testid="shop-map"
+>
+  -71.06,42.3601 @ 14 · 1 pins
+</div>
+`;

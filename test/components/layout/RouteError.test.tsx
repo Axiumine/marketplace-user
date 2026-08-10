@@ -101,3 +101,11 @@ describe('RouteError message', () => {
 		expect(screen.getByText(GENERIC)).toBeInTheDocument()
 	})
 })
+
+describe('RouteError snapshot', () => {
+	it('renders', async () => {
+		await mount(new Error('boom'))
+
+		expect(screen.getByRole('main')).toMatchSnapshot()
+	})
+})

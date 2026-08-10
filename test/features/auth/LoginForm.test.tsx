@@ -66,6 +66,12 @@ describe('LoginForm fields', () => {
 
 		expect(screen.getByRole('checkbox', { name: 'Keep me signed in' })).not.toBeChecked()
 	})
+
+	it('matches the snapshot', async () => {
+		const { container } = await mount()
+
+		expect(container.firstChild).toMatchSnapshot()
+	})
 })
 
 describe('LoginForm validation', () => {

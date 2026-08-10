@@ -1,0 +1,47 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`TextField snapshot > renders with an error 1`] = `
+<div
+  class="flex flex-col gap-1"
+>
+  <label
+    class="text-sm font-medium text-palette-bg"
+    for="email"
+  >
+    Email address
+  </label>
+  <input
+    aria-describedby="email-error"
+    aria-invalid="true"
+    autocomplete="email"
+    class="rounded-box border px-3 py-2 text-sm outline-none focus:border-palette-bg border-app-error"
+    id="email"
+    name="email"
+  />
+  <p
+    class="text-xs text-app-error"
+    id="email-error"
+  >
+    Enter a valid address
+  </p>
+</div>
+`;
+
+exports[`TextField snapshot > renders without an error 1`] = `
+<div
+  class="flex flex-col gap-1"
+>
+  <label
+    class="text-sm font-medium text-palette-bg"
+    for="email"
+  >
+    Email address
+  </label>
+  <input
+    autocomplete="email"
+    class="rounded-box border px-3 py-2 text-sm outline-none focus:border-palette-bg border-slate-300"
+    id="email"
+    name="email"
+  />
+</div>
+`;

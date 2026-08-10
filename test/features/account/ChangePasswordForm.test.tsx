@@ -63,6 +63,12 @@ describe('ChangePasswordForm fields', () => {
 
 		expect(screen.getByText(/At least 10 characters/)).toBeInTheDocument()
 	})
+
+	it('matches the snapshot', () => {
+		const { container } = mount()
+
+		expect(container.firstChild).toMatchSnapshot()
+	})
 })
 
 describe('ChangePasswordForm validation', () => {

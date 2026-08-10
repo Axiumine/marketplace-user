@@ -1,0 +1,70 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`LoginForm fields > matches the snapshot 1`] = `
+<form
+  class="flex flex-col gap-4"
+  novalidate=""
+>
+  <div
+    class="flex flex-col gap-1"
+  >
+    <label
+      class="text-sm font-medium text-palette-bg"
+      for="email"
+    >
+      Email
+    </label>
+    <input
+      autocomplete="username"
+      class="rounded-box border px-3 py-2 text-sm outline-none focus:border-palette-bg border-slate-300"
+      id="email"
+      name="email"
+      type="email"
+    />
+  </div>
+  <div
+    class="flex flex-col gap-1"
+  >
+    <label
+      class="text-sm font-medium text-palette-bg"
+      for="password"
+    >
+      Password
+    </label>
+    <input
+      autocomplete="current-password"
+      class="rounded-box border px-3 py-2 text-sm outline-none focus:border-palette-bg border-slate-300"
+      id="password"
+      name="password"
+      type="password"
+    />
+  </div>
+  <label
+    class="flex items-center gap-2 text-sm text-slate-700"
+  >
+    <input
+      class="size-4"
+      name="rememberMe"
+      type="checkbox"
+    />
+    Keep me signed in
+  </label>
+  <button
+    aria-busy="false"
+    class="rounded-box bg-palette-bg px-4 py-2 text-sm font-medium text-palette-white disabled:opacity-60"
+    type="submit"
+  >
+    Sign in
+  </button>
+  <p
+    class="text-sm"
+  >
+    <a
+      class="underline"
+      href="/reset-password"
+    >
+      Forgot your password?
+    </a>
+  </p>
+</form>
+`;

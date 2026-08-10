@@ -50,4 +50,10 @@ describe('ItemGrid', () => {
 
 		expect(screen.getByRole('list')).toBeEmptyDOMElement()
 	})
+
+	it('matches the snapshot', async () => {
+		const { container } = await mount([itemOf(1), itemOf(2)])
+
+		expect(container.firstChild).toMatchSnapshot()
+	})
 })

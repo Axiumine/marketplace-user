@@ -78,6 +78,18 @@ describe('Pagination', () => {
 
 		expect(container).toBeEmptyDOMElement()
 	})
+
+	it('matches the snapshot with both directions available', () => {
+		const { container } = render(<Pagination prev="/shops" next="/shops?page=3" page={2} />)
+
+		expect(container.firstChild).toMatchSnapshot()
+	})
+
+	it('matches the snapshot on the first page', () => {
+		const { container } = render(<Pagination next="/shops?page=2" page={1} />)
+
+		expect(container.firstChild).toMatchSnapshot()
+	})
 })
 
 describe('Pagination and the head links', () => {
