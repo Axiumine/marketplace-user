@@ -35,6 +35,15 @@ const refreshed = (accessToken = 'fresh-token') => ({ data: { refresh: { status:
 
 const ME = { data: { me: { email: 'customer@marketplace.it' } } }
 
+/**
+ * What the backend answers the loser of a multi-tab refresh race (E14-S04): a 409 carrying the one
+ * `extensions.code` on the platform, and no token of any kind — the grace branch mints nothing.
+ */
+const raceLost = {
+	errors: [graphQLError('Refresh In Progress', 'Retry with the current cookie.', 409, 'REFRESH_RACE_RETRY')],
+	status: 409
+}
+
 const clientWith = (replies: GraphQLReplies) => {
 	const onSessionLost = vi.fn()
 	const stub = stubGraphQL(replies)
@@ -265,7 +274,7 @@ describe('the retry on 498', () => {
 	// The retry is not free: if the refresh fails the session is over, and the customer must not be left
 	// on a screen that keeps retrying the same expired token.
 	it('ends the session when the refresh behind a 498 fails', async () => {
-		const { client, onSessionLost } = clientWith({
+		const { client, onSessionLost, stub } = clientWith({
 			Me: { errors: [graphQLError('Invalid Token', undefined, HTTP.invalidToken)], status: 498 },
 			Refresh: { data: { refresh: { status: false, accessToken: '' } } }
 		})
@@ -275,6 +284,9 @@ describe('the retry on 498', () => {
 
 		expect(getAccessToken()).toBeNull()
 		expect(onSessionLost).toHaveBeenCalled()
+		// Sent once. The retry loop of E14-S04 is for the lost race and nothing else: re-sending a cookie
+		// the backend has already refused would triple the cost of every genuine expiry.
+		expect(names(stub).filter((name) => name === 'Refresh')).toHaveLength(1)
 	})
 
 	it.each([HTTP.badRequest, HTTP.forbidden, HTTP.internal])('does not retry a %i', async (status) => {
@@ -284,6 +296,63 @@ describe('the retry on 498', () => {
 		await client.query(MeDocument, {}, CTX_USER_RESOURCE).toPromise()
 
 		expect(names(stub)).toEqual(['Me'])
+	})
+})
+
+/*
+ * E14-S04, the whole point of the grace window. Several tabs of one catalogue are the normal way this app
+ * is read, they reload together, and they share one cookie jar — so one of them loses the rotation race on
+ * a regular day. The loser must not be signed out, and the family it belongs to must not be revoked: the
+ * backend answers a code of its own, and the client sends the refresh again with the cookie the winner has
+ * by then written into the jar.
+ */
+describe('the lost refresh race', () => {
+	it('retries the refresh and keeps the session', async () => {
+		const { client, onSessionLost, stub } = clientWith({
+			Me: [{ errors: [graphQLError('Invalid Token', undefined, HTTP.invalidToken)], status: 498 }, ME],
+			Refresh: [raceLost, refreshed('second-token')]
+		})
+		setAccessToken('expired')
+
+		const result = await client.query(MeDocument, {}, CTX_USER_RESOURCE).toPromise()
+
+		expect(names(stub)).toEqual(['Me', 'Refresh', 'Refresh', 'Me'])
+		expect(result.data).toEqual(ME.data)
+		expect(getAccessToken()).toBe('second-token')
+		expect(onSessionLost).not.toHaveBeenCalled()
+	})
+
+	// Two retries, not one: with several tabs open a single one can lose twice in a row, and the second
+	// retry is the difference between a customer reading on and a customer sent back to the login form.
+	it('retries a second time and still keeps the session', async () => {
+		const { client, onSessionLost, stub } = clientWith({
+			Me: [{ errors: [graphQLError('Invalid Token', undefined, HTTP.invalidToken)], status: 498 }, ME],
+			Refresh: [raceLost, raceLost, refreshed('second-token')]
+		})
+		setAccessToken('expired')
+
+		const result = await client.query(MeDocument, {}, CTX_USER_RESOURCE).toPromise()
+
+		expect(names(stub).filter((name) => name === 'Refresh')).toHaveLength(3)
+		expect(result.data).toEqual(ME.data)
+		expect(getAccessToken()).toBe('second-token')
+		expect(onSessionLost).not.toHaveBeenCalled()
+	})
+
+	// And it stops. A backend answering the same code forever is not a race any more, and a client that
+	// keeps asking would drive itself into the refresh endpoint's own rate limiter (E14-S08).
+	it('gives up after two retries and clears the session', async () => {
+		const { client, onSessionLost, stub } = clientWith({
+			Me: { errors: [graphQLError('Invalid Token', undefined, HTTP.invalidToken)], status: 498 },
+			Refresh: raceLost
+		})
+		setAccessToken('expired')
+
+		await client.query(MeDocument, {}, CTX_USER_RESOURCE).toPromise()
+
+		expect(names(stub).filter((name) => name === 'Refresh')).toHaveLength(3)
+		expect(getAccessToken()).toBeNull()
+		expect(onSessionLost).toHaveBeenCalled()
 	})
 })
 
