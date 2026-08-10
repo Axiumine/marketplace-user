@@ -166,3 +166,11 @@ describe('SearchBox submission', () => {
 		window.removeEventListener('submit', submitted)
 	})
 })
+
+describe('SearchBox snapshot', () => {
+	it('renders', async () => {
+		await mount('ceramics')
+
+		expect(screen.getByRole('search')).toMatchSnapshot()
+	})
+})

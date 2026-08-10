@@ -111,3 +111,11 @@ describe('Footer attribution', () => {
 		expect(screen.getByText(SITE_NAME)).toBeInTheDocument()
 	})
 })
+
+describe('Footer snapshot', () => {
+	it('renders', async () => {
+		await mount()
+
+		expect(screen.getByRole('contentinfo')).toMatchSnapshot()
+	})
+})

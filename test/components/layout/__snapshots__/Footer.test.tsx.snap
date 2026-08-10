@@ -1,0 +1,60 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Footer snapshot > renders 1`] = `
+<footer
+  class="mt-16 border-t border-slate-200 bg-white"
+>
+  <div
+    class="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-8 text-sm text-slate-500"
+  >
+    <nav
+      aria-label="Footer"
+      class="flex flex-wrap gap-4"
+    >
+      <a
+        class="hover:text-palette-bg"
+        href="/shops"
+      >
+        All shops
+      </a>
+      <a
+        class="hover:text-palette-bg"
+        href="/register"
+      >
+        Create an account
+      </a>
+      <a
+        class="hover:text-palette-bg"
+        href="/login"
+      >
+        Sign in
+      </a>
+    </nav>
+    <p>
+      Map data ©
+       
+      <a
+        class="underline"
+        href="https://www.openstreetmap.org/copyright"
+        rel="noreferrer"
+      >
+        OpenStreetMap
+      </a>
+       
+      contributors, ODbL. Basemap tiles by
+       
+      <a
+        class="underline"
+        href="https://protomaps.com"
+        rel="noreferrer"
+      >
+        Protomaps
+      </a>
+      .
+    </p>
+    <p>
+      Marketplace
+    </p>
+  </div>
+</footer>
+`;

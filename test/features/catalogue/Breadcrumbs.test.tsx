@@ -81,6 +81,12 @@ describe('Breadcrumbs', () => {
 		expect(screen.getByRole('navigation', { name: 'Breadcrumb' })).toBeInTheDocument()
 		expect(screen.queryAllByRole('listitem')).toHaveLength(0)
 	})
+
+	it('matches the snapshot', () => {
+		const { container } = render(<Breadcrumbs crumbs={TRAIL} />)
+
+		expect(container.firstChild).toMatchSnapshot()
+	})
 })
 
 describe('Breadcrumbs and its structured data', () => {

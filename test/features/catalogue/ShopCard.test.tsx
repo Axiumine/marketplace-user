@@ -114,6 +114,18 @@ describe('ShopCard', () => {
 		expect(screen.getByRole('link').textContent).toBe(CARD_TEXT)
 		expect(container.querySelectorAll('p')).toHaveLength(1)
 	})
+
+	it('matches the snapshot with a description', async () => {
+		const { container } = await mount()
+
+		expect(container.firstChild).toMatchSnapshot()
+	})
+
+	it('matches the snapshot with no description', async () => {
+		const { container } = await mount(NO_DESCRIPTION)
+
+		expect(container.firstChild).toMatchSnapshot()
+	})
 })
 
 describe('ShopCard distance', () => {

@@ -58,4 +58,10 @@ describe('ShopGrid', () => {
 		expect(screen.getByRole('list')).toBeEmptyDOMElement()
 		expect(screen.queryByRole('listitem')).not.toBeInTheDocument()
 	})
+
+	it('matches the snapshot', async () => {
+		const { container } = await mount([companyOf(1), companyOf(2)])
+
+		expect(container.firstChild).toMatchSnapshot()
+	})
 })

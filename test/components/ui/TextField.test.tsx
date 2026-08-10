@@ -202,3 +202,17 @@ describe('TextField with a hint', () => {
 		expect(input).toHaveAccessibleDescription('At least 12 characters Too short')
 	})
 })
+
+describe('TextField snapshot', () => {
+	it('renders without an error', () => {
+		const { container } = renderField()
+
+		expect(container.firstChild).toMatchSnapshot()
+	})
+
+	it('renders with an error', () => {
+		const { container } = renderField({ error: 'Enter a valid address' })
+
+		expect(container.firstChild).toMatchSnapshot()
+	})
+})

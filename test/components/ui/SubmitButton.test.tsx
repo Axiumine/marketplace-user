@@ -140,3 +140,17 @@ describe('SubmitButton disabled on its own', () => {
 		expect(screen.getByRole('button')).toBeDisabled()
 	})
 })
+
+describe('SubmitButton snapshot', () => {
+	it('renders idle', () => {
+		const { container } = render(<SubmitButton busy={false}>Sign in</SubmitButton>)
+
+		expect(container.firstChild).toMatchSnapshot()
+	})
+
+	it('renders busy', () => {
+		const { container } = render(<SubmitButton busy>Sign in</SubmitButton>)
+
+		expect(container.firstChild).toMatchSnapshot()
+	})
+})

@@ -1,0 +1,22 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`SubmitButton snapshot > renders busy 1`] = `
+<button
+  aria-busy="true"
+  class="rounded-box bg-palette-bg px-4 py-2 text-sm font-medium text-palette-white disabled:opacity-60"
+  disabled=""
+  type="submit"
+>
+  Working…
+</button>
+`;
+
+exports[`SubmitButton snapshot > renders idle 1`] = `
+<button
+  aria-busy="false"
+  class="rounded-box bg-palette-bg px-4 py-2 text-sm font-medium text-palette-white disabled:opacity-60"
+  type="submit"
+>
+  Sign in
+</button>
+`;

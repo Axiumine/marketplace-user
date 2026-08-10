@@ -81,3 +81,11 @@ describe('FormStatus', () => {
 		expect(screen.getByText('Second')).toBeInTheDocument()
 	})
 })
+
+describe('FormStatus snapshot', () => {
+	it.each(['ok', 'error'] as const)('renders the %s tone', (tone) => {
+		const { container } = render(<FormStatus tone={tone} message="Message" />)
+
+		expect(container.firstChild).toMatchSnapshot()
+	})
+})

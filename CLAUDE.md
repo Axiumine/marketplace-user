@@ -86,6 +86,12 @@ that mattered is split anyway — see the map section.
 - **`yarn start` runs `serve.mjs`, not the build output.** `vite build` emits `dist/server/server.js`,
   default export `{ fetch }` — a handler with no listener. No `.output/` here: that path belongs to the
   Nitro preset, which this app does not install. The process serves SSR only; nginx serves `dist/client`.
+- **Every component under `src/components/` and `src/features/` carries a snapshot**, and a new component
+  keeps that whole. Take it at `renderWithRouter` / `renderWithClient` level: `renderRoute` mounts the root
+  route's `shellComponent`, so it snapshots a whole HTML document rather than a fragment. `vitest.setup.ts`
+  normalises React's `useId` output, so a test inserted above a snapshot does not renumber it. `vitest run`
+  never rewrites a snapshot — drift fails the suite, and `yarn test -u` accepts a regression as readily as
+  a fix.
 
 ## The map is an island, and that is load-bearing
 

@@ -61,6 +61,12 @@ describe('ResetConfirmForm credentials', () => {
 
 		expect(screen.getByText(/At least 10 characters/)).toBeInTheDocument()
 	})
+
+	it('matches the snapshot', async () => {
+		const { container } = await mount()
+
+		expect(container.firstChild).toMatchSnapshot()
+	})
 })
 
 describe('ResetConfirmForm validation', () => {
@@ -181,6 +187,16 @@ describe('ResetConfirmForm on success', () => {
 
 		await screen.findByRole('status')
 		expect(screen.queryByLabelText('New password')).not.toBeInTheDocument()
+	})
+
+	it('matches the snapshot', async () => {
+		const { user, container } = await mount()
+
+		await fillIn(user)
+		await submit(user)
+
+		await screen.findByRole('status')
+		expect(container.firstChild).toMatchSnapshot()
 	})
 })
 

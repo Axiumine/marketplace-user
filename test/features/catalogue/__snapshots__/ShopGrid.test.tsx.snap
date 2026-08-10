@@ -1,0 +1,64 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ShopGrid > matches the snapshot 1`] = `
+<ul
+  class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
+>
+  <li>
+    <article
+      class="h-full"
+    >
+      <a
+        class="flex h-full flex-col gap-2 rounded-box border border-slate-200 bg-white p-4 hover:border-slate-400"
+        href="/shop/boutique-1"
+      >
+        <h2
+          class="text-base font-semibold text-palette-bg"
+        >
+          Boutique 1
+        </h2>
+        <p
+          class="text-sm text-slate-500"
+        >
+          Main Street 1
+          , 
+          02108
+           
+          Boston
+           (
+          MA
+          )
+        </p>
+      </a>
+    </article>
+  </li>
+  <li>
+    <article
+      class="h-full"
+    >
+      <a
+        class="flex h-full flex-col gap-2 rounded-box border border-slate-200 bg-white p-4 hover:border-slate-400"
+        href="/shop/boutique-2"
+      >
+        <h2
+          class="text-base font-semibold text-palette-bg"
+        >
+          Boutique 2
+        </h2>
+        <p
+          class="text-sm text-slate-500"
+        >
+          Main Street 2
+          , 
+          02108
+           
+          Boston
+           (
+          MA
+          )
+        </p>
+      </a>
+    </article>
+  </li>
+</ul>
+`;

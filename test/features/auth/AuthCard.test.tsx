@@ -71,6 +71,26 @@ describe('AuthCard', () => {
 		expect(container.firstElementChild?.children).toHaveLength(3)
 	})
 
+	it('matches the snapshot with an intro and a footer', () => {
+		const { container } = render(
+			<AuthCard
+				title="Reset your password"
+				intro="Enter the address you registered with."
+				footer={<a href="/register">Create an account</a>}
+			>
+				the reset form
+			</AuthCard>
+		)
+
+		expect(container.firstChild).toMatchSnapshot()
+	})
+
+	it('matches the snapshot with neither', () => {
+		const { container } = render(<AuthCard title="Sign in">the login form</AuthCard>)
+
+		expect(container.firstChild).toMatchSnapshot()
+	})
+
 	// Empty strings are content, not absence: a caller that computes an intro and gets `''` asked for an
 	// empty paragraph, and `undefined` is the only way to ask for none.
 	it('treats an empty intro as an intro', () => {

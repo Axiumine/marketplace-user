@@ -1,0 +1,142 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`PersonalDataForm on an account in use > matches the snapshot 1`] = `
+<form
+  class="flex flex-col gap-4"
+  novalidate=""
+>
+  <p
+    class="text-sm text-slate-600"
+  >
+    You sign in with 
+    <strong>
+      customer@marketplace.it
+    </strong>
+    . That address is not changed here.
+  </p>
+  <div
+    class="grid gap-4 sm:grid-cols-2"
+  >
+    <div
+      class="flex flex-col gap-1"
+    >
+      <label
+        class="text-sm font-medium text-palette-bg"
+        for="firstName"
+      >
+        First name
+      </label>
+      <input
+        autocomplete="given-name"
+        class="rounded-box border px-3 py-2 text-sm outline-none focus:border-palette-bg border-slate-300"
+        id="firstName"
+        name="firstName"
+      />
+    </div>
+    <div
+      class="flex flex-col gap-1"
+    >
+      <label
+        class="text-sm font-medium text-palette-bg"
+        for="lastName"
+      >
+        Last name
+      </label>
+      <input
+        autocomplete="family-name"
+        class="rounded-box border px-3 py-2 text-sm outline-none focus:border-palette-bg border-slate-300"
+        id="lastName"
+        name="lastName"
+      />
+    </div>
+  </div>
+  <div
+    class="flex flex-col gap-1"
+  >
+    <label
+      class="text-sm font-medium text-palette-bg"
+      for="birthDate"
+    >
+      Date of birth
+    </label>
+    <input
+      autocomplete="bday"
+      class="rounded-box border px-3 py-2 text-sm outline-none focus:border-palette-bg border-slate-300"
+      id="birthDate"
+      name="birthDate"
+      type="date"
+    />
+  </div>
+  <div
+    class="grid gap-4 sm:grid-cols-2"
+  >
+    <div
+      class="flex flex-col gap-1"
+    >
+      <label
+        class="text-sm font-medium text-palette-bg"
+        for="mobile"
+      >
+        Mobile
+      </label>
+      <input
+        autocomplete="tel"
+        class="rounded-box border px-3 py-2 text-sm outline-none focus:border-palette-bg border-slate-300"
+        id="mobile"
+        name="mobile"
+        type="tel"
+      />
+    </div>
+    <div
+      class="flex flex-col gap-1"
+    >
+      <label
+        class="text-sm font-medium text-palette-bg"
+        for="landline"
+      >
+        Landline
+      </label>
+      <input
+        autocomplete="tel-national"
+        class="rounded-box border px-3 py-2 text-sm outline-none focus:border-palette-bg border-slate-300"
+        id="landline"
+        name="landline"
+        type="tel"
+      />
+    </div>
+  </div>
+  <div
+    class="flex flex-col gap-1"
+  >
+    <label
+      class="text-sm font-medium text-palette-bg"
+      for="contactEmail"
+    >
+      Contact email
+    </label>
+    <input
+      aria-describedby="contactEmail-hint"
+      autocomplete="email"
+      class="rounded-box border px-3 py-2 text-sm outline-none focus:border-palette-bg border-slate-300"
+      id="contactEmail"
+      name="contactEmail"
+      type="email"
+    />
+    <p
+      class="text-xs text-tip"
+      id="contactEmail-hint"
+    >
+      Where we write about your orders. Leave it empty to use your sign-in address.
+    </p>
+  </div>
+  <div>
+    <button
+      aria-busy="false"
+      class="rounded-box bg-palette-bg px-4 py-2 text-sm font-medium text-palette-white disabled:opacity-60"
+      type="submit"
+    >
+      Save details
+    </button>
+  </div>
+</form>
+`;

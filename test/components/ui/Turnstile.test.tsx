@@ -426,3 +426,18 @@ describe('unmounting', () => {
 		}).not.toThrow()
 	})
 })
+
+describe('Turnstile snapshot', () => {
+	it('renders its container', async () => {
+		const { container } = await mount()
+
+		expect(container.firstChild).toMatchSnapshot()
+	})
+
+	it('renders the failure message when the script cannot load', async () => {
+		const { container } = await mount()
+		await scriptFails()
+
+		expect(container.firstChild).toMatchSnapshot()
+	})
+})

@@ -1,0 +1,30 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ShopMap > matches the snapshot 1`] = `
+<div
+  class="relative"
+>
+  <div
+    class="w-full rounded-box"
+    style="height: var(--map-height);"
+  />
+</div>
+`;
+
+exports[`ShopMap and the viewport query > matches the snapshot when the answer was truncated 1`] = `
+<div
+  class="relative"
+>
+  <div
+    class="w-full rounded-box"
+    style="height: var(--map-height);"
+  />
+  <p
+    class="absolute right-2 bottom-2 rounded-box bg-white/90 px-2 py-1 text-xs text-slate-600"
+  >
+    Showing the first 
+    500
+     shops in view — zoom in for the rest
+  </p>
+</div>
+`;

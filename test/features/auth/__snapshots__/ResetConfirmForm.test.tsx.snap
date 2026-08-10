@@ -1,0 +1,82 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ResetConfirmForm credentials > matches the snapshot 1`] = `
+<form
+  class="flex flex-col gap-4"
+  novalidate=""
+>
+  <div
+    class="flex flex-col gap-1"
+  >
+    <label
+      class="text-sm font-medium text-palette-bg"
+      for="password"
+    >
+      New password
+    </label>
+    <input
+      aria-describedby="password-hint"
+      autocomplete="new-password"
+      class="rounded-box border px-3 py-2 text-sm outline-none focus:border-palette-bg border-slate-300"
+      id="password"
+      name="password"
+      type="password"
+    />
+    <p
+      class="text-xs text-tip"
+      id="password-hint"
+    >
+      At least 10 characters. Length beats symbols: a phrase you can remember is stronger than a short password full of punctuation.
+    </p>
+  </div>
+  <div
+    class="flex flex-col gap-1"
+  >
+    <label
+      class="text-sm font-medium text-palette-bg"
+      for="repeatPassword"
+    >
+      Repeat new password
+    </label>
+    <input
+      autocomplete="new-password"
+      class="rounded-box border px-3 py-2 text-sm outline-none focus:border-palette-bg border-slate-300"
+      id="repeatPassword"
+      name="repeatPassword"
+      type="password"
+    />
+  </div>
+  <button
+    aria-busy="false"
+    class="rounded-box bg-palette-bg px-4 py-2 text-sm font-medium text-palette-white disabled:opacity-60"
+    type="submit"
+  >
+    Set new password
+  </button>
+</form>
+`;
+
+exports[`ResetConfirmForm on success > matches the snapshot 1`] = `
+<div
+  class="flex flex-col gap-3"
+>
+  <p
+    class="rounded-box border px-3 py-2 text-sm border-app-ok/40 bg-app-ok/10 text-app-ok"
+    role="status"
+  >
+    Your password has been changed.
+  </p>
+  <p
+    class="text-sm text-slate-600"
+  >
+    <a
+      class="underline"
+      href="/login"
+    >
+      Sign in
+    </a>
+     
+    with the new one.
+  </p>
+</div>
+`;

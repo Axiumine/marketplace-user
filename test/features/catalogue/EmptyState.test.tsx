@@ -36,4 +36,16 @@ describe('EmptyState', () => {
 		expect(screen.queryByRole('alert')).not.toBeInTheDocument()
 		expect(screen.queryByRole('status')).not.toBeInTheDocument()
 	})
+
+	it('matches the snapshot with a hint', () => {
+		const { container } = render(<EmptyState title="No results" hint="Try a shorter search." />)
+
+		expect(container.firstChild).toMatchSnapshot()
+	})
+
+	it('matches the snapshot without a hint', () => {
+		const { container } = render(<EmptyState title="No results" />)
+
+		expect(container.firstChild).toMatchSnapshot()
+	})
 })

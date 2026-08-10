@@ -124,4 +124,20 @@ describe('MapIsland', () => {
 
 		expect(await screen.findByTestId('shop-map')).toHaveTextContent('· 0 pins')
 	})
+
+	it('matches the snapshot before the map has arrived', async () => {
+		const { container } = render(<MapIsland center={CENTER} zoom={12} />)
+
+		expect(container.firstChild).toMatchSnapshot()
+
+		await flush()
+	})
+
+	it('matches the snapshot once the map has swapped in', async () => {
+		const { container } = render(<MapIsland center={CENTER} zoom={14} initialPins={PINS} />)
+
+		await screen.findByTestId('shop-map')
+
+		expect(container.firstChild).toMatchSnapshot()
+	})
 })

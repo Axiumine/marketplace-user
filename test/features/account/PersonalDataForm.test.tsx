@@ -83,6 +83,12 @@ describe('PersonalDataForm on an account in use', () => {
 		expect(screen.getByLabelText('Landline')).toHaveValue('')
 	})
 
+	it('matches the snapshot', async () => {
+		const { container } = await mount()
+
+		expect(container.firstChild).toMatchSnapshot()
+	})
+
 	/*
 	 * ⚠️ `birth` and `contacts` are nullable *inside* a `personalData` that exists — and this is the account
 	 * that proves it, because it is the one this very form produces when the optional fields are left blank.

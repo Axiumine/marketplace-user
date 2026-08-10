@@ -1,0 +1,64 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ShopCard > matches the snapshot with a description 1`] = `
+<article
+  class="h-full"
+>
+  <a
+    class="flex h-full flex-col gap-2 rounded-box border border-slate-200 bg-white p-4 hover:border-slate-400"
+    href="/shop/rivers-boutique"
+  >
+    <h2
+      class="text-base font-semibold text-palette-bg"
+    >
+      Rivers Boutique
+    </h2>
+    <p
+      class="text-sm text-slate-500"
+    >
+      1 Main Street
+      , 
+      02108
+       
+      Boston
+       (
+      MA
+      )
+    </p>
+    <p
+      class="text-sm text-slate-600"
+    >
+      Handmade leather goods, repaired and sold since 1974.
+    </p>
+  </a>
+</article>
+`;
+
+exports[`ShopCard > matches the snapshot with no description 1`] = `
+<article
+  class="h-full"
+>
+  <a
+    class="flex h-full flex-col gap-2 rounded-box border border-slate-200 bg-white p-4 hover:border-slate-400"
+    href="/shop/rivers-boutique"
+  >
+    <h2
+      class="text-base font-semibold text-palette-bg"
+    >
+      Rivers Boutique
+    </h2>
+    <p
+      class="text-sm text-slate-500"
+    >
+      1 Main Street
+      , 
+      02108
+       
+      Boston
+       (
+      MA
+      )
+    </p>
+  </a>
+</article>
+`;

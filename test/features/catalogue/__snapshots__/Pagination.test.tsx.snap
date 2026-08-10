@@ -1,0 +1,51 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Pagination > matches the snapshot on the first page 1`] = `
+<nav
+  aria-label="Pagination"
+  class="mt-8 flex items-center justify-between gap-4"
+>
+  <span />
+  <span
+    class="text-sm text-slate-500"
+  >
+    Page 
+    1
+  </span>
+  <a
+    class="rounded-box border border-slate-300 bg-white px-4 py-2 text-sm"
+    href="/shops?page=2"
+    rel="next"
+  >
+    Next →
+  </a>
+</nav>
+`;
+
+exports[`Pagination > matches the snapshot with both directions available 1`] = `
+<nav
+  aria-label="Pagination"
+  class="mt-8 flex items-center justify-between gap-4"
+>
+  <a
+    class="rounded-box border border-slate-300 bg-white px-4 py-2 text-sm"
+    href="/shops"
+    rel="prev"
+  >
+    ← Previous
+  </a>
+  <span
+    class="text-sm text-slate-500"
+  >
+    Page 
+    2
+  </span>
+  <a
+    class="rounded-box border border-slate-300 bg-white px-4 py-2 text-sm"
+    href="/shops?page=3"
+    rel="next"
+  >
+    Next →
+  </a>
+</nav>
+`;
