@@ -2,9 +2,15 @@ import { cacheExchange, Client, fetchExchange, mapExchange } from '@urql/core'
 import { authExchange } from '@urql/exchange-auth'
 
 import { CTX_USER_AUTHORIZATION, ENDPOINT, requiresAuth } from '@/api/endpoints'
-import { isAuthExpired, isSessionGone } from '@/api/errors'
+import { isAuthExpired, isRefreshRaceRetry, isSessionGone } from '@/api/errors'
 import { RefreshDocument } from '@/api/operations/userAuthorization/refresh'
 import { clearAccessToken, getAccessToken, setAccessToken } from '@/api/tokenStore'
+
+/**
+ * How many times a `refresh` refused with `REFRESH_RACE_RETRY` is sent again before the session is treated
+ * as lost (E14-S04). Retries, not attempts: the first send is not one, so this is three calls at worst.
+ */
+const REFRESH_RACE_RETRIES = 2
 
 export interface CreateGraphQLClientOptions {
 	/**
@@ -92,13 +98,34 @@ export const createGraphQLClient = ({ onSessionLost }: CreateGraphQLClientOption
 					return isAuthExpired(error)
 				},
 
+				/**
+				 * Mint a new access token from the refresh cookie, retrying the one failure that is not a
+				 * failure (E14-S04).
+				 *
+				 * Two tabs reloading at the same moment both send the same refresh cookie. One wins and
+				 * rotates it; the other presents a token the backend consumed milliseconds ago, and inside
+				 * the grace window it answers `REFRESH_RACE_RETRY` instead of revoking the family. By then
+				 * the winner's `Set-Cookie` is in the jar both tabs share, so the retry sends the current
+				 * token and succeeds — which is why there is no backoff here: the thing being waited for has
+				 * already happened, and a timer would only delay the customer's first screen.
+				 *
+				 * Bounded at `REFRESH_RACE_RETRIES` because the loop is otherwise unbounded on a backend
+				 * that keeps answering the same code. Two is a race lost twice in a row; a third is not a
+				 * race any more, and clearing the session is the honest answer.
+				 */
 				async refreshAuth() {
-					const result = await utils.mutate(RefreshDocument, {}, CTX_USER_AUTHORIZATION)
-					const refresh = result.data?.refresh
+					for (let attempt = 0; attempt <= REFRESH_RACE_RETRIES; attempt++) {
+						const result = await utils.mutate(RefreshDocument, {}, CTX_USER_AUTHORIZATION)
+						const refresh = result.data?.refresh
 
-					if (refresh !== undefined && refresh.status && refresh.accessToken !== '') {
-						setAccessToken(refresh.accessToken)
-						return
+						if (refresh !== undefined && refresh.status && refresh.accessToken !== '') {
+							setAccessToken(refresh.accessToken)
+							return
+						}
+
+						// Every other failure is terminal: a second attempt would present the same cookie to a
+						// backend that has already refused it.
+						if (!isRefreshRaceRetry(result.error)) break
 					}
 
 					clearAccessToken()

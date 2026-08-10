@@ -3,7 +3,8 @@ import type { CombinedError } from '@urql/core'
 /**
  * The platform's error transport.
  *
- * The backend does NOT use `extensions.code`. Every failure is raised through koa-utils'
+ * The backend uses `extensions.code` for exactly one failure — the lost refresh race of E14-S04, read by
+ * `isRefreshRaceRetry` below. Everything else is raised through koa-utils'
  * `throwGraphQLError(status, title, desc)`, which builds
  *
  *   new GraphQLError(title, { extensions: { http: { status }, description: desc } })
@@ -66,6 +67,24 @@ export const descriptionOf = (error: CombinedError | undefined): string | undefi
 export const isAuthExpired = (error: CombinedError | undefined): boolean => statusOf(error) === HTTP.invalidToken
 
 export const isSessionGone = (error: CombinedError | undefined): boolean => SESSION_GONE.includes(statusOf(error))
+
+/**
+ * The refresh the backend answered with "another request of yours just rotated this token, send it again"
+ * (E14-S04) — the loser of a multi-tab race, which is ordinary use rather than a dead session.
+ *
+ * ⚠️ **This string is `throwRefreshRaceRetry`'s `REFRESH_RACE_RETRY_CODE` in `marketplace-common`, and
+ * nothing checks that the two agree.** A rename on either side turns every lost race back into a logout,
+ * silently, in all three SPAs at once. It is duplicated rather than imported because the backend package
+ * is a Node-only ESM library this bundle does not depend on.
+ *
+ * Matched on the code alone and not on the 409 beside it: the status is what nginx and the browser act on,
+ * the code is what this client branches on, and a proxy that rewrites the status must not be able to turn a
+ * retry into a logout. The service raising it is same-origin, so nothing else can put this code on the wire.
+ */
+export const REFRESH_RACE_RETRY_CODE = 'REFRESH_RACE_RETRY'
+
+export const isRefreshRaceRetry = (error: CombinedError | undefined): boolean =>
+	prop(error?.graphQLErrors[0]?.extensions, 'code') === REFRESH_RACE_RETRY_CODE
 
 /**
  * What to put in front of the visitor.

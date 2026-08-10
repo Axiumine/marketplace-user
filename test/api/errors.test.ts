@@ -2,7 +2,18 @@ import { CombinedError } from '@urql/core'
 import { GraphQLError } from 'graphql'
 import { describe, expect, it } from 'vitest'
 
-import { dataOf, descriptionOf, HTTP, isAuthExpired, isSessionGone, messageOf, statusOf, visitorMessageOf } from '@/api/errors'
+import {
+	dataOf,
+	descriptionOf,
+	HTTP,
+	isAuthExpired,
+	isRefreshRaceRetry,
+	isSessionGone,
+	messageOf,
+	REFRESH_RACE_RETRY_CODE,
+	statusOf,
+	visitorMessageOf
+} from '@/api/errors'
 
 const GENERIC = 'Error while communicating with the server'
 
@@ -184,6 +195,48 @@ describe('isSessionGone', () => {
 	it('does not end the session on a failure that never reached the server', () => {
 		expect(isSessionGone(combined({ networkError: new Error('Failed to fetch') }))).toBe(false)
 		expect(isSessionGone(undefined)).toBe(false)
+	})
+})
+
+describe('isRefreshRaceRetry', () => {
+	/** The 409 the backend raises through `throwRefreshRaceRetry`, with either half made optional. */
+	const raceError = ({ status, code }: { status?: number; code?: string } = {}) =>
+		combined({
+			graphQLErrors: [
+				new GraphQLError('Refresh In Progress', {
+					extensions: {
+						...(status === undefined ? {} : { http: { status } }),
+						...(code === undefined ? {} : { code })
+					}
+				})
+			]
+		})
+
+	// Pinned as a literal: this string is a contract with `throwRefreshRaceRetry` in marketplace-common,
+	// which no compiler checks. A rename on either side turns every lost multi-tab race into a logout.
+	it('is the exact code the backend raises', () => {
+		expect(REFRESH_RACE_RETRY_CODE).toBe('REFRESH_RACE_RETRY')
+	})
+
+	it('is true for the code, whatever status rode with it', () => {
+		expect(isRefreshRaceRetry(raceError({ status: 409, code: REFRESH_RACE_RETRY_CODE }))).toBe(true)
+		// A proxy that rewrote the status must not be able to turn a retry into a logout.
+		expect(isRefreshRaceRetry(raceError({ code: REFRESH_RACE_RETRY_CODE }))).toBe(true)
+	})
+
+	// 409 alone means nothing here — the code is the whole signal, and the backend sends it on this one
+	// error only.
+	it('is false for a 409 that carries no code', () => {
+		expect(isRefreshRaceRetry(raceError({ status: 409 }))).toBe(false)
+	})
+
+	it('is false for any other code', () => {
+		expect(isRefreshRaceRetry(raceError({ status: HTTP.badRequest, code: 'BAD_USER_INPUT' }))).toBe(false)
+	})
+
+	it('is false for a transport failure and for no error at all', () => {
+		expect(isRefreshRaceRetry(combined({ networkError: new Error('offline') }))).toBe(false)
+		expect(isRefreshRaceRetry(undefined)).toBe(false)
 	})
 })
 
