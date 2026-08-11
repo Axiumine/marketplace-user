@@ -24,6 +24,16 @@ export const Footer = () => (
 				<Link to="/login" className="hover:text-palette-bg">
 					Sign in
 				</Link>
+				{/*
+				 * ⚠️ The privacy link belongs *here* rather than on the pages that happen to be relevant. The
+				 * page states the log retention the edge configures (E12-S25), and a visitor is logged on
+				 * every request — including the ones that never reach a page with a link on it. The footer is
+				 * the only element rendered by the root route, so this is the one place where "reachable from
+				 * every page" is a property of the layout instead of a checklist.
+				 */}
+				<Link to="/privacy" className="hover:text-palette-bg">
+					Privacy
+				</Link>
 			</nav>
 			<p>
 				Map data ©{' '}

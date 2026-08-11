@@ -1,0 +1,55 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`the privacy notice snapshot > renders 1`] = `
+<main
+  class="flex-1"
+  id="main"
+>
+  <div
+    class="mx-auto max-w-3xl px-4 py-8"
+  >
+    <h1
+      class="text-3xl font-semibold text-palette-bg"
+    >
+      Privacy
+    </h1>
+    <p
+      class="mt-2 text-slate-600"
+    >
+      What the web server records about a visit to this site, and for how long it is kept. This page covers those log files and nothing else; anything more will be added here when it has been decided, rather than described in advance.
+    </p>
+    <h2
+      class="mt-8 text-xl font-semibold text-palette-bg"
+    >
+      The two log files
+    </h2>
+    <ul
+      class="mt-2 flex list-disc flex-col gap-2 pl-5 text-slate-600"
+    >
+      <li>
+        The web server’s 
+        <strong>
+          error log
+        </strong>
+         records the network address a request came from, alongside the error itself. It is kept for 14 days.
+      </li>
+      <li>
+        Its 
+        <strong>
+          access log
+        </strong>
+         records the URL that was requested, when, and how the server answered. It records no network address. It is kept for the same 14 days.
+      </li>
+    </ul>
+    <p
+      class="mt-4 text-slate-600"
+    >
+      Both files are closed once a day and fourteen closed ones are kept, so no entry survives past the fifteenth day. When one falls out of that window it is 
+      <strong>
+        shredded
+      </strong>
+       — its contents are overwritten before the file is removed — rather than only deleted.
+    </p>
+  </div>
+</main>
+`;

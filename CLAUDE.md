@@ -20,8 +20,16 @@ as ceremony is there because a request renders on a shared Node process before a
 |---|---|---|
 | Catalogue | `/`, `/shops`, `/shops/:city`, `/shop/:slug`, `/shop/:slug/item/:itemSlug`, `/category/:slug[/:childSlug]` | SSR |
 | Search | `/search?q=&near=` | SSR, `noindex` |
+| Notice | `/privacy` | SSR, **indexed** |
 | Machine-readable | `/robots.txt`, `/sitemap.xml`, `/sitemaps/:kind/:cursor` | server handlers |
 | Account | `/login`, `/register`, `/reset-password*`, `/account/*` | **`ssr: false`** |
+
+⚠️ **`/privacy` is the public half of a configuration in another repo.** It states the retention the edge
+keeps — 14 days, `shred` on removal — and `marketplace-nginx/logrotate.d/nginx` in the **parent workspace**
+is what enforces it. Changing the period there without changing the page turns the page into a false
+statement, so the two move together and the configuration wins. It is the one non-catalogue page that is
+**not** `noIndex` and is not disallowed in `robots.txt`: a notice a data subject cannot find is not a
+notice. Its only entry point is the footer, which the root route renders on every page.
 
 ⚠️ **Never turn SSR on for an `/account` route.** Rendering authenticated HTML on a server that sits
 behind a shared `proxy_cache` is how one customer's personal data ends up in another customer's response.

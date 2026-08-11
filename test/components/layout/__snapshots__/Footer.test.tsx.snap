@@ -29,6 +29,12 @@ exports[`Footer snapshot > renders 1`] = `
       >
         Sign in
       </a>
+      <a
+        class="hover:text-palette-bg"
+        href="/privacy"
+      >
+        Privacy
+      </a>
     </nav>
     <p>
       Map data ©
