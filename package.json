@@ -32,6 +32,7 @@
 		"prepare": "git config core.hooksPath .githooks || true"
 	},
 	"dependencies": {
+		"@axiumine/marketplace-common": "^1.0.0",
 		"@hookform/resolvers": "^5.6.0",
 		"@sentry/react": "^10.69.0",
 		"@tanstack/react-router": "^1.170.18",
