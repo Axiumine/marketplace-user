@@ -21,11 +21,11 @@ import { Route as AccountIndexRouteImport } from './routes/account.index'
 import { Route as AccountAddressesRouteImport } from './routes/account.addresses'
 import { Route as AccountPasswordRouteImport } from './routes/account.password'
 import { Route as ResetPasswordIndexRouteImport } from './routes/reset-password.index'
+import { Route as ResetPasswordConfirmRouteImport } from './routes/reset-password.confirm'
 import { Route as ShopsIndexRouteImport } from './routes/shops.index'
 import { Route as ShopsCityRouteImport } from './routes/shops.$city'
 import { Route as CategorySlugIndexRouteImport } from './routes/category.$slug.index'
 import { Route as CategorySlugChildSlugRouteImport } from './routes/category.$slug.$childSlug'
-import { Route as ResetPasswordEmailHashRouteImport } from './routes/reset-password.$email.$hash'
 import { Route as ShopSlugIndexRouteImport } from './routes/shop.$slug.index'
 import { Route as SitemapsKindCursorRouteImport } from './routes/sitemaps.$kind.$cursor'
 import { Route as ShopSlugItemItemSlugRouteImport } from './routes/shop.$slug.item.$itemSlug'
@@ -90,6 +90,11 @@ const ResetPasswordIndexRoute = ResetPasswordIndexRouteImport.update({
   path: '/reset-password/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResetPasswordConfirmRoute = ResetPasswordConfirmRouteImport.update({
+  id: '/reset-password/confirm',
+  path: '/reset-password/confirm',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ShopsIndexRoute = ShopsIndexRouteImport.update({
   id: '/shops/',
   path: '/shops/',
@@ -108,11 +113,6 @@ const CategorySlugIndexRoute = CategorySlugIndexRouteImport.update({
 const CategorySlugChildSlugRoute = CategorySlugChildSlugRouteImport.update({
   id: '/category/$slug/$childSlug',
   path: '/category/$slug/$childSlug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResetPasswordEmailHashRoute = ResetPasswordEmailHashRouteImport.update({
-  id: '/reset-password/$email/$hash',
-  path: '/reset-password/$email/$hash',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ShopSlugIndexRoute = ShopSlugIndexRouteImport.update({
@@ -142,12 +142,12 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/account/addresses': typeof AccountAddressesRoute
   '/account/password': typeof AccountPasswordRoute
+  '/reset-password/confirm': typeof ResetPasswordConfirmRoute
   '/shops/$city': typeof ShopsCityRoute
   '/account/': typeof AccountIndexRoute
   '/reset-password/': typeof ResetPasswordIndexRoute
   '/shops/': typeof ShopsIndexRoute
   '/category/$slug/$childSlug': typeof CategorySlugChildSlugRoute
-  '/reset-password/$email/$hash': typeof ResetPasswordEmailHashRoute
   '/sitemaps/$kind/$cursor': typeof SitemapsKindCursorRoute
   '/category/$slug/': typeof CategorySlugIndexRoute
   '/shop/$slug/': typeof ShopSlugIndexRoute
@@ -163,12 +163,12 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/account/addresses': typeof AccountAddressesRoute
   '/account/password': typeof AccountPasswordRoute
+  '/reset-password/confirm': typeof ResetPasswordConfirmRoute
   '/shops/$city': typeof ShopsCityRoute
   '/account': typeof AccountIndexRoute
   '/reset-password': typeof ResetPasswordIndexRoute
   '/shops': typeof ShopsIndexRoute
   '/category/$slug/$childSlug': typeof CategorySlugChildSlugRoute
-  '/reset-password/$email/$hash': typeof ResetPasswordEmailHashRoute
   '/sitemaps/$kind/$cursor': typeof SitemapsKindCursorRoute
   '/category/$slug': typeof CategorySlugIndexRoute
   '/shop/$slug': typeof ShopSlugIndexRoute
@@ -186,12 +186,12 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/account/addresses': typeof AccountAddressesRoute
   '/account/password': typeof AccountPasswordRoute
+  '/reset-password/confirm': typeof ResetPasswordConfirmRoute
   '/shops/$city': typeof ShopsCityRoute
   '/account/': typeof AccountIndexRoute
   '/reset-password/': typeof ResetPasswordIndexRoute
   '/shops/': typeof ShopsIndexRoute
   '/category/$slug/$childSlug': typeof CategorySlugChildSlugRoute
-  '/reset-password/$email/$hash': typeof ResetPasswordEmailHashRoute
   '/sitemaps/$kind/$cursor': typeof SitemapsKindCursorRoute
   '/category/$slug/': typeof CategorySlugIndexRoute
   '/shop/$slug/': typeof ShopSlugIndexRoute
@@ -210,12 +210,12 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/account/addresses'
     | '/account/password'
+    | '/reset-password/confirm'
     | '/shops/$city'
     | '/account/'
     | '/reset-password/'
     | '/shops/'
     | '/category/$slug/$childSlug'
-    | '/reset-password/$email/$hash'
     | '/sitemaps/$kind/$cursor'
     | '/category/$slug/'
     | '/shop/$slug/'
@@ -231,12 +231,12 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/account/addresses'
     | '/account/password'
+    | '/reset-password/confirm'
     | '/shops/$city'
     | '/account'
     | '/reset-password'
     | '/shops'
     | '/category/$slug/$childSlug'
-    | '/reset-password/$email/$hash'
     | '/sitemaps/$kind/$cursor'
     | '/category/$slug'
     | '/shop/$slug'
@@ -253,12 +253,12 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/account/addresses'
     | '/account/password'
+    | '/reset-password/confirm'
     | '/shops/$city'
     | '/account/'
     | '/reset-password/'
     | '/shops/'
     | '/category/$slug/$childSlug'
-    | '/reset-password/$email/$hash'
     | '/sitemaps/$kind/$cursor'
     | '/category/$slug/'
     | '/shop/$slug/'
@@ -274,11 +274,11 @@ export interface RootRouteChildren {
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SearchRoute: typeof SearchRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  ResetPasswordConfirmRoute: typeof ResetPasswordConfirmRoute
   ShopsCityRoute: typeof ShopsCityRoute
   ResetPasswordIndexRoute: typeof ResetPasswordIndexRoute
   ShopsIndexRoute: typeof ShopsIndexRoute
   CategorySlugChildSlugRoute: typeof CategorySlugChildSlugRoute
-  ResetPasswordEmailHashRoute: typeof ResetPasswordEmailHashRoute
   SitemapsKindCursorRoute: typeof SitemapsKindCursorRoute
   CategorySlugIndexRoute: typeof CategorySlugIndexRoute
   ShopSlugIndexRoute: typeof ShopSlugIndexRoute
@@ -371,6 +371,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResetPasswordIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reset-password/confirm': {
+      id: '/reset-password/confirm'
+      path: '/reset-password/confirm'
+      fullPath: '/reset-password/confirm'
+      preLoaderRoute: typeof ResetPasswordConfirmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/shops/': {
       id: '/shops/'
       path: '/shops'
@@ -397,13 +404,6 @@ declare module '@tanstack/react-router' {
       path: '/category/$slug/$childSlug'
       fullPath: '/category/$slug/$childSlug'
       preLoaderRoute: typeof CategorySlugChildSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reset-password/$email/$hash': {
-      id: '/reset-password/$email/$hash'
-      path: '/reset-password/$email/$hash'
-      fullPath: '/reset-password/$email/$hash'
-      preLoaderRoute: typeof ResetPasswordEmailHashRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/shop/$slug/': {
@@ -454,11 +454,11 @@ const rootRouteChildren: RootRouteChildren = {
   RobotsDottxtRoute: RobotsDottxtRoute,
   SearchRoute: SearchRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  ResetPasswordConfirmRoute: ResetPasswordConfirmRoute,
   ShopsCityRoute: ShopsCityRoute,
   ResetPasswordIndexRoute: ResetPasswordIndexRoute,
   ShopsIndexRoute: ShopsIndexRoute,
   CategorySlugChildSlugRoute: CategorySlugChildSlugRoute,
-  ResetPasswordEmailHashRoute: ResetPasswordEmailHashRoute,
   SitemapsKindCursorRoute: SitemapsKindCursorRoute,
   CategorySlugIndexRoute: CategorySlugIndexRoute,
   ShopSlugIndexRoute: ShopSlugIndexRoute,

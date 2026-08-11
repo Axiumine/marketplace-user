@@ -14,14 +14,16 @@ import { TextField } from '@/components/ui/TextField'
 import { Turnstile } from '@/components/ui/Turnstile'
 
 import { matchingPasswords, PASSWORD_HINT, passwordSchema } from './password'
+import { ResetLinkInvalid } from './ResetLinkInvalid'
 import { useTurnstileToken } from './useTurnstileToken'
 
 /**
  * The second half of the reset: consumes the emailed hash and sets the new password.
  *
  * The email and the hash come from the URL rather than from fields, because they came from the link the
- * customer clicked. Neither is rendered — the address would be readable over a shoulder, and the hash is
- * a one-time credential that has no business being selectable and copyable off the page.
+ * customer clicked — from its **fragment** since E12-S26, read by `resetLink.ts` and handed here as props.
+ * Neither is rendered: the address would be readable over a shoulder, and the hash is a one-time
+ * credential that has no business being selectable and copyable off the page.
  *
  * ⚠️ **Every failure here arrives as the same flat 403**, whether the hash is wrong, already used, or
  * simply older than 60 minutes. The server cannot distinguish them for us without saying whether the
@@ -109,15 +111,7 @@ export const ResetConfirmForm = ({ email, hash }: ResetConfirmFormProps) => {
 
 			<FormStatus tone="error" message={failure} />
 
-			{failure !== undefined && (
-				<p className="text-sm text-slate-600">
-					A reset link stops working 60 minutes after it is sent, and again once it has been used.{' '}
-					<Link to="/reset-password" className="underline">
-						Ask for a new one
-					</Link>
-					.
-				</p>
-			)}
+			{failure !== undefined && <ResetLinkInvalid />}
 
 			<SubmitButton busy={isSubmitting} busyLabel="Saving…">
 				Set new password

@@ -1,0 +1,17 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ResetLinkInvalid > matches the snapshot 1`] = `
+<p
+  class="text-sm text-slate-600"
+>
+  A reset link stops working 60 minutes after it is sent, and again once it has been used.
+   
+  <a
+    class="underline"
+    href="/reset-password"
+  >
+    Ask for a new one
+  </a>
+  .
+</p>
+`;

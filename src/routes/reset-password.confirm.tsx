@@ -2,4 +2,4 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { resetPasswordConfirmRouteOptions } from '@/routeOptions/resetPasswordConfirm'
 
-export const Route = createFileRoute('/reset-password/$email/$hash')(resetPasswordConfirmRouteOptions)
+export const Route = createFileRoute('/reset-password/confirm')(resetPasswordConfirmRouteOptions)

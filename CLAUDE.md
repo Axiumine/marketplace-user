@@ -22,7 +22,14 @@ as ceremony is there because a request renders on a shared Node process before a
 | Search | `/search?q=&near=` | SSR, `noindex` |
 | Notice | `/privacy` | SSR, **indexed** |
 | Machine-readable | `/robots.txt`, `/sitemap.xml`, `/sitemaps/:kind/:cursor` | server handlers |
-| Account | `/login`, `/register`, `/reset-password*`, `/account/*` | **`ssr: false`** |
+| Account | `/login`, `/register`, `/reset-password` | SSR, `noindex` |
+| Reset confirm | `/reset-password/confirm` | **`ssr: false`**, `noindex` |
+| Account area | `/account/*` | **`ssr: false`** |
+
+⚠️ **`ssr: false` is two routes, and the table above is the corrected one.** It used to list `/login`,
+`/register` and `/reset-password*` as client-only; measured, they are server-rendered and always were —
+`src/routeOptions/login.tsx` says so in its own header. The only `ssr: false` in the repo were
+`src/routeOptions/account.tsx` and, since E12-S26, `src/routeOptions/resetPasswordConfirm.tsx`.
 
 ⚠️ **`/privacy` is the public half of a configuration in another repo.** It states the retention the edge
 keeps — 14 days, `shred` on removal — and `marketplace-nginx/logrotate.d/nginx` in the **parent workspace**
@@ -30,6 +37,16 @@ is what enforces it. Changing the period there without changing the page turns t
 statement, so the two move together and the configuration wins. It is the one non-catalogue page that is
 **not** `noIndex` and is not disallowed in `robots.txt`: a notice a data subject cannot find is not a
 notice. Its only entry point is the footer, which the root route renders on every page.
+
+⚠️ **The reset credential lives in the URL fragment, and the confirm route is why.** The mail sends
+`…/reset-password/confirm#/<address>/<hash>` — built by `RESET_PATH_USER` in
+`marketplace-dev-public-resource/src/lib/access/resetPwdFlowUser.mts`, whose **trailing `#`** is the whole
+mechanism — and RFC 3986 §3.5 keeps a fragment out of every request line, log, `Referer` and cache key.
+Three things hold it up and all three have to stay: `src/features/auth/resetLink.ts` reads
+`window.location.hash` (never the router's decoded copy), the route is `ssr: false` so the server has
+nothing to render and nothing to dehydrate, and `src/lib/cachePolicy.ts` sends `private, no-store` for the
+whole `/reset-password` prefix. Adding a path parameter to this route puts the credential back into the
+URL **and** into the dehydrated body — measured before the change, both halves were in the HTML.
 
 ⚠️ **Never turn SSR on for an `/account` route.** Rendering authenticated HTML on a server that sits
 behind a shared `proxy_cache` is how one customer's personal data ends up in another customer's response.

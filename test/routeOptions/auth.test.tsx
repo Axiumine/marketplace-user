@@ -1,4 +1,5 @@
-import { screen, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 
 import { loginRouteOptions } from '@/routeOptions/login'
@@ -6,18 +7,29 @@ import { registerRouteOptions } from '@/routeOptions/register'
 import { resetPasswordRouteOptions } from '@/routeOptions/resetPassword'
 import { resetPasswordConfirmRouteOptions } from '@/routeOptions/resetPasswordConfirm'
 
+import type { GraphQLReplies } from '../helpers/graphql'
 import { stubGraphQL } from '../helpers/graphql'
 import type { RouteHead } from '../helpers/head'
 import { canonicalOf, metaOf, titleOf } from '../helpers/head'
 import { renderRoute } from '../helpers/render'
 
-const mount = async (path: string) => {
-	const stub = stubGraphQL({})
+const mount = async (path: string, replies: GraphQLReplies = {}) => {
+	const stub = stubGraphQL(replies)
 
 	return { ...(await renderRoute(path)), stub }
 }
 
 const headOf = (options: { head: () => unknown }): RouteHead => options.head() as RouteHead
+
+/**
+ * The emailed link, whole: a static path and the credential behind the `#`.
+ *
+ * ⚠️ **The `#` is what these tests are about.** `renderRoute` moves jsdom's location with
+ * `history.replaceState`, so the fragment lands in `window.location.hash` exactly as a click on the mail
+ * would leave it — and the router matches `/reset-password/confirm`, which is all a server would ever see
+ * of it (RFC 3986 §3.5).
+ */
+const EMAILED_LINK = '/reset-password/confirm#/alice@example.com/9f3cabcd'
 
 /*
  * The whole sentence a footer link sits in, read off the element that holds it.
@@ -63,17 +75,58 @@ describe('the authentication pages', () => {
 	})
 
 	/*
-	 * ⚠️ Neither path parameter is rendered. The pair *is* the credential — a page that echoed the address
-	 * would put it on a screen anyone standing behind the customer can read, and one that echoed the hash
-	 * would hand a live reset token to every browser extension and analytics script on the page.
+	 * ⚠️ Neither half of the credential is rendered. The pair *is* the credential — a page that echoed the
+	 * address would put it on a screen anyone standing behind the customer can read, and one that echoed
+	 * the hash would hand a live reset token to every browser extension and analytics script on the page.
 	 */
-	it('takes the emailed credential from the URL without showing it', async () => {
-		const { container } = await mount('/reset-password/alice%40example.com/9f3cabcd')
+	it('takes the emailed credential from the fragment without showing it', async () => {
+		const { container } = await mount(EMAILED_LINK)
 
 		expect(screen.getByRole('heading', { level: 1, name: 'Set a new password' })).toBeInTheDocument()
+		expect(screen.getByLabelText('New password')).toBeInTheDocument()
 		expect(container.textContent).not.toContain('alice@example.com')
 		expect(container.textContent).not.toContain('9f3cabcd')
 	})
+
+	/*
+	 * ⚠️ The whole point of the fragment, asserted end to end: the pair is read out of `location.hash` and
+	 * reaches the mutation intact, having never been in a request line. A test of the parser alone would
+	 * pass with a component that ignored what it returned.
+	 */
+	it('sends the address and the hash from the fragment to the mutation', async () => {
+		const { stub } = await mount(EMAILED_LINK, { UserUpdatePwd: { data: { userUpdatePwd: true } } })
+		const user = userEvent.setup()
+		const password = 'a passphrase that is long enough'
+
+		await user.type(screen.getByLabelText('New password'), password)
+		await user.type(screen.getByLabelText('Repeat new password'), password)
+		await user.click(screen.getByRole('button', { name: 'Set new password' }))
+
+		await waitFor(() => {
+			expect(stub.calls).toHaveLength(1)
+		})
+		expect(stub.calls[0]?.variables).toMatchObject({ email: 'alice@example.com', hash: '9f3cabcd', password })
+	})
+
+	/*
+	 * ⚠️ Both failure branches of the fragment reader end in the same state a refused hash ends in: the
+	 * explanation and a link to ask again, with no form to fill in. A page that rendered the form anyway
+	 * would take a new password twice and then refuse it, which reads as "your password is wrong" rather
+	 * than "this link is not whole".
+	 *
+	 * The two paths are a click that dropped everything after the `#`, and one that kept the address but
+	 * lost the hash.
+	 */
+	it.each(['/reset-password/confirm', '/reset-password/confirm#/alice@example.com'])(
+		'offers a new link instead of a form when the link arrives broken: %s',
+		async (path) => {
+			await mount(path)
+
+			expect(screen.getByRole('alert')).toHaveTextContent('This reset link is incomplete — the part after the # is missing.')
+			expect(screen.getByRole('link', { name: 'Ask for a new one' })).toHaveAttribute('href', '/reset-password')
+			expect(screen.queryByLabelText('New password')).not.toBeInTheDocument()
+		}
+	)
 
 	// The header link, which is what a signed-out visitor actually clicks to get here.
 	it('is reachable from the header', async () => {
@@ -125,16 +178,35 @@ describe('the authentication heads', () => {
 	})
 
 	/*
-	 * ⚠️ The canonical is the *fixed* `/reset-password`, never the requested path. `headFor` would otherwise
-	 * emit `<link rel="canonical" href="…/reset-password/alice@example.com/9f3c…">` — the credential written
-	 * into the page a second time, and into anything that scrapes canonicals.
+	 * The canonical is the route's own path again. It was pinned to `/reset-password` while the credential
+	 * was *in* the path, because `headFor` would otherwise have emitted
+	 * `<link rel="canonical" href="…/reset-password/alice@example.com/9f3c…">` — the credential written into
+	 * the page a second time and into anything that scrapes canonicals. The path is static now, so the
+	 * honest canonical is safe, and `noIndex` stays for the reason it was always there: a password form
+	 * that ranks is a password form bots find.
 	 */
-	it('keeps the credential out of the confirm page’s canonical', () => {
+	it('names its own static path in the confirm page’s canonical', () => {
 		const head = headOf(resetPasswordConfirmRouteOptions)
 
 		expect(titleOf(head)).toBe('Set a new password · Marketplace')
-		expect(canonicalOf(head)).toBe('http://127.0.0.1:3045/reset-password')
+		expect(canonicalOf(head)).toBe('http://127.0.0.1:3045/reset-password/confirm')
 		expect(metaOf(head, 'robots')).toBe('noindex, follow')
 		expect(metaOf(head, 'description')).toBe('Choose a new password for your account.')
+	})
+})
+
+/*
+ * ⚠️ **The one assertion no jsdom test can make for us.** Every test in this file renders in a browser,
+ * where `ssr: false` changes nothing — the flag only ever matters on the server, and it is what stops this
+ * route from being rendered into HTML and dehydrated into the page with a live credential in its match id.
+ * Measured before it was set: the address and hash were in the body of a production response that also
+ * carried `cache-control: public, s-maxage=60`.
+ */
+describe('the confirm route’s render mode', () => {
+	it('is the only route outside the account area that renders client-side only', () => {
+		expect(resetPasswordConfirmRouteOptions.ssr).toBe(false)
+		expect(loginRouteOptions).not.toHaveProperty('ssr')
+		expect(registerRouteOptions).not.toHaveProperty('ssr')
+		expect(resetPasswordRouteOptions).not.toHaveProperty('ssr')
 	})
 })
