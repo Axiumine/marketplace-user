@@ -10,6 +10,22 @@ const get = (path: string, cookie?: string): Request =>
 const html = (status = 200): Response =>
 	new Response('<!DOCTYPE html>', { status, headers: { 'content-type': 'text/html; charset=utf-8' } })
 
+/*
+ * ⚠️ The literal text, once, because every other assertion in this file compares against the imported
+ * constant — which stays true of any value the constant could hold, an empty header included. What a
+ * shared cache does with this response is decided by these exact bytes, and nothing else here reads them.
+ */
+describe('the two policies as a shared cache reads them', () => {
+	it('offers the catalogue for a minute, and stale for ten more', () => {
+		expect(ANONYMOUS_CACHE).toBe('public, s-maxage=60, stale-while-revalidate=600')
+	})
+
+	// `no-store` and not `no-cache`: the latter permits storing the response and revalidating it.
+	it('lets nothing at all be stored for a signed-in visitor or a reset page', () => {
+		expect(PRIVATE_CACHE).toBe('private, no-store')
+	})
+})
+
 describe('cacheControlFor on the catalogue', () => {
 	it('lets a shared cache hold an anonymous page for a minute', () => {
 		expect(cacheControlFor(get('/shops'), html())).toBe(ANONYMOUS_CACHE)

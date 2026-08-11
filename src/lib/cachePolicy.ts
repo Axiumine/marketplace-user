@@ -88,7 +88,11 @@ const isResetPath = (request: Request): boolean => {
  * caching a 500 turns one bad upstream moment into ten minutes of a broken site.
  */
 const isCacheableHtml = (response: Response): boolean =>
-	response.status === 200 && (response.headers.get('content-type') ?? '').startsWith('text/html')
+	// `?.startsWith(…) ?? false` and not `(… ?? '').startsWith(…)`: an empty-string default is an
+	// unkillable mutant — every replacement Stryker writes into it also fails to start with `text/html`,
+	// so the two behave identically and no test can tell them apart. The optional call has no such hole:
+	// a missing header takes the `false`, and a mutant that flips it says a headerless response is HTML.
+	response.status === 200 && (response.headers.get('content-type')?.startsWith('text/html') ?? false)
 
 /**
  * The `Cache-Control` this response should carry, or `undefined` to leave the framework's own alone.
