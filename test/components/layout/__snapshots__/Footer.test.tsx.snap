@@ -25,6 +25,12 @@ exports[`Footer snapshot > renders 1`] = `
       </a>
       <a
         class="hover:text-palette-bg"
+        href="/register/seller"
+      >
+        Sell on Marketplace
+      </a>
+      <a
+        class="hover:text-palette-bg"
         href="/login"
       >
         Sign in

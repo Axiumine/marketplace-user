@@ -15,6 +15,7 @@ import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-
  */
 type Documents = {
     "\n\tmutation UserRegister($email: String!, $password: String!, $repeatPassword: String!, $turnstileToken: String) {\n\t\tuserRegister(email: $email, password: $password, repeatPassword: $repeatPassword, turnstileToken: $turnstileToken)\n\t}\n": typeof types.UserRegisterDocument,
+    "\n\tmutation ShopOwnerRegister($email: String!, $password: String!, $repeatPassword: String!, $turnstileToken: String) {\n\t\tshopOwnerRegister(email: $email, password: $password, repeatPassword: $repeatPassword, turnstileToken: $turnstileToken)\n\t}\n": typeof types.ShopOwnerRegisterDocument,
     "\n\tmutation UserVerifyEmailResend($email: String!, $turnstileToken: String) {\n\t\tuserVerifyEmailResend(email: $email, turnstileToken: $turnstileToken)\n\t}\n": typeof types.UserVerifyEmailResendDocument,
     "\n\tmutation UserResetPwd($email: String!, $turnstileToken: String) {\n\t\tuserResetPwd(email: $email, turnstileToken: $turnstileToken)\n\t}\n": typeof types.UserResetPwdDocument,
     "\n\tmutation UserUpdatePwd($email: String!, $hash: String!, $password: String!, $turnstileToken: String) {\n\t\tuserUpdatePwd(email: $email, hash: $hash, password: $password, turnstileToken: $turnstileToken)\n\t}\n": typeof types.UserUpdatePwdDocument,
@@ -29,6 +30,7 @@ type Documents = {
 };
 const documents: Documents = {
     "\n\tmutation UserRegister($email: String!, $password: String!, $repeatPassword: String!, $turnstileToken: String) {\n\t\tuserRegister(email: $email, password: $password, repeatPassword: $repeatPassword, turnstileToken: $turnstileToken)\n\t}\n": types.UserRegisterDocument,
+    "\n\tmutation ShopOwnerRegister($email: String!, $password: String!, $repeatPassword: String!, $turnstileToken: String) {\n\t\tshopOwnerRegister(email: $email, password: $password, repeatPassword: $repeatPassword, turnstileToken: $turnstileToken)\n\t}\n": types.ShopOwnerRegisterDocument,
     "\n\tmutation UserVerifyEmailResend($email: String!, $turnstileToken: String) {\n\t\tuserVerifyEmailResend(email: $email, turnstileToken: $turnstileToken)\n\t}\n": types.UserVerifyEmailResendDocument,
     "\n\tmutation UserResetPwd($email: String!, $turnstileToken: String) {\n\t\tuserResetPwd(email: $email, turnstileToken: $turnstileToken)\n\t}\n": types.UserResetPwdDocument,
     "\n\tmutation UserUpdatePwd($email: String!, $hash: String!, $password: String!, $turnstileToken: String) {\n\t\tuserUpdatePwd(email: $email, hash: $hash, password: $password, turnstileToken: $turnstileToken)\n\t}\n": types.UserUpdatePwdDocument,
@@ -60,6 +62,10 @@ export function graphql(source: string): unknown;
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n\tmutation UserRegister($email: String!, $password: String!, $repeatPassword: String!, $turnstileToken: String) {\n\t\tuserRegister(email: $email, password: $password, repeatPassword: $repeatPassword, turnstileToken: $turnstileToken)\n\t}\n"): (typeof documents)["\n\tmutation UserRegister($email: String!, $password: String!, $repeatPassword: String!, $turnstileToken: String) {\n\t\tuserRegister(email: $email, password: $password, repeatPassword: $repeatPassword, turnstileToken: $turnstileToken)\n\t}\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n\tmutation ShopOwnerRegister($email: String!, $password: String!, $repeatPassword: String!, $turnstileToken: String) {\n\t\tshopOwnerRegister(email: $email, password: $password, repeatPassword: $repeatPassword, turnstileToken: $turnstileToken)\n\t}\n"): (typeof documents)["\n\tmutation ShopOwnerRegister($email: String!, $password: String!, $repeatPassword: String!, $turnstileToken: String) {\n\t\tshopOwnerRegister(email: $email, password: $password, repeatPassword: $repeatPassword, turnstileToken: $turnstileToken)\n\t}\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

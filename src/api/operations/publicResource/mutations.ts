@@ -28,6 +28,28 @@ export const UserRegisterDocument = graphql(`
 	}
 `)
 
+/**
+ * Creates a **shop owner** account and sends its activation link. Same four arguments as the customer's,
+ * a different collection and a different outcome.
+ *
+ * ⚠️ **The account cannot be logged into afterwards.** `shopOwnerRegister` writes `waitApprov: true` and
+ * the authorization service refuses a session while the flag is up, so this form is a seller *asking* to
+ * sell here rather than becoming one — selling is a commercial relationship with the operator, and no
+ * form may open it. The screen has to say so, because "check your inbox" followed by a login that is
+ * refused with no explanation reads as a broken registration.
+ *
+ * ⚠️ **`shopOwnerRegister`, never `userRegister`.** The two take identical arguments and both answer
+ * `true` for an address they will not act on, so calling the wrong one is invisible from here: the caller
+ * cannot see which collection was written or which origin the mailed link was built on. A seller
+ * registered through the customer's mutation gets a customer account and a link into an app with no
+ * panel for them.
+ */
+export const ShopOwnerRegisterDocument = graphql(`
+	mutation ShopOwnerRegister($email: String!, $password: String!, $repeatPassword: String!, $turnstileToken: String) {
+		shopOwnerRegister(email: $email, password: $password, repeatPassword: $repeatPassword, turnstileToken: $turnstileToken)
+	}
+`)
+
 /** Re-sends the activation link. Offered on the "check your inbox" screen and on a failed login. */
 export const UserVerifyEmailResendDocument = graphql(`
 	mutation UserVerifyEmailResend($email: String!, $turnstileToken: String) {

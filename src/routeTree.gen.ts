@@ -13,13 +13,14 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as RegisterRouteImport } from './routes/register'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AccountIndexRouteImport } from './routes/account.index'
 import { Route as AccountAddressesRouteImport } from './routes/account.addresses'
 import { Route as AccountPasswordRouteImport } from './routes/account.password'
+import { Route as RegisterIndexRouteImport } from './routes/register.index'
+import { Route as RegisterSellerRouteImport } from './routes/register.seller'
 import { Route as ResetPasswordIndexRouteImport } from './routes/reset-password.index'
 import { Route as ResetPasswordConfirmRouteImport } from './routes/reset-password.confirm'
 import { Route as ShopsIndexRouteImport } from './routes/shops.index'
@@ -48,11 +49,6 @@ const LoginRoute = LoginRouteImport.update({
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RegisterRoute = RegisterRouteImport.update({
-  id: '/register',
-  path: '/register',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
@@ -84,6 +80,16 @@ const AccountPasswordRoute = AccountPasswordRouteImport.update({
   id: '/password',
   path: '/password',
   getParentRoute: () => AccountRoute,
+} as any)
+const RegisterIndexRoute = RegisterIndexRouteImport.update({
+  id: '/register/',
+  path: '/register/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegisterSellerRoute = RegisterSellerRouteImport.update({
+  id: '/register/seller',
+  path: '/register/seller',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordIndexRoute = ResetPasswordIndexRouteImport.update({
   id: '/reset-password/',
@@ -136,15 +142,16 @@ export interface FileRoutesByFullPath {
   '/account': typeof AccountRouteWithChildren
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
-  '/register': typeof RegisterRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/account/addresses': typeof AccountAddressesRoute
   '/account/password': typeof AccountPasswordRoute
+  '/register/seller': typeof RegisterSellerRoute
   '/reset-password/confirm': typeof ResetPasswordConfirmRoute
   '/shops/$city': typeof ShopsCityRoute
   '/account/': typeof AccountIndexRoute
+  '/register/': typeof RegisterIndexRoute
   '/reset-password/': typeof ResetPasswordIndexRoute
   '/shops/': typeof ShopsIndexRoute
   '/category/$slug/$childSlug': typeof CategorySlugChildSlugRoute
@@ -157,15 +164,16 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
-  '/register': typeof RegisterRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/account/addresses': typeof AccountAddressesRoute
   '/account/password': typeof AccountPasswordRoute
+  '/register/seller': typeof RegisterSellerRoute
   '/reset-password/confirm': typeof ResetPasswordConfirmRoute
   '/shops/$city': typeof ShopsCityRoute
   '/account': typeof AccountIndexRoute
+  '/register': typeof RegisterIndexRoute
   '/reset-password': typeof ResetPasswordIndexRoute
   '/shops': typeof ShopsIndexRoute
   '/category/$slug/$childSlug': typeof CategorySlugChildSlugRoute
@@ -180,15 +188,16 @@ export interface FileRoutesById {
   '/account': typeof AccountRouteWithChildren
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
-  '/register': typeof RegisterRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/account/addresses': typeof AccountAddressesRoute
   '/account/password': typeof AccountPasswordRoute
+  '/register/seller': typeof RegisterSellerRoute
   '/reset-password/confirm': typeof ResetPasswordConfirmRoute
   '/shops/$city': typeof ShopsCityRoute
   '/account/': typeof AccountIndexRoute
+  '/register/': typeof RegisterIndexRoute
   '/reset-password/': typeof ResetPasswordIndexRoute
   '/shops/': typeof ShopsIndexRoute
   '/category/$slug/$childSlug': typeof CategorySlugChildSlugRoute
@@ -204,15 +213,16 @@ export interface FileRouteTypes {
     | '/account'
     | '/login'
     | '/privacy'
-    | '/register'
     | '/robots.txt'
     | '/search'
     | '/sitemap.xml'
     | '/account/addresses'
     | '/account/password'
+    | '/register/seller'
     | '/reset-password/confirm'
     | '/shops/$city'
     | '/account/'
+    | '/register/'
     | '/reset-password/'
     | '/shops/'
     | '/category/$slug/$childSlug'
@@ -225,15 +235,16 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/privacy'
-    | '/register'
     | '/robots.txt'
     | '/search'
     | '/sitemap.xml'
     | '/account/addresses'
     | '/account/password'
+    | '/register/seller'
     | '/reset-password/confirm'
     | '/shops/$city'
     | '/account'
+    | '/register'
     | '/reset-password'
     | '/shops'
     | '/category/$slug/$childSlug'
@@ -247,15 +258,16 @@ export interface FileRouteTypes {
     | '/account'
     | '/login'
     | '/privacy'
-    | '/register'
     | '/robots.txt'
     | '/search'
     | '/sitemap.xml'
     | '/account/addresses'
     | '/account/password'
+    | '/register/seller'
     | '/reset-password/confirm'
     | '/shops/$city'
     | '/account/'
+    | '/register/'
     | '/reset-password/'
     | '/shops/'
     | '/category/$slug/$childSlug'
@@ -270,12 +282,13 @@ export interface RootRouteChildren {
   AccountRoute: typeof AccountRouteWithChildren
   LoginRoute: typeof LoginRoute
   PrivacyRoute: typeof PrivacyRoute
-  RegisterRoute: typeof RegisterRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SearchRoute: typeof SearchRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  RegisterSellerRoute: typeof RegisterSellerRoute
   ResetPasswordConfirmRoute: typeof ResetPasswordConfirmRoute
   ShopsCityRoute: typeof ShopsCityRoute
+  RegisterIndexRoute: typeof RegisterIndexRoute
   ResetPasswordIndexRoute: typeof ResetPasswordIndexRoute
   ShopsIndexRoute: typeof ShopsIndexRoute
   CategorySlugChildSlugRoute: typeof CategorySlugChildSlugRoute
@@ -313,13 +326,6 @@ declare module '@tanstack/react-router' {
       path: '/privacy'
       fullPath: '/privacy'
       preLoaderRoute: typeof PrivacyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/register': {
-      id: '/register'
-      path: '/register'
-      fullPath: '/register'
-      preLoaderRoute: typeof RegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/robots.txt': {
@@ -363,6 +369,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/account/password'
       preLoaderRoute: typeof AccountPasswordRouteImport
       parentRoute: typeof AccountRoute
+    }
+    '/register/': {
+      id: '/register/'
+      path: '/register'
+      fullPath: '/register/'
+      preLoaderRoute: typeof RegisterIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/register/seller': {
+      id: '/register/seller'
+      path: '/register/seller'
+      fullPath: '/register/seller'
+      preLoaderRoute: typeof RegisterSellerRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/reset-password/': {
       id: '/reset-password/'
@@ -450,12 +470,13 @@ const rootRouteChildren: RootRouteChildren = {
   AccountRoute: AccountRouteWithChildren,
   LoginRoute: LoginRoute,
   PrivacyRoute: PrivacyRoute,
-  RegisterRoute: RegisterRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
   SearchRoute: SearchRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  RegisterSellerRoute: RegisterSellerRoute,
   ResetPasswordConfirmRoute: ResetPasswordConfirmRoute,
   ShopsCityRoute: ShopsCityRoute,
+  RegisterIndexRoute: RegisterIndexRoute,
   ResetPasswordIndexRoute: ResetPasswordIndexRoute,
   ShopsIndexRoute: ShopsIndexRoute,
   CategorySlugChildSlugRoute: CategorySlugChildSlugRoute,
