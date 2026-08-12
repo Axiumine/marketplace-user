@@ -205,6 +205,17 @@ type MutationsPublic {
 	updatePwd(email: String!, hash: String!, password: String!): Boolean!
 
 	"""
+	Register a new shop owner, pending operator approval, and send the activation link
+
+	⚠️ The account it creates **cannot be logged into**: the resolver writes `waitApprov: true` and
+	`checkShopOwnerApproval` refuses a session while the flag is up. Confirming the address proves the
+	person exists; an operator clearing the flag in the admin app is what admits them. The activation
+	link it mails is built on APP_DOMAIN, the shop-owner origin — this app hosts the form, not the
+	panel the seller lands in afterwards.
+	"""
+	shopOwnerRegister(email: String!, password: String!, repeatPassword: String!, turnstileToken: String): Boolean!
+
+	"""
 	Register a new customer and send the activation link
 	"""
 	userRegister(email: String!, password: String!, repeatPassword: String!, turnstileToken: String): Boolean!

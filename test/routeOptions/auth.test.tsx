@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 
 import { loginRouteOptions } from '@/routeOptions/login'
 import { registerRouteOptions } from '@/routeOptions/register'
+import { registerSellerRouteOptions } from '@/routeOptions/registerSeller'
 import { resetPasswordRouteOptions } from '@/routeOptions/resetPassword'
 import { resetPasswordConfirmRouteOptions } from '@/routeOptions/resetPasswordConfirm'
 
@@ -64,6 +65,54 @@ describe('the authentication pages', () => {
 		// Scoped past the header, which links to `/login` from every page.
 		expect(within(screen.getByRole('main')).getByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/login')
 		expect(sentenceAround('Sign in')).toBe('Already registered? Sign in.')
+	})
+
+	/*
+	 * ⚠️ The two registrations are two pages, and each has to send the other's audience away.
+	 *
+	 * `/register` writes a `user` and `/register/seller` writes a `shopOwner` — different collections,
+	 * different service pairs, different apps, and nothing on the platform moves an account between them
+	 * (ADR-002: the role *is* the collection). A seller who fills in the customer form does not get a
+	 * fixable account, they get a customer account plus an address that can no longer be registered as a
+	 * seller, and the only cure is a second address.
+	 */
+	it('offers the seller’s registration from the customer’s', async () => {
+		await mount('/register')
+
+		expect(within(screen.getByRole('main')).getByRole('link', { name: 'Apply for a shop-owner account' })).toHaveAttribute(
+			'href',
+			'/register/seller'
+		)
+		expect(sentenceAround('Apply for a shop-owner account')).toBe('Want to sell here instead? Apply for a shop-owner account.')
+	})
+
+	/*
+	 * The seller's own page. The intro says what the form does *not* do, because "create an account" is what
+	 * a seller expects it to do and is precisely what it does not: the shop, the company and the catalogue
+	 * come afterwards, in another app, and only once an operator has cleared `waitApprov`.
+	 */
+	it('says an application is not yet a shop', async () => {
+		await mount('/register/seller')
+
+		expect(screen.getByRole('heading', { level: 1, name: 'Sell on Marketplace' })).toBeInTheDocument()
+		expect(screen.getByText(/your shop, your company details and your catalogue come after we approve you/)).toBeInTheDocument()
+		expect(sentenceAround('Create a customer account')).toBe('Buying rather than selling? Create a customer account.')
+	})
+
+	/*
+	 * ⚠️ **No "sign in" link on the seller's page, and its absence is the assertion.** `/login` on this site
+	 * authenticates against the `user` collection: a shop owner who followed it would be refused with the
+	 * same message a wrong password gets, on the site that had just told them to register. The shop area is
+	 * a separate app on an origin this one is not configured with, so the activation email is what carries
+	 * the link to it.
+	 */
+	it('does not send a shop owner to the customer sign-in', async () => {
+		await mount('/register/seller')
+
+		const main = within(screen.getByRole('main'))
+
+		expect(main.queryByRole('link', { name: 'Sign in' })).not.toBeInTheDocument()
+		expect(main.getByText(/Shop owners sign in through the link in their activation email/)).toBeInTheDocument()
 	})
 
 	it('renders the first half of password recovery', async () => {
@@ -162,6 +211,19 @@ describe('the authentication heads', () => {
 			'http://127.0.0.1:3045/register',
 			'Create an account to save your addresses and order faster.'
 		],
+		/*
+		 * ⚠️ `noindex` on the seller's page is a choice against the obvious one. "Sell on Marketplace" is
+		 * exactly the query a prospective shop owner types, and this is the page that answers it — but what
+		 * is behind the form is an operator's approval queue, not a signup that completes itself, and a
+		 * ranking application form fills that queue with whatever finds it. Sellers are recruited, and the
+		 * page they are sent to is this one.
+		 */
+		[
+			registerSellerRouteOptions,
+			'Sell on Marketplace · Marketplace',
+			'http://127.0.0.1:3045/register/seller',
+			'Apply for a shop-owner account and start selling on Marketplace.'
+		],
 		[
 			resetPasswordRouteOptions,
 			'Reset your password · Marketplace',
@@ -207,6 +269,7 @@ describe('the confirm route’s render mode', () => {
 		expect(resetPasswordConfirmRouteOptions.ssr).toBe(false)
 		expect(loginRouteOptions).not.toHaveProperty('ssr')
 		expect(registerRouteOptions).not.toHaveProperty('ssr')
+		expect(registerSellerRouteOptions).not.toHaveProperty('ssr')
 		expect(resetPasswordRouteOptions).not.toHaveProperty('ssr')
 	})
 })

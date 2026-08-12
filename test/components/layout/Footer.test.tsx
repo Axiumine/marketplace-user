@@ -40,6 +40,19 @@ describe('Footer navigation', () => {
 		expect(footerNav().getByRole('link', { name: 'Create an account' })).toHaveAttribute('href', '/register')
 	})
 
+	/*
+	 * ⚠️ The seller's registration is a link of its own, and "Create an account" above is why it has to be.
+	 * The two forms write different collections — `user` and `shopOwner` — and nothing on the platform moves
+	 * an account between them (ADR-002: the role *is* the collection), so a shop owner who reads the generic
+	 * label as theirs ends up with a customer account they cannot trade from and an address that can no
+	 * longer be registered as a seller. This footer is the only nav every SSR page shares.
+	 */
+	it('links to the seller’s own registration, beside the customer’s', async () => {
+		await mount()
+
+		expect(footerNav().getByRole('link', { name: 'Sell on Marketplace' })).toHaveAttribute('href', '/register/seller')
+	})
+
 	it('links to sign in', async () => {
 		await mount()
 

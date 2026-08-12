@@ -22,7 +22,7 @@ as ceremony is there because a request renders on a shared Node process before a
 | Search | `/search?q=&near=` | SSR, `noindex` |
 | Notice | `/privacy` | SSR, **indexed** |
 | Machine-readable | `/robots.txt`, `/sitemap.xml`, `/sitemaps/:kind/:cursor` | server handlers |
-| Account | `/login`, `/register`, `/reset-password` | SSR, `noindex` |
+| Account | `/login`, `/register`, `/register/seller`, `/reset-password` | SSR, `noindex` |
 | Reset confirm | `/reset-password/confirm` | **`ssr: false`**, `noindex` |
 | Account area | `/account/*` | **`ssr: false`** |
 
@@ -30,6 +30,17 @@ as ceremony is there because a request renders on a shared Node process before a
 `/register` and `/reset-password*` as client-only; measured, they are server-rendered and always were —
 `src/routeOptions/login.tsx` says so in its own header. The only `ssr: false` in the repo were
 `src/routeOptions/account.tsx` and, since E12-S26, `src/routeOptions/resetPasswordConfirm.tsx`.
+
+⚠️ **Two registrations live here, writing two different collections.** `/register` → `userRegister` →
+`user`; `/register/seller` → `shopOwnerRegister` → `shopOwner`, `waitApprov: true`. Both are on
+public-resource (4027) and both answer `true` for an address they will not act on, so a form pointed at
+the wrong mutation reports success while creating the wrong kind of account — the operation name is the
+only thing that says which collection was written, which is why the tests assert it. Nothing on the
+platform converts one into the other (ADR-002), so the copy on each page has to send the other audience
+away: `/register` offers the seller's page, `/register/seller` offers the customer's, and the footer
+carries both. ⚠️ **No sign-in link on the seller page** — `/login` here authenticates against `user` and
+would refuse a shop owner with the same message a wrong password gets. The shop area is a separate app
+on an origin this repo is not configured with, and the activation mail is what carries the link to it.
 
 ⚠️ **`/privacy` is the public half of a configuration in another repo.** It states the retention the edge
 keeps — 14 days, `shred` on removal — and `marketplace-nginx/logrotate.d/nginx` in the **parent workspace**
