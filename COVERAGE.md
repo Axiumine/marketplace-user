@@ -13,9 +13,10 @@ Two numbers, both 100, both blocking — plus a scan that re-checks the first on
 |---|---|---|
 | Coverage — statements, branches, functions, lines | `yarn test:cov` | `vitest.config.ts`, `qodana.yaml` |
 | Mutation score | `yarn test:mutation` | `stryker.config.mjs` (`thresholds.break: 100`) |
-| Inspections, SAST, SCA, license audit, coverage | `./qodana.sh` | `qodana.yaml` (`failureConditions`) |
+| Inspections, SAST, license audit, coverage | `./qodana.sh` | `qodana.yaml` (`failureConditions`) |
+| Dependency advisories, HIGH and CRITICAL | trivy, in `.githooks/pre-push` | pinned `aquasec/trivy:0.70.0`, no config file |
 
-All three run in `.githooks/pre-push`, after `yarn semgrep:ci` and then `yarn lint:check` and
+All three run in `.githooks/pre-push`, after `yarn semgrep:ci`, trivy and then `yarn lint:check` and
 `tsc --noEmit`; coverage and Qodana run again in `.githooks/pre-commit`. Semgrep — SAST, rules vendored
 under `semgrep/`, pinned image, `--network none` — is push-only like mutation: both need Docker, and push
 is the layer that sees the merge commit. Bypass for a Docker outage, never for a finding:
