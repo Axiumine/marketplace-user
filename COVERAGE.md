@@ -15,8 +15,11 @@ Two numbers, both 100, both blocking — plus a scan that re-checks the first on
 | Mutation score | `yarn test:mutation` | `stryker.config.mjs` (`thresholds.break: 100`) |
 | Inspections, SAST, SCA, license audit, coverage | `./qodana.sh` | `qodana.yaml` (`failureConditions`) |
 
-All three run in `.githooks/pre-push`, after `yarn lint:check` and `tsc --noEmit`; coverage and Qodana run
-again in `.githooks/pre-commit`. The reasons both hooks scan, why `SKIP_TESTS=1` is passed, and why a
+All three run in `.githooks/pre-push`, after `yarn semgrep:ci` and then `yarn lint:check` and
+`tsc --noEmit`; coverage and Qodana run again in `.githooks/pre-commit`. Semgrep — SAST, rules vendored
+under `semgrep/`, pinned image, `--network none` — is push-only like mutation: both need Docker, and push
+is the layer that sees the merge commit. Bypass for a Docker outage, never for a finding:
+`SKIP_SEMGREP=1 git push`. The reasons both hooks scan, why `SKIP_TESTS=1` is passed, and why a
 backend service's `QODANA_TOKEN` is not interchangeable with this repo's are identical to
 [`../marketplace-shopowner/COVERAGE.md`](https://github.com/Axiumine/marketplace-shopowner/blob/main/COVERAGE.md) — read that file for the long form; nothing here diverges from it.
 
