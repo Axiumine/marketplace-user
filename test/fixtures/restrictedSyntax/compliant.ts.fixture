@@ -1,0 +1,11 @@
+// The shape the three apps actually carry. Nothing here may be reported.
+import { sentryBeforeSend } from '@axiumine/marketplace-common/others/sentryBeforeSend'
+
+export const initOptions = {
+	dsn: 'https://public@collector.example/1',
+	environment: 'production',
+	dataCollection: { userInfo: false, cookies: false, httpBodies: [], stackFrameVariables: false },
+	beforeSend: sentryBeforeSend,
+	beforeSendTransaction: sentryBeforeSend,
+	tracesSampleRate: 0.1
+}
