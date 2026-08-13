@@ -1,0 +1,7 @@
+// One hook of the two. The scrubber runs on errors and never on the transaction carrying `url.full`.
+import { sentryBeforeSend } from '@axiumine/marketplace-common/others/sentryBeforeSend'
+
+export const initOptions = {
+	dsn: 'https://public@collector.example/1',
+	beforeSend: sentryBeforeSend
+}

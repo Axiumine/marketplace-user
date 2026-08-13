@@ -129,6 +129,68 @@ export default [
 			globals: { ...globals.node }
 		}
 	},
+	// E18-S08 — neither Sentry setting this backlog removed can come back here either.
+	//
+	// The same `no-restricted-syntax` block the ten backend repos carry, minus their Node-only
+	// `maxIncomingRequestBodySize` selector: this app's `Sentry.init` takes no `httpIntegration`. Until
+	// this block existed the three browser apps were the one tier with nothing watching those settings —
+	// `src/instrument.ts` is excluded from coverage on purpose (a single init call behind a DSN check is
+	// not worth a test), so a `sendDefaultPii: true` added there would have reached production with a
+	// green run behind it.
+	//
+	// Scoped like every other block in this file rather than bare like the backends', because a
+	// flat-config entry with no `files` key lints every file eslint walks into — the argument at the top
+	// of this file. `test/restrictedSyntax.test.ts` is what makes the scoping safe to rely on: a rule
+	// listed under the wrong glob is inert and reads exactly like a rule that holds.
+	//
+	// The `rejectUnauthorized` selectors stay despite a browser having no TLS agent. `marketplace-user`
+	// renders server-side, so one of these three apps is also a Node process that reaches a backend over
+	// TLS, and a selector present in two repos and missing from the third is the version of this nobody
+	// can audit at a glance.
+	{
+		files: [...SOURCES, ...CONFIG_ROOT],
+		rules: {
+			'no-restricted-syntax': [
+				'error',
+				{
+					selector: "AssignmentExpression[left.property.name='rejectUnauthorized']",
+					message:
+						'E12-S04: certificate verification stays on. Trust the collector CA from outside the process — NODE_EXTRA_CA_CERTS=/path/to/ca.pem — as the parent workspace SETUP.md §7 describes.'
+				},
+				{
+					selector: "Property[key.name='rejectUnauthorized']",
+					message:
+						'E12-S04: certificate verification stays on. Trust the collector CA from outside the process — NODE_EXTRA_CA_CERTS=/path/to/ca.pem — as the parent workspace SETUP.md §7 describes.'
+				},
+				{
+					selector: "Property[key.value='rejectUnauthorized']",
+					message:
+						'E12-S04: certificate verification stays on. Trust the collector CA from outside the process — NODE_EXTRA_CA_CERTS=/path/to/ca.pem — as the parent workspace SETUP.md §7 describes.'
+				},
+				{
+					selector: "Property[key.name='sendDefaultPii']",
+					message:
+						'E12-S04: the blanket Sentry PII flag is absent by decision, not set to false. Name the individual dataCollection categories instead — the observability section of docs/architecture.md says which, and why.'
+				},
+				{
+					selector:
+						"ObjectExpression:has(> Property[key.name='beforeSend']):not(:has(> Property[key.name='beforeSendTransaction']))",
+					message:
+						'E12-S22: `beforeSend` and `beforeSendTransaction` are wired together or not at all. The SDK routes transaction events to the second hook only, and the address this app puts in a URL rides on the transaction — one hook without the other means a `tracesSampleRate` switches the redaction off.'
+				},
+				{
+					selector: "MemberExpression[property.name='NODE_TLS_REJECT_UNAUTHORIZED']",
+					message:
+						'E12-S04: certificate verification stays on. Trust the collector CA from outside the process — NODE_EXTRA_CA_CERTS=/path/to/ca.pem — as the parent workspace SETUP.md §7 describes.'
+				},
+				{
+					selector: "Literal[value='NODE_TLS_REJECT_UNAUTHORIZED']",
+					message:
+						'E12-S04: certificate verification stays on. Trust the collector CA from outside the process — NODE_EXTRA_CA_CERTS=/path/to/ca.pem — as the parent workspace SETUP.md §7 describes.'
+				}
+			]
+		}
+	},
 	// Last: turns off every rule prettier owns, so `yarn lint` and `yarn lint:check` can never disagree
 	// with `prettier --write` about formatting. Scoped like the rest — a bare entry here would be
 	// harmless (it only switches rules off) but would still say the config applies to files this repo

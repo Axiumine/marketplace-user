@@ -1,0 +1,2 @@
+// The flag the SDK drops in v11, in the shape it had before `dataCollection` replaced it.
+export const initOptions = { dsn: 'https://public@collector.example/1', sendDefaultPii: true }
