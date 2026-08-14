@@ -7,9 +7,8 @@ import { RegisterForm } from '@/features/auth/RegisterForm'
 
 import type { GraphQLReplies } from '../../helpers/graphql'
 import { graphQLError, stubGraphQL } from '../../helpers/graphql'
+import { PASSWORD, sharedFieldTests, sharedSuccessScreenTests, sharedValidationTests } from '../../helpers/registrationForm'
 import { CUSTOMER_EMAIL, renderWithClient } from '../../helpers/render'
-
-const PASSWORD = 'a passphrase that is long enough'
 
 const ACCEPTED: GraphQLReplies = { UserRegister: { data: { userRegister: true } } }
 
@@ -33,36 +32,16 @@ const submit = async (user: ReturnType<typeof userEvent.setup>) => {
 	await user.click(screen.getByRole('button', { name: 'Create account' }))
 }
 
+/** What the shared half of the contract drives this form through. */
+const harness = { mount, fillIn, submit }
+
 describe('RegisterForm fields', () => {
 	/*
 	 * Email and password, nothing else. Name, phone number and addresses are collected after the address
 	 * is confirmed — asking here puts a wall of fields in front of somebody who has not decided to stay,
 	 * and collects personal data about an address that may never be verified.
 	 */
-	it('asks for nothing but an address and a password', () => {
-		mount()
-
-		expect(screen.getAllByRole('textbox')).toHaveLength(1)
-		expect(screen.getByLabelText('Password')).toBeInTheDocument()
-		expect(screen.getByLabelText('Repeat password')).toBeInTheDocument()
-	})
-
-	/*
-	 * `new-password` and not `current-password`: it is what makes a password manager offer to *generate*
-	 * one, instead of trying to fill in an entry that does not exist yet.
-	 */
-	it('asks a password manager to generate rather than fill', () => {
-		mount()
-
-		expect(screen.getByLabelText('Password')).toHaveAttribute('autocomplete', 'new-password')
-		expect(screen.getByLabelText('Repeat password')).toHaveAttribute('autocomplete', 'new-password')
-	})
-
-	it('states the password rule before it is broken', () => {
-		mount()
-
-		expect(screen.getByText(/At least 10 characters/)).toBeInTheDocument()
-	})
+	sharedFieldTests(harness)
 
 	it('matches the snapshot', () => {
 		const { container } = mount()
@@ -72,37 +51,7 @@ describe('RegisterForm fields', () => {
 })
 
 describe('RegisterForm validation', () => {
-	it('refuses an address that is not one', async () => {
-		const { user, stub } = mount()
-
-		await fillIn(user, { email: 'not-an-address' })
-		await submit(user)
-
-		expect(await screen.findByText('Enter a valid email address.')).toBeInTheDocument()
-		expect(stub.calls).toHaveLength(0)
-	})
-
-	it('refuses a password under the minimum', async () => {
-		const { user, stub } = mount()
-
-		await fillIn(user, { password: 'short', repeat: 'short' })
-		await submit(user)
-
-		expect(await screen.findByText('Use at least 10 characters.')).toBeInTheDocument()
-		expect(stub.calls).toHaveLength(0)
-	})
-
-	// The message lands on the second field, where the customer is looking — an object-level issue has no
-	// path and react-hook-form renders it nowhere.
-	it('refuses a confirmation that does not match', async () => {
-		const { user, stub } = mount()
-
-		await fillIn(user, { repeat: `${PASSWORD} not` })
-		await submit(user)
-
-		expect(await screen.findByText('The two passwords do not match.')).toBeInTheDocument()
-		expect(stub.calls).toHaveLength(0)
-	})
+	sharedValidationTests(harness)
 })
 
 describe('RegisterForm submission', () => {
@@ -172,27 +121,7 @@ describe('RegisterForm success screen', () => {
 		expect(await screen.findByRole('status')).toHaveTextContent(`If ${CUSTOMER_EMAIL} can be registered`)
 	})
 
-	it('replaces the form rather than sitting under it', async () => {
-		const { user } = mount()
-
-		await fillIn(user)
-		await submit(user)
-
-		await screen.findByRole('status')
-		expect(screen.queryByLabelText('Email')).not.toBeInTheDocument()
-	})
-
-	// Three days, and a second request replaces the first link — both facts matter to somebody staring at
-	// an empty inbox, and neither is guessable.
-	it('says how long the link lasts and what a second request does', async () => {
-		const { user } = mount()
-
-		await fillIn(user)
-		await submit(user)
-
-		await screen.findByRole('status')
-		expect(screen.getByText(/three days/)).toHaveTextContent('a second request replaces the first link')
-	})
+	sharedSuccessScreenTests(harness)
 
 	it('matches the snapshot', async () => {
 		const { user, container } = mount()
