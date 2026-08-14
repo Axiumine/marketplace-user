@@ -1,19 +1,11 @@
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { useMutation } from 'urql'
-import { z } from 'zod'
-
-import { CTX_PUBLIC_RESOURCE } from '@/api/endpoints'
-import { dataOf, messageOf } from '@/api/errors'
 import { UserRegisterDocument } from '@/api/operations/publicResource/mutations'
 import { FormStatus } from '@/components/ui/FormStatus'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import { TextField } from '@/components/ui/TextField'
 import { Turnstile } from '@/components/ui/Turnstile'
 
-import { matchingPasswords, PASSWORD_HINT, passwordSchema } from './password'
-import { useTurnstileToken } from './useTurnstileToken'
+import { PASSWORD_HINT } from './password'
+import { useRegistration } from './useRegistration'
 
 /**
  * Creates an account: email and password, nothing else.
@@ -29,42 +21,8 @@ import { useTurnstileToken } from './useTurnstileToken'
  * existing one would turn this form into an account-enumeration oracle, which is the whole reason the
  * resolver refuses to distinguish them.
  */
-const schema = z
-	.object({
-		email: z.email('Enter a valid email address.'),
-		password: passwordSchema,
-		repeatPassword: z.string()
-	})
-	.superRefine(matchingPasswords)
-
-type Values = z.infer<typeof schema>
-
 export const RegisterForm = () => {
-	const turnstile = useTurnstileToken()
-	const [failure, setFailure] = useState<string | undefined>(undefined)
-	const [sentTo, setSentTo] = useState<string | undefined>(undefined)
-	const [, submit] = useMutation(UserRegisterDocument)
-
-	const {
-		register,
-		handleSubmit,
-		formState: { errors, isSubmitting }
-	} = useForm<Values>({ resolver: zodResolver(schema) })
-
-	const onSubmit = handleSubmit(async (values) => {
-		setFailure(undefined)
-
-		const result = await submit({ ...values, turnstileToken: turnstile.read() }, CTX_PUBLIC_RESOURCE)
-
-		// `dataOf` and not a bare `result.error` test: a `{"data": null}` envelope carries no error at all, and
-		// telling someone to go and confirm an email nobody sent is worse than telling them it failed.
-		if (dataOf(result) === undefined) {
-			setFailure(messageOf(result.error))
-			return
-		}
-
-		setSentTo(values.email)
-	})
+	const { errors, failure, isSubmitting, onSubmit, register, sentTo, turnstile } = useRegistration(UserRegisterDocument)
 
 	if (sentTo !== undefined) {
 		return (
