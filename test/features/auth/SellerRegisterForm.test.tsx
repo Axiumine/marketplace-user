@@ -7,11 +7,10 @@ import { SellerRegisterForm } from '@/features/auth/SellerRegisterForm'
 
 import type { GraphQLReplies } from '../../helpers/graphql'
 import { graphQLError, stubGraphQL } from '../../helpers/graphql'
+import { PASSWORD, sharedFieldTests, sharedSuccessScreenTests, sharedValidationTests } from '../../helpers/registrationForm'
 import { renderWithClient } from '../../helpers/render'
 
 const SELLER_EMAIL = 'seller@marketplace.it'
-
-const PASSWORD = 'a passphrase that is long enough'
 
 const ACCEPTED: GraphQLReplies = { ShopOwnerRegister: { data: { shopOwnerRegister: true } } }
 
@@ -35,6 +34,9 @@ const submit = async (user: ReturnType<typeof userEvent.setup>) => {
 	await user.click(screen.getByRole('button', { name: 'Apply to sell' }))
 }
 
+/** What the shared half of the contract drives this form through. */
+const harness = { mount, fillIn, submit }
+
 describe('SellerRegisterForm fields', () => {
 	/*
 	 * Email and password, and deliberately not one field more. The company, the trading name, the VAT
@@ -42,26 +44,7 @@ describe('SellerRegisterForm fields', () => {
 	 * account — asking for them here would collect a business's registration details against an address
 	 * nobody has confirmed, for an application that may be refused.
 	 */
-	it('asks for nothing but an address and a password', () => {
-		mount()
-
-		expect(screen.getAllByRole('textbox')).toHaveLength(1)
-		expect(screen.getByLabelText('Password')).toBeInTheDocument()
-		expect(screen.getByLabelText('Repeat password')).toBeInTheDocument()
-	})
-
-	it('asks a password manager to generate rather than fill', () => {
-		mount()
-
-		expect(screen.getByLabelText('Password')).toHaveAttribute('autocomplete', 'new-password')
-		expect(screen.getByLabelText('Repeat password')).toHaveAttribute('autocomplete', 'new-password')
-	})
-
-	it('states the password rule before it is broken', () => {
-		mount()
-
-		expect(screen.getByText(/At least 10 characters/)).toBeInTheDocument()
-	})
+	sharedFieldTests(harness)
 
 	// The button says what pressing it starts — an application — rather than "create account", which would
 	// promise an account that this form cannot open on its own.
@@ -79,35 +62,7 @@ describe('SellerRegisterForm fields', () => {
 })
 
 describe('SellerRegisterForm validation', () => {
-	it('refuses an address that is not one', async () => {
-		const { user, stub } = mount()
-
-		await fillIn(user, { email: 'not-an-address' })
-		await submit(user)
-
-		expect(await screen.findByText('Enter a valid email address.')).toBeInTheDocument()
-		expect(stub.calls).toHaveLength(0)
-	})
-
-	it('refuses a password under the minimum', async () => {
-		const { user, stub } = mount()
-
-		await fillIn(user, { password: 'short', repeat: 'short' })
-		await submit(user)
-
-		expect(await screen.findByText('Use at least 10 characters.')).toBeInTheDocument()
-		expect(stub.calls).toHaveLength(0)
-	})
-
-	it('refuses a confirmation that does not match', async () => {
-		const { user, stub } = mount()
-
-		await fillIn(user, { repeat: `${PASSWORD} not` })
-		await submit(user)
-
-		expect(await screen.findByText('The two passwords do not match.')).toBeInTheDocument()
-		expect(stub.calls).toHaveLength(0)
-	})
+	sharedValidationTests(harness)
 })
 
 describe('SellerRegisterForm submission', () => {
@@ -183,25 +138,7 @@ describe('SellerRegisterForm success screen', () => {
 		expect(await screen.findByRole('status')).toHaveTextContent(`If ${SELLER_EMAIL} can be registered`)
 	})
 
-	it('replaces the form rather than sitting under it', async () => {
-		const { user } = mount()
-
-		await fillIn(user)
-		await submit(user)
-
-		await screen.findByRole('status')
-		expect(screen.queryByLabelText('Email')).not.toBeInTheDocument()
-	})
-
-	it('says how long the link lasts and what a second request does', async () => {
-		const { user } = mount()
-
-		await fillIn(user)
-		await submit(user)
-
-		await screen.findByRole('status')
-		expect(screen.getByText(/three days/)).toHaveTextContent('a second request replaces the first link')
-	})
+	sharedSuccessScreenTests(harness)
 
 	/*
 	 * ⚠️ The half that is specific to a seller, and the reason this screen is not the customer's.
