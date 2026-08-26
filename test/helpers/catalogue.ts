@@ -106,6 +106,36 @@ export const itemsReply = (nodes: readonly FixtureItem[], page: PageOptions = {}
 	}
 })
 
+/**
+ * The two search fields answer the same page envelope as the listings, under their own names.
+ *
+ * ⚠️ Two helpers rather than one taking a kind: the field name in the reply is what the operation
+ * document asked for, and a helper that guessed it would let a test stub `searchItems` while the page
+ * queries `searchCompanies` and still pass — the stub answers by operation name, not by field.
+ */
+export const searchCompaniesReply = (nodes: readonly FixtureCompany[], page: PageOptions = {}): GraphQLReply => ({
+	data: {
+		searchCompanies: {
+			nodes,
+			total: page.total ?? nodes.length,
+			totalIsExact: page.totalIsExact ?? true,
+			hasMore: page.hasMore ?? false
+		}
+	}
+})
+
+/** `totalIsExact` defaults to **false** here: the item count joins neither `company.published` nor the radius. */
+export const searchItemsReply = (nodes: readonly FixtureItem[], page: PageOptions = {}): GraphQLReply => ({
+	data: {
+		searchItems: {
+			nodes,
+			total: page.total ?? nodes.length,
+			totalIsExact: page.totalIsExact ?? false,
+			hasMore: page.hasMore ?? false
+		}
+	}
+})
+
 export const categoriesReply = (docs: readonly FixtureCategory[] = CATEGORIES): GraphQLReply => ({
 	data: { itemCategories: docs }
 })

@@ -151,15 +151,17 @@ export const ItemCategoriesDocument = graphql(`
 `)
 
 /**
- * `/search?q=`. Text search over published companies and items, optionally narrowed to a radius.
+ * `/search?q=&kind=&page=`. Text search over one collection at a time, optionally narrowed to a radius.
  *
- * Both halves come back in one round trip because the results page shows them together; splitting it
- * would double the text-index work for the same documents.
+ * ⚠️ **Two documents, and the page sends exactly one of them.** The two result sets were never merged —
+ * `textScore` is computed per collection, so a shop's 1.4 and an item's 1.1 have never been compared —
+ * and now that each is a page of its own, fetching both would mean two text-index scans and two counts
+ * to render one of them. The visitor picks the kind; the loader picks the document.
  */
-export const SearchDocument = graphql(`
-	query Search($q: String!, $near: GraphQLInputNearPoint, $limit: Int) {
-		search(q: $q, near: $near, limit: $limit) {
-			companies {
+export const SearchCompaniesDocument = graphql(`
+	query SearchCompanies($q: String!, $near: GraphQLInputNearPoint, $limit: Int, $offset: Int) {
+		searchCompanies(q: $q, near: $near, limit: $limit, offset: $offset) {
+			nodes {
 				_id
 				publicName
 				slug
@@ -175,7 +177,18 @@ export const SearchDocument = graphql(`
 					}
 				}
 			}
-			items {
+			total
+			totalIsExact
+			hasMore
+		}
+	}
+`)
+
+/** The other half of the search page. See `SearchCompaniesDocument` for why they are two documents. */
+export const SearchItemsDocument = graphql(`
+	query SearchItems($q: String!, $near: GraphQLInputNearPoint, $limit: Int, $offset: Int) {
+		searchItems(q: $q, near: $near, limit: $limit, offset: $offset) {
+			nodes {
 				_id
 				idCategory
 				name
@@ -184,6 +197,9 @@ export const SearchDocument = graphql(`
 				companySlug
 				companyPublicName
 			}
+			total
+			totalIsExact
+			hasMore
 		}
 	}
 `)

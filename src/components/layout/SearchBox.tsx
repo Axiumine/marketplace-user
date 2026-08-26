@@ -1,6 +1,9 @@
 import { useNavigate } from '@tanstack/react-router'
 import type { SubmitEvent } from 'react'
 
+import type { SearchKind } from '@/lib/search'
+import { DEFAULT_SEARCH_KIND } from '@/lib/search'
+
 /**
  * The header search field.
  *
@@ -13,9 +16,24 @@ import type { SubmitEvent } from 'react'
  * The same property is why a `<button>` that called `navigate()` was not used: a crawler that follows
  * forms, a keyboard visitor pressing Enter, and a visitor on a failed bundle all take the plain HTML
  * path, and each of them gets a working search.
+ *
+ * `kind` is what the search page passes back in, so retyping a query from the results page keeps the tab
+ * the visitor is looking at instead of dropping them back onto items. The header renders the box without
+ * it and gets the default.
  */
-export const SearchBox = ({ initialQuery = '' }: { readonly initialQuery?: string }) => {
+export const SearchBox = ({
+	initialQuery = '',
+	kind = DEFAULT_SEARCH_KIND
+}: {
+	readonly initialQuery?: string
+	readonly kind?: SearchKind
+}) => {
 	const navigate = useNavigate()
+
+	// ⚠️ The kind is only written out when it is *not* the default, on both paths — the hidden input the
+	// browser submits and the `search` object the router navigates with. Emitting `kind=items` would give
+	// the default tab a second address, which is the one thing `DEFAULT_SEARCH_KIND` exists to prevent.
+	const carried = kind === DEFAULT_SEARCH_KIND ? {} : { kind }
 
 	// React's `SubmitEvent`, not the DOM global of the same name and not `FormEvent`: `@types/react` 19
 	// deprecated `FormEvent` ("doesn't actually exist") and types `onSubmit` as `SubmitEventHandler`.
@@ -29,11 +47,12 @@ export const SearchBox = ({ initialQuery = '' }: { readonly initialQuery?: strin
 		// matched", which is a different and wrong answer to "the visitor pressed Enter on a blank field".
 		if (text === '') return
 
-		void navigate({ to: '/search', search: { q: text } })
+		void navigate({ to: '/search', search: { q: text, ...carried } })
 	}
 
 	return (
 		<form method="get" action="/search" onSubmit={onSubmit} role="search" className="flex w-full max-w-xl items-center gap-2">
+			{kind === DEFAULT_SEARCH_KIND ? null : <input type="hidden" name="kind" value={kind} />}
 			<label htmlFor="site-search" className="sr-only">
 				Search shops and items
 			</label>

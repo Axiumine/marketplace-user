@@ -4,20 +4,26 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
 import { SearchBox } from '@/components/layout/SearchBox'
+import type { SearchKind } from '@/lib/search'
 
 import type { GraphQLReplies } from '../../helpers/graphql'
 import { stubGraphQL } from '../../helpers/graphql'
 import { renderWithRouter } from '../../helpers/render'
 
+const EMPTY_PAGE = { nodes: [], total: 0, totalIsExact: true, hasMore: false }
+
 const REPLIES: GraphQLReplies = {
 	Companies: { data: { companies: { nodes: [], total: 0 } } },
 	ItemCategories: { data: { itemCategories: [] } },
-	Search: { data: { search: { companies: [], items: [] } } }
+	SearchCompanies: { data: { searchCompanies: EMPTY_PAGE } },
+	SearchItems: { data: { searchItems: EMPTY_PAGE } }
 }
 
-const mount = async (initialQuery?: string) => {
+const mount = async (initialQuery?: string, kind?: SearchKind) => {
 	const stub = stubGraphQL(REPLIES)
-	const result = await renderWithRouter(initialQuery === undefined ? <SearchBox /> : <SearchBox initialQuery={initialQuery} />)
+	const result = await renderWithRouter(
+		<SearchBox {...(initialQuery === undefined ? {} : { initialQuery })} {...(kind === undefined ? {} : { kind })} />
+	)
 
 	return { ...result, stub, user: userEvent.setup(), input: screen.getByRole('searchbox') }
 }
@@ -164,6 +170,42 @@ describe('SearchBox submission', () => {
 
 		expect(submitted.mock.calls[0]?.[0].defaultPrevented).toBe(true)
 		window.removeEventListener('submit', submitted)
+	})
+})
+
+/*
+ * ⚠️ The kind travels on both paths at once — the hidden field the browser submits with no JavaScript, and
+ * the `search` object the router navigates with — and on neither when it is the default. A box that drops
+ * it throws a visitor retyping a query from the shops tab back onto items; a box that always writes it
+ * gives the default tab a second address for the same page.
+ */
+describe('SearchBox kind', () => {
+	it('carries a non-default kind in a hidden field', async () => {
+		const { container } = await mount('ceramics', 'companies')
+
+		expect(container.querySelector('input[name="kind"]')).toHaveAttribute('value', 'companies')
+	})
+
+	it.each([[undefined], ['items' as const]])('writes no field for the default kind: %s', async (kind) => {
+		const { container } = await mount('ceramics', kind)
+
+		expect(container.querySelector('input[name="kind"]')).toBeNull()
+	})
+
+	it('keeps the kind in the URL it navigates to', async () => {
+		const { router, user, input } = await mount('', 'companies')
+
+		await user.type(input, 'ceramics{Enter}')
+
+		await at(router, '/search?q=ceramics&kind=companies')
+	})
+
+	it('leaves the default kind out of the URL it navigates to', async () => {
+		const { router, user, input } = await mount('', 'items')
+
+		await user.type(input, 'ceramics{Enter}')
+
+		await at(router, '/search?q=ceramics')
 	})
 })
 
