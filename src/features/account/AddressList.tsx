@@ -26,6 +26,23 @@ import { CTX_ACCOUNT_WRITE } from './invalidate'
  */
 const isDefault = (me: Me, address: MeAddress): boolean => me.defaultAddress === address._id
 
+/**
+ * The most addresses one account may hold.
+ *
+ * ⚠️ **A copy of a number this file does not own.** The rule is `maxItems: 6` on `addresses` in the
+ * `user` collection validator (`marketplace-db-setup/lib/schemas/user.js`), restated as `MAX_ADDRESSES`
+ * in `funUserAddressAdd.mts` on the 4032 service. Three copies because there is no module all three
+ * could import — a browser bundle cannot require a Node one — so raising the limit is three files plus a
+ * `collMod` migration, in one piece of work.
+ *
+ * **What this copy buys is the button, nothing else.** Hiding "Add an address" at six is a courtesy: it
+ * spares the customer a form they cannot submit. It is not the enforcement, and it is not the last word
+ * either — a second tab that added the sixth address a moment ago leaves this one showing five. That
+ * case ends at the server, and `AddressForm` already renders what it answers: a 400 whose
+ * `extensions.description` reads `addresses: at most 6 addresses can be saved`.
+ */
+const MAX_ADDRESSES = 6
+
 const oneLine = (address: MeAddress): string => `${address.street}, ${address.postalCode} ${address.city} (${address.province})`
 
 const ACTION = 'text-sm underline text-slate-600 hover:text-palette-bg'
@@ -69,14 +86,30 @@ export const AddressList = () => {
 		setFailure(messageOf(result.error) || 'That change did not go through. Try again.')
 	}
 
+	const full = me.addresses.length >= MAX_ADDRESSES
+
+	/**
+	 * The one line above the list, and the only place the limit is ever named to the customer while the
+	 * add path is still open to them. Read as three states rather than a nested ternary in the markup:
+	 * empty, full, and the ordinary case.
+	 *
+	 * A full book says so instead of leaving the missing button unexplained — a control that vanishes
+	 * with no sentence beside it reads as a bug, and the customer's next move (delete one first) is not
+	 * guessable from an absence.
+	 */
+	const hint =
+		me.addresses.length === 0
+			? 'You have no saved addresses yet.'
+			: full
+				? `You have saved the most addresses an account can hold (${MAX_ADDRESSES}). Delete one to add another.`
+				: 'Your default address is used first when you order.'
+
 	return (
 		<div className="flex flex-col gap-4">
 			<div className="flex items-center justify-between">
-				<p className="text-sm text-slate-600">
-					{me.addresses.length === 0 ? 'You have no saved addresses yet.' : 'Your default address is used first when you order.'}
-				</p>
+				<p className="text-sm text-slate-600">{hint}</p>
 
-				{editing === null && (
+				{editing === null && !full && (
 					<button
 						type="button"
 						onClick={() => {

@@ -97,4 +97,24 @@ export const FULL_ME: MeFixture = {
 	addresses: [HOME_ADDRESS, WORK_ADDRESS]
 }
 
+/**
+ * The address book at its ceiling: six saved addresses.
+ *
+ * ⚠️ **Six is the collection's number**, `maxItems: 6` on `addresses`, not a round figure chosen for a
+ * fixture. A fixture of five renders the same screen as any other account in use and would prove nothing
+ * about the cap; the four filler addresses exist only to reach it.
+ */
+export const CAPPED_ME: MeFixture = {
+	...FULL_ME,
+	addresses: [
+		HOME_ADDRESS,
+		WORK_ADDRESS,
+		...Array.from({ length: 4 }, (_, index) => ({
+			...WORK_ADDRESS,
+			_id: `66b0000000000000000000b${index + 1}`,
+			street: `${index + 1} Elm Street`
+		}))
+	]
+}
+
 export const meReply = (me: MeFixture = FULL_ME): GraphQLReplies => ({ Me: { data: { me } } })

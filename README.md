@@ -442,7 +442,7 @@ index), `geo.js` (`address()`, `position()`, `COORDINATE_TUPLE`) and `shopOwner.
 | Difference | Reason |
 |---|---|
 | `personalData` is optional | Registration is email + password + repeat. Everything else is filled in after the email is confirmed. `shopOwner` requires it because a shop owner is onboarded, not self-registered. |
-| `addresses` is an array | A customer has several delivery addresses; a shop owner has one. |
+| `addresses` is an array, capped at six | A customer has several delivery addresses; a shop owner has one. `maxItems: 6`, because an unbounded array sits under a 16 MB document ceiling and every read of the account loads the whole of it. The account area stops offering "Add an address" at six and says why; the refusal itself is the validator's, and the service turns it into a 400 naming the limit. |
 | `defaultAddress` exists | §4.1. |
 | no `waitApprov` | Customers self-serve. There is no operator approval step, and a field that is always the same value is a field that will eventually be read as if it meant something. |
 
