@@ -85,6 +85,19 @@ describe('pageLinks', () => {
 		})
 	})
 
+	/*
+	 * ⚠️ A base path that already carries a query string gets `&page=`, not a second `?`. `/search` is the
+	 * one listing keyed by what was typed rather than by a path segment, and `?q=lamp&kind=companies?page=2`
+	 * parses as a *kind* of `companies?page=2` — not a valid kind, so it falls back to the default and every
+	 * "next" link lands on page 1 of the wrong tab, silently.
+	 */
+	it('appends to a base path that already has a query string', () => {
+		expect(pageLinks('/search?q=lamp&kind=companies', 2, true)).toEqual({
+			prev: '/search?q=lamp&kind=companies',
+			next: '/search?q=lamp&kind=companies&page=3'
+		})
+	})
+
 	it('answers an empty object for a single-page listing', () => {
 		expect(pageLinks('/shops', 1, false)).toEqual({})
 	})

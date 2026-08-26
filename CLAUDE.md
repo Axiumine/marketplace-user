@@ -38,7 +38,7 @@ names the tests that should have failed, and it costs nobody the machine.
 | Surface | Routes | Mode |
 |---|---|---|
 | Catalogue | `/`, `/shops`, `/shops/:city`, `/shop/:slug`, `/shop/:slug/item/:itemSlug`, `/category/:slug[/:childSlug]` | SSR |
-| Search | `/search?q=&near=` | SSR, `noindex` |
+| Search | `/search?q=&kind=&page=&near=` | SSR, `noindex` |
 | Notice | `/privacy` | SSR, **indexed** |
 | Machine-readable | `/robots.txt`, `/sitemap.xml`, `/sitemaps/:kind/:cursor` | server handlers |
 | Account | `/login`, `/register`, `/register/seller`, `/reset-password` | SSR, `noindex` |

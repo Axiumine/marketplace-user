@@ -32,7 +32,17 @@ export interface PageLinks {
 
 export const pageLinks = (basePath: string, page: number, hasMore: boolean): PageLinks => {
 	const current = pageNumber(page)
-	const at = (target: number): string => (target === 1 ? basePath : `${basePath}?page=${String(target)}`)
+
+	// ⚠️ `basePath` may already carry a query string — `/search?q=lamp&kind=items` is one listing among
+	// many, keyed by what was typed rather than by a path segment. Appending `?page=` to it would produce
+	// a second `?` and a URL whose page number is part of the *value* of `kind`, silently: the router
+	// parses `kind=items?page=2`, finds it is not a valid kind, falls back to the default, and every
+	// "next" link lands back on page 1 of the wrong tab.
+	const at = (target: number): string => {
+		if (target === 1) return basePath
+
+		return `${basePath}${basePath.includes('?') ? '&' : '?'}page=${String(target)}`
+	}
 
 	const links: { prev?: string; next?: string } = {}
 	if (current > 1) links.prev = at(current - 1)

@@ -502,7 +502,7 @@ is rebuilt in the same piece of work.
 ## 5. SEO
 
 - **URLs** — `/`, `/shops`, `/shops/:city`, `/shop/:slug`, `/shop/:slug/item/:itemSlug`,
-  `/category/:slug[/:subSlug]`, `/search?q=&near=`. Slugs are immutable by default; a change leaves a 301.
+  `/category/:slug[/:subSlug]`, `/search?q=&kind=&page=&near=`. Slugs are immutable by default; a change leaves a 301.
   `/privacy` joins them as the one non-catalogue page that is indexable on purpose: it states the log
   retention the edge configures, and a notice a data subject cannot find is not a notice.
 - **Head** — per-route `<title>` and meta description, canonical, `<html lang="it">`, OpenGraph and

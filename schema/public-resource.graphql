@@ -51,9 +51,14 @@ type QueriesPublic {
 	itemCategories: [GraphQLPublicItemCategory!]!
 
 	"""
-	Full-text search over published companies and items, optionally within a radius
+	Full-text search over published companies, optionally within a radius
 	"""
-	search(q: String!, near: GraphQLInputNearPoint, limit: Int): GraphQLPublicSearchResult!
+	searchCompanies(q: String!, near: GraphQLInputNearPoint, limit: Int, offset: Int): GraphQLPublicCompanyPage!
+
+	"""
+	Full-text search over published items, optionally within a radius of their shop
+	"""
+	searchItems(q: String!, near: GraphQLInputNearPoint, limit: Int, offset: Int): GraphQLPublicItemPage!
 
 	"""
 	Get crawlable paths of one kind, keyset paginated by _id
@@ -152,11 +157,6 @@ type GraphQLPublicItemCategory {
 	name: String!
 	slug: String!
 	position: Int!
-}
-
-type GraphQLPublicSearchResult {
-	companies: [GraphQLPublicCompany!]!
-	items: [GraphQLPublicItemHit!]!
 }
 
 # Keyset pagination, not offset: `nextAfterId` is null on the last page. A sitemap generator walking
