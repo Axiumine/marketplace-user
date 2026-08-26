@@ -9,7 +9,7 @@ import { renderInAccount } from '../../helpers/account'
 import type { GraphQLReplies, GraphQLStub } from '../../helpers/graphql'
 import { graphQLError } from '../../helpers/graphql'
 import type { MeFixture } from '../../helpers/me'
-import { FRESH_ME, FULL_ME, HOME_ADDRESS, WORK_ADDRESS } from '../../helpers/me'
+import { CAPPED_ME, FRESH_ME, FULL_ME, HOME_ADDRESS, WORK_ADDRESS } from '../../helpers/me'
 
 const WRITES: GraphQLReplies = {
 	UserAddressDel: { data: { userAddressDel: true } },
@@ -349,6 +349,65 @@ describe('AddressList adding', () => {
 		await user.click(screen.getByRole('button', { name: 'Add an address' }))
 
 		expect(screen.getAllByRole('listitem')).toHaveLength(2)
+	})
+})
+
+describe('AddressList at the six-address cap', () => {
+	const CAP_LINE = 'You have saved the most addresses an account can hold (6). Delete one to add another.'
+
+	/**
+	 * Its own mount, because `mount` above waits for the "Add an address" button and that button is
+	 * exactly what a full address book does not have. The wait is on the line that replaces it.
+	 */
+	const mountCapped = async (me = CAPPED_ME) => {
+		const rendered = await renderInAccount(<AddressList />, { me, replies: WRITES, path: '/account/addresses' })
+
+		await screen.findByText(CAP_LINE)
+
+		return { ...rendered, user: userEvent.setup() }
+	}
+
+	it('lists all six', async () => {
+		await mountCapped()
+
+		expect(screen.getAllByRole('listitem')).toHaveLength(6)
+	})
+
+	// The courtesy, not the enforcement: the server refuses the seventh whatever this screen shows. What
+	// hiding the opener buys is a customer not filling in a form that cannot be submitted.
+	it('stops offering to add another', async () => {
+		await mountCapped()
+
+		expect(screen.queryByRole('button', { name: 'Add an address' })).not.toBeInTheDocument()
+	})
+
+	/*
+	 * ⚠️ The line and the missing button are one change, and the line is the half that can be dropped
+	 * without anything looking broken. A control that vanishes with no sentence beside it reads as a bug,
+	 * and "delete one first" is not guessable from an absence — so the text is asserted whole, the number
+	 * included, rather than by a substring that would survive the limit being renamed.
+	 */
+	it('says why, and names the number', async () => {
+		await mountCapped()
+
+		expect(screen.getByText(CAP_LINE)).toBeInTheDocument()
+		expect(screen.queryByText('Your default address is used first when you order.')).not.toBeInTheDocument()
+	})
+
+	// The boundary, and the reason it is a test of its own: five is a full-looking address book that must
+	// still offer the sixth. An off-by-one here costs every customer their last address.
+	it('still offers the sixth when five are saved', async () => {
+		const five = { ...CAPPED_ME, addresses: CAPPED_ME.addresses.slice(0, 5) }
+		await renderInAccount(<AddressList />, { me: five, replies: WRITES, path: '/account/addresses' })
+
+		expect(await screen.findByRole('button', { name: 'Add an address' })).toBeInTheDocument()
+		expect(screen.getByText('Your default address is used first when you order.')).toBeInTheDocument()
+	})
+
+	it('matches the snapshot', async () => {
+		const { container } = await mountCapped()
+
+		expect(container.firstChild).toMatchSnapshot()
 	})
 })
 
