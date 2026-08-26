@@ -1,6 +1,6 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { ENDPOINT } from '@/api/endpoints'
 import { AddressList } from '@/features/account/AddressList'
@@ -10,6 +10,10 @@ import type { GraphQLReplies, GraphQLStub } from '../../helpers/graphql'
 import { graphQLError } from '../../helpers/graphql'
 import type { MeFixture } from '../../helpers/me'
 import { CAPPED_ME, FRESH_ME, FULL_ME, HOME_ADDRESS, WORK_ADDRESS } from '../../helpers/me'
+
+// ⚠️ The address form carries a MapLibre map, and jsdom has no WebGL context to build one in. Stubbed here
+// for the same reason the form's own tests stub it — see `test/helpers/positionPicker.ts`.
+vi.mock('@/features/map/PositionPickerIsland', async () => (await import('../../helpers/positionPicker')).positionPickerStub())
 
 const WRITES: GraphQLReplies = {
 	UserAddressDel: { data: { userAddressDel: true } },

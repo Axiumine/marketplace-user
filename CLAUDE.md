@@ -148,16 +148,31 @@ that mattered is split anyway — see the map section.
   never rewrites a snapshot — drift fails the suite, and `yarn test -u` accepts a regression as readily as
   a fix.
 
-## The map is an island, and that is load-bearing
+## The maps are islands, and that is load-bearing
 
-`src/features/map/ShopMap.tsx` is reachable **only** through `MapIsland`'s dynamic import. Importing it
-statically puts ~950 KB of MapLibre into the entry chunk of every catalogue page, including the ones with
-no map, and breaks SSR outright — the module touches `window` and WebGL at module scope. `MapIsland`'s
-placeholder reserves the final height on purpose: an island mounting into a zero-height box is a
-Cumulative Layout Shift, so never render the fallback as `null`.
+Two MapLibre modules, each reachable **only** through its island's dynamic import:
+`src/features/map/ShopMap.tsx` behind `MapIsland` (catalogue pins, read-only) and
+`src/features/map/PositionPicker.tsx` behind `PositionPickerIsland` (the address form's draggable pin).
+Importing either statically puts ~950 KB of MapLibre into the entry chunk of every page, including the
+ones with no map, and breaks SSR outright — the modules touch `window` and WebGL at module scope. Route
+files here do not code-split, so "statically" includes a single `import` in one route options object.
+
+⚠️ **`src/features/map/pmtiles.ts` carries the same rule and does not look like it does.** It is a
+registration flag and no WebGL, but it imports `maplibre-gl`, so importing it from anything a route loads
+statically drags the whole library in regardless. Its `protocolRegistered` flag is module scope
+deliberately and has to stay *shared* between the two maps: it exists to keep
+`maplibregl.addProtocol('pmtiles', …)` from running twice per document, and two copies of a flag prevent
+nothing.
+
+Each island's placeholder reserves the final height on purpose: an island mounting into a zero-height box
+is a Cumulative Layout Shift, so never render the fallback as `null`. Both heights are CSS variables —
+`--map-height` for the catalogue, `--map-pick-height` for the shorter box in the form — so a placeholder
+and its map cannot disagree.
 
 Every pin is also a real `<a href>` in the listing beside it. The map is a way to look at the catalogue,
-never the only route into a page.
+never the only route into a page. The picker's version of that rule: the address fields and the geocoder
+suggestions are the keyboard path and the only one that must work, the pin corrects what they produced,
+and `position` stays optional — an address nothing could place still saves.
 
 ## Commands
 

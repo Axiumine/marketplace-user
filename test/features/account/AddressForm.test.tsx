@@ -11,7 +11,16 @@ import { graphQLError, stubGraphQL } from '../../helpers/graphql'
 import { HOME_ADDRESS, WORK_ADDRESS } from '../../helpers/me'
 import type { ResponseOsm } from '../../helpers/nominatim'
 import { osmStub, resultOsm } from '../../helpers/nominatim'
+import { PIN_DROPPED_TEXT } from '../../helpers/positionPicker'
 import { CUSTOMER_EMAIL, renderWithClient } from '../../helpers/render'
+
+/*
+ * ⚠️ The map is stubbed, and it has to be: MapLibre reaches for a WebGL context jsdom does not have, so the
+ * real island tears this form down on the effect that builds the map. What is asserted here is the wiring
+ * between the form and the map — the pair handed over, the point handed back — and the map itself is tested
+ * in `test/features/map/`.
+ */
+vi.mock('@/features/map/PositionPickerIsland', async () => (await import('../../helpers/positionPicker')).positionPickerStub())
 
 const ADDED: GraphQLReplies = { UserAddressAdd: { data: { userAddressAdd: true } } }
 const UPDATED: GraphQLReplies = { UserAddressUpdate: { data: { userAddressUpdate: true } } }
@@ -572,5 +581,112 @@ describe('AddressForm cancelling', () => {
 		mount()
 
 		expect(screen.getByRole('button', { name: 'Cancel' })).toHaveAttribute('type', 'button')
+	})
+})
+
+describe('AddressForm map', () => {
+	const dropPin = async (user: ReturnType<typeof userEvent.setup>) => {
+		await user.click(screen.getByRole('button', { name: 'Drop the pin' }))
+	}
+
+	const pinnedAt = () => screen.getByTestId('picker-position').textContent
+
+	it('shows the stored address on the map', () => {
+		mount({ address: HOME_ADDRESS, replies: UPDATED })
+
+		expect(pinnedAt()).toBe('-71.0589,42.3601')
+	})
+
+	it('shows a map with no pin on it when the address has no position', () => {
+		mount({ address: WORK_ADDRESS, replies: UPDATED })
+
+		expect(pinnedAt()).toBe('nowhere')
+	})
+
+	it('moves the pin to a suggestion the moment it is picked', async () => {
+		const { user } = mount({ osm: { results: [resultOsm()] } })
+
+		expect(pinnedAt()).toBe('nowhere')
+
+		await user.type(screen.getByLabelText('Find your address'), '1 Main Street')
+		await user.click(await screen.findByRole('button', { name: /Main Street, 1, Boston/ }))
+
+		expect(pinnedAt()).toBe('-71.0589,42.3601')
+	})
+
+	/*
+	 * ⚠️ The whole reason the map is here. A hand-typed address is one the geocoder has never heard of — a
+	 * new building, a rural road — and dropping a pin on it is the only way it is ever placed, which is what
+	 * lets shops be sorted by distance from it.
+	 *
+	 * Longitude first, and rounded: a pin answers a full double, and every digit past the sixth is finer than
+	 * a tenth of a metre.
+	 */
+	it('stores a pin dropped on the map, longitude first and rounded', async () => {
+		const { user, stub } = mount()
+
+		await fillIn(user)
+		await dropPin(user)
+		await submit(user, 'Add address')
+
+		await waitFor(() => {
+			expect(addressOf(stub)?.position).toEqual({ coordinates: [-71.058931, 42.360157] })
+		})
+	})
+
+	it('reports the address as placed once the pin is down', async () => {
+		const { user } = mount()
+
+		expect(screen.getByText(/no map position yet/)).toBeInTheDocument()
+
+		await dropPin(user)
+
+		expect(screen.getByText(/sort shops by how close they are/)).toBeInTheDocument()
+		expect(pinnedAt()).toBe(PIN_DROPPED_TEXT)
+	})
+
+	it('offers nothing to remove while there is no position', () => {
+		mount({ address: WORK_ADDRESS, replies: UPDATED })
+
+		expect(screen.queryByRole('button', { name: 'Remove position' })).not.toBeInTheDocument()
+	})
+
+	it('offers to remove a position once there is one', () => {
+		mount({ address: HOME_ADDRESS, replies: UPDATED })
+
+		expect(screen.getByRole('button', { name: 'Remove position' })).toBeInTheDocument()
+	})
+
+	/*
+	 * Removing a position leaves the address, not the other way round: the position is optional at every
+	 * layer — the form, the mutation input and the collection validator — and a customer who cannot vouch
+	 * for a point is better off with none, because distance sorting believes whatever is stored.
+	 */
+	it('removes the position and saves the address without one', async () => {
+		const { user, stub, container } = mount({ address: HOME_ADDRESS, replies: UPDATED })
+
+		await user.click(screen.getByRole('button', { name: 'Remove position' }))
+
+		expect(pinnedAt()).toBe('nowhere')
+		expect(screen.getByText(/no map position yet/)).toBeInTheDocument()
+		// ⚠️ The field itself, not only what is drawn from it: anything that is not two numbers reads as "no
+		// position" everywhere on this form, so a control that wrote rubbish into it would look identical
+		// here and be sent to the server on the next edit.
+		expect(container.querySelector('input[type="hidden"]')).toHaveValue('')
+
+		await submit(user, 'Save changes')
+
+		await waitFor(() => {
+			expect(written(stub)).toBeDefined()
+		})
+		expect(addressOf(stub)?.position).toBeUndefined()
+	})
+
+	// `type="button"`: inside a `<form>`, a button with no type is a submit button, and removing the position
+	// would send the write it is there to prepare.
+	it('does not submit the form on its way out', () => {
+		mount({ address: HOME_ADDRESS, replies: UPDATED })
+
+		expect(screen.getByRole('button', { name: 'Remove position' })).toHaveAttribute('type', 'button')
 	})
 })

@@ -1,0 +1,18 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`PositionPickerIsland > matches the snapshot before the map has arrived 1`] = `
+<div
+  aria-hidden="true"
+  class="w-full animate-pulse rounded-box border border-slate-200 bg-palette-bg1"
+  style="height: var(--map-pick-height);"
+/>
+`;
+
+exports[`PositionPickerIsland > matches the snapshot once the map has swapped in 1`] = `
+<button
+  data-testid="position-picker"
+  type="button"
+>
+  -71.0589,42.3601
+</button>
+`;
