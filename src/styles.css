@@ -41,11 +41,19 @@
  */
 :root {
 	--map-height: 420px;
+
+	/*
+	 * The address pin map inside the account form, which is a shorter box on purpose: it sits between the
+	 * address fields and the save button, and a map as tall as the catalogue's would push the button that
+	 * finishes the form off the bottom of a phone screen.
+	 */
+	--map-pick-height: 260px;
 }
 
 @media (min-width: 768px) {
 	:root {
 		--map-height: 560px;
+		--map-pick-height: 320px;
 	}
 }
 

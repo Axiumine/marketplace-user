@@ -2,13 +2,14 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 
 import type { FeatureCollection, Point } from 'geojson'
 import * as maplibregl from 'maplibre-gl'
-import { Protocol } from 'pmtiles'
 import { useEffect, useRef, useState } from 'react'
 import { useClient } from 'urql'
 
 import { CompaniesNearbyDocument } from '@/api/operations/publicResource/queries'
 import { env } from '@/env'
 import { toLngLat, toMutableLngLat } from '@/lib/geo'
+
+import { registerPmtilesProtocol } from './pmtiles'
 
 /**
  * The map, and the only module in the app that pulls MapLibre into a bundle.
@@ -28,24 +29,6 @@ import { toLngLat, toMutableLngLat } from '@/lib/geo'
  * pins `types` to three entries, which switches off the automatic inclusion of `@types/*` that would
  * otherwise put that global namespace in scope.
  */
-
-/**
- * `pmtiles://` is not a scheme any browser knows. The protocol handler teaches MapLibre to answer a tile
- * request with an HTTP **range request** into one static `.pmtiles` archive, which is the whole reason
- * there is no tile server to operate here: nginx serves one file and the client reads the bytes it needs.
- *
- * Registered once per document. `addProtocol` overwrites silently on a second call, but the map is
- * mounted and unmounted on every navigation to a page that has one, and re-registering per mount would
- * churn the handler while in-flight tile requests still hold the old one.
- */
-let protocolRegistered = false
-
-const registerPmtilesProtocol = () => {
-	if (protocolRegistered) return
-
-	maplibregl.addProtocol('pmtiles', new Protocol().tile)
-	protocolRegistered = true
-}
 
 /** Matches the resolver's own cap. Asking for more is answered with `truncated: true`, not with more pins. */
 const MAX_PINS = 500

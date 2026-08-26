@@ -1,0 +1,8 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`PositionPicker markup > matches the snapshot 1`] = `
+<div
+  class="w-full rounded-box"
+  style="height: var(--map-pick-height);"
+/>
+`;

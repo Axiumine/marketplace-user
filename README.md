@@ -49,7 +49,7 @@ decision nobody has taken.
 | Styling | Tailwind 4, same `@theme` tokens as the two existing apps |
 | Data | urql + `cacheExchange` + `@urql/exchange-auth`, graphql-codegen `client-preset` |
 | Forms | react-hook-form + zod |
-| Map | MapLibre GL + Protomaps PMTiles, client-only island |
+| Map | MapLibre GL + Protomaps PMTiles, two client-only islands — catalogue pins, address pin |
 | Geocoding | on-premises Nominatim (Docker, regional extract) |
 | Search | MongoDB `2dsphere` + `text` index |
 | Sessions | opaque tokens in Redis, signed httpOnly refresh cookie (unchanged from the rest of the platform) |
@@ -186,8 +186,9 @@ clustered server-side by a `$geoNear` aggregation.
 
 **Cons**
 
-- Bundle weight: MapLibre is roughly 200 KB gzipped. Mitigated by dynamic import — the map is a lazy
-  island below the fold, so it never appears in the initial payload of an indexed page.
+- Bundle weight: MapLibre is roughly 200 KB gzipped. Mitigated by dynamic import — both maps are lazy
+  islands, so neither appears in the initial payload of an indexed page. The second one, the address
+  picker in the account form, is behind a login as well, so an anonymous visitor never fetches it at all.
 - WebGL is required. Ancient browsers and some locked-down corporate environments get a static fallback.
 - The PMTiles archive has to be built and periodically refreshed. That is a scheduled job, not an
   always-on service, but it is not nothing.
@@ -198,7 +199,11 @@ clustering, no client-side restyling, and visible tile seams while panning.
 
 **Rejected: the static OSM `export/embed.html` iframe** that `marketplace-admin` and
 `marketplace-shopowner` both use today. It shows exactly one pin and cannot be interacted with. Correct
-for "here is the address you just typed", useless for "here are the shops near you".
+for "here is the address you just typed", useless for "here are the shops near you" — and it inherits the
+tile-policy problem above, which matters here where the two panels are used by a handful of operators and
+this app is not. The customer's address form therefore reuses this stack rather than copying the iframe:
+`PositionPicker` is the same MapLibre and the same PMTiles archive with one draggable marker, which the
+iframe could not have offered — see §3.5's brand-new-building case for why dragging is the point.
 
 **Rejected: Google Maps / Mapbox.** Both solve the problem well and both are metered per map load. At the
 stated scale that is a recurring bill for something a static file can do, plus a customer-location data
@@ -225,7 +230,9 @@ Setup instructions are in [`docs/nominatim/`](docs/nominatim/README.md).
 - It is a service to run: PostgreSQL with PostGIS, a multi-hour import, disk for the flatnode file, and a
   replication cron if the data should stay current. The doc gives concrete figures.
 - Quality is exactly OpenStreetMap's quality. For well-mapped street addresses that is good; for a brand-new
-  building it may be missing where a commercial geocoder would have it.
+  building it may be missing where a commercial geocoder would have it. The address form answers that with
+  the draggable pin rather than with a better geocoder: an address Nominatim cannot find is typed by hand
+  and placed by hand, and `position` stays optional so one that is never placed still saves.
 
 **Rejected: staying on the public Nominatim** (what both existing apps do today). Fine for two internal
 panels used by a handful of operators. Against the published usage policy for a public customer-facing

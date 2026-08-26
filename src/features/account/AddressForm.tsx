@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useMutation } from 'urql'
 import { z } from 'zod'
@@ -11,6 +11,7 @@ import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete'
 import { FormStatus } from '@/components/ui/FormStatus'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import { TextField } from '@/components/ui/TextField'
+import { PositionPickerIsland } from '@/features/map/PositionPickerIsland'
 
 import type { MeAddress } from './AccountGate'
 import { CTX_ACCOUNT_WRITE } from './invalidate'
@@ -29,6 +30,12 @@ import { CTX_ACCOUNT_WRITE } from './invalidate'
  * The position is optional and stays optional. A customer who types their address by hand because the
  * geocoder does not know it still gets a saved address — one that cannot be used for distance sorting,
  * which is a smaller loss than refusing to store where they live.
+ *
+ * **Three ways in and one way out.** A picked suggestion writes the position, a pin dropped on the map
+ * writes it, and "Remove position" takes it away again; all three write the same single form field, and
+ * the map reads that field back rather than keeping a point of its own. The map is what makes an address
+ * the geocoder has never heard of — a new building, a rural road — placeable at all, and the geocoder is
+ * what makes a position reachable without a pointer, since a canvas cannot be dragged with a keyboard.
  */
 const LABEL_MAX = 50
 
@@ -77,6 +84,39 @@ export interface AddressFormProps {
 
 const blank = (value: string | null | undefined): string => value ?? ''
 
+/**
+ * Six decimals, with the trailing zeros dropped.
+ *
+ * A pin dropped on the map answers a full double — `-71.05893123412345` — and every digit past the sixth
+ * is smaller than a tenth of a metre: finer than the map can be clicked, finer than the basemap is drawn
+ * and finer than any address is meant. `String(Number(...))` is what keeps the rounding from showing:
+ * `"-71.058900"` becomes `"-71.0589"` again, so a geocoded position keeps the spelling it arrived with
+ * instead of growing zeros the customer never chose.
+ */
+const DECIMALS = 6
+
+const rounded = (value: number): string => String(Number(value.toFixed(DECIMALS)))
+
+/** The field's spelling of a point. ⚠️ Longitude first — see the note at the top of this file. */
+const textOf = (point: readonly [number, number]): string => `${rounded(point[0])},${rounded(point[1])}`
+
+/**
+ * The other direction: the field back to a pair, or `undefined` when the address has no position.
+ *
+ * The latitude alone is the guard, for the reason `positionOf` gives below: `''.split(',')` is `['']`, so
+ * a missing second entry is exactly "there is no position here" and nothing has to be invented to fall
+ * back to.
+ */
+const pointOf = (value: string): readonly [number, number] | undefined => {
+	// ⚠️ longitude first, on both sides of the split.
+	const [lon, lat] = value.split(',')
+
+	return lat === undefined ? undefined : [Number(lon), Number(lat)]
+}
+
+/** `shouldValidate` so a field just corrected drops its old error rather than keeping it until the next blur. */
+const WRITTEN = { shouldValidate: true, shouldDirty: true } as const
+
 /** `"lon,lat"`, or `''` for an address that has no position — see the schema field of the same name. */
 const positionOf = (address: MeAddress | undefined): string => {
 	const coordinates = address?.position?.coordinates
@@ -119,13 +159,19 @@ export const AddressForm = ({ address, onDone, onCancel }: AddressFormProps) => 
 	} = useForm<Values>({ resolver: zodResolver(schema), defaultValues: defaultsFrom(address) })
 
 	const position = watch('position')
-	const located = position !== ''
+
+	/*
+	 * Memoised because the map takes a pair and frames itself on a point it has not seen before: parsing on
+	 * every render would hand it a new array each time, and a new array is a new point as far as any
+	 * dependency list can tell. One string in form state, one pair derived from it.
+	 */
+	const point = useMemo(() => pointOf(position), [position])
+	const located = point !== undefined
 
 	const onSubmit = handleSubmit(async (values) => {
 		setFailure(undefined)
 
-		// ⚠️ longitude first, on both sides of the split. See the note at the top of this file.
-		const [lon, lat] = values.position.split(',')
+		const at = pointOf(values.position)
 
 		const input = {
 			label: values.label === '' ? undefined : values.label,
@@ -133,7 +179,7 @@ export const AddressForm = ({ address, onDone, onCancel }: AddressFormProps) => 
 			postalCode: values.postalCode,
 			city: values.city,
 			province: values.province,
-			position: located ? { coordinates: [Number(lon), Number(lat)] } : undefined
+			position: at === undefined ? undefined : { coordinates: [at[0], at[1]] }
 		}
 
 		// Annotated rather than inferred — see `MutationResult`. The two mutations answer different payloads
@@ -155,16 +201,12 @@ export const AddressForm = ({ address, onDone, onCancel }: AddressFormProps) => 
 				label="Find your address"
 				hint="Pick a suggestion to fill the fields below, or type them in yourself."
 				onPick={(found) => {
-					// `shouldValidate` so a field the geocoder just corrected drops its old error rather than
-					// keeping it until the next blur.
-					const options = { shouldValidate: true, shouldDirty: true } as const
-
-					setValue('street', found.street, options)
-					setValue('postalCode', found.postalCode, options)
-					setValue('city', found.city, options)
-					setValue('province', found.province, options)
-					// ⚠️ longitude first, as everywhere else in this file.
-					setValue('position', `${found.lon.toString()},${found.lat.toString()}`, options)
+					setValue('street', found.street, WRITTEN)
+					setValue('postalCode', found.postalCode, WRITTEN)
+					setValue('city', found.city, WRITTEN)
+					setValue('province', found.province, WRITTEN)
+					// ⚠️ longitude first, as everywhere else in this file. The map frames itself on this.
+					setValue('position', textOf([found.lon, found.lat]), WRITTEN)
 				}}
 			/>
 
@@ -205,17 +247,42 @@ export const AddressForm = ({ address, onDone, onCancel }: AddressFormProps) => 
 
 			{/*
 			 * Registered so react-hook-form keeps the position in form state, and hidden because there is
-			 * nothing in `"-71.0589,42.3601"` for a customer to read or correct. A hidden input is not feedback,
-			 * though: the sentence below is, and it is the only place anyone learns that a hand-typed address
-			 * will not be sorted by distance.
+			 * nothing in `"-71.0589,42.3601"` for a customer to read or correct. The map below is what shows it,
+			 * and the sentence beside it is what says an address is saved with or without one.
 			 */}
 			<input type="hidden" {...register('position')} />
 
-			<p className="text-xs text-tip">
-				{located
-					? 'This address is placed on the map, so we can sort shops by how close they are to it.'
-					: 'This address has no map position yet. It will still be saved — pick a suggestion above to place it.'}
-			</p>
+			<PositionPickerIsland
+				position={point}
+				onPick={(picked) => {
+					setValue('position', textOf(picked), WRITTEN)
+				}}
+			/>
+
+			<div className="flex flex-wrap items-center justify-between gap-2">
+				<p className="text-xs text-tip">
+					{located
+						? 'This address is placed on the map, so we can sort shops by how close they are to it. Drag the pin, or click the map, to correct it.'
+						: 'This address has no map position yet. It will still be saved — pick a suggestion above, or click the map, to place it.'}
+				</p>
+
+				{/*
+				 * Offered only when there is something to remove, and it clears the field rather than moving the
+				 * pin anywhere: a position nobody can vouch for is worse than none, because distance sorting
+				 * believes it.
+				 */}
+				{located && (
+					<button
+						type="button"
+						onClick={() => {
+							setValue('position', '', WRITTEN)
+						}}
+						className="text-xs text-slate-600 underline"
+					>
+						Remove position
+					</button>
+				)}
+			</div>
 
 			<FormStatus tone="error" message={failure} />
 

@@ -136,11 +136,29 @@ exports[`AddressForm adding > matches the snapshot 1`] = `
     type="hidden"
     value=""
   />
-  <p
-    class="text-xs text-tip"
+  <div
+    data-testid="position-picker"
   >
-    This address has no map position yet. It will still be saved — pick a suggestion above to place it.
-  </p>
+    <span
+      data-testid="picker-position"
+    >
+      nowhere
+    </span>
+    <button
+      type="button"
+    >
+      Drop the pin
+    </button>
+  </div>
+  <div
+    class="flex flex-wrap items-center justify-between gap-2"
+  >
+    <p
+      class="text-xs text-tip"
+    >
+      This address has no map position yet. It will still be saved — pick a suggestion above, or click the map, to place it.
+    </p>
+  </div>
   <div
     class="flex gap-2"
   >
@@ -297,11 +315,35 @@ exports[`AddressForm editing > matches the snapshot 1`] = `
     type="hidden"
     value="-71.0589,42.3601"
   />
-  <p
-    class="text-xs text-tip"
+  <div
+    data-testid="position-picker"
   >
-    This address is placed on the map, so we can sort shops by how close they are to it.
-  </p>
+    <span
+      data-testid="picker-position"
+    >
+      -71.0589,42.3601
+    </span>
+    <button
+      type="button"
+    >
+      Drop the pin
+    </button>
+  </div>
+  <div
+    class="flex flex-wrap items-center justify-between gap-2"
+  >
+    <p
+      class="text-xs text-tip"
+    >
+      This address is placed on the map, so we can sort shops by how close they are to it. Drag the pin, or click the map, to correct it.
+    </p>
+    <button
+      class="text-xs text-slate-600 underline"
+      type="button"
+    >
+      Remove position
+    </button>
+  </div>
   <div
     class="flex gap-2"
   >
