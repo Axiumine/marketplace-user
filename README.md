@@ -559,8 +559,10 @@ to `localStorage` or a readable cookie · the tier assertion of §3.7.
 - **`@axiumine/marketplace-common` is published to npm** — `1.0.1`, consumers on `^1.0.1` (ADR-037).
   ⚠️ This bullet said it was *not* published, which was true until 2026-08-26. `deploy-local.sh` in that
   repo is still required: it deploys the built package into each consumer's `node_modules`, carrying
-  edits no release has shipped. Redeploy after every edit to common — **and after every `yarn install`
-  here**, which resolves `^1.0.1` from the registry and silently drops the last released build on top.
+  edits no release has shipped. Redeploy after every edit to common. ⚠️ It is **not** part of installing:
+  nothing in `yarn install` here calls it, and nothing may — resolving `^1.0.1` from the registry is the
+  right answer whenever common holds no unreleased edit. Redeploy after an install here only while it
+  does, because that install drops the released build back on top.
 
 ---
 
