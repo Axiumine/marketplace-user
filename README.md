@@ -36,7 +36,8 @@ position, which is what puts it on the map.
 this platform and are a genuine design decision that has not been made. Everything below is arranged so
 they attach to this tier later rather than having to be retrofitted into it — but nothing here pretends
 they exist. That is also why `item` has no price field: a price with nothing to buy is a guess about a
-decision nobody has taken.
+decision nobody is going to take. ⚠️ Since 2026-08-27 those four are **permanently out of scope**
+(ADR-038), so "attach to this tier later" describes a seam that stays unused, not a plan.
 
 ---
 
@@ -555,7 +556,8 @@ to `localStorage` or a readable cookie · the tier assertion of §3.7.
   constants; that trade is worth revisiting when a page appears that is heavy on its own, and not before.
 - **Meilisearch is the expected next step** for search, once the catalogue is real (§3.6).
 - **The PMTiles archive needs a refresh job.** Monthly is fine for shop locations.
-- **Orders, cart, delivery and payment are unbuilt** and undesigned. Nothing here assumes their shape.
+- **Orders, cart, delivery and payment are permanently out of scope** (ADR-038, 2026-08-27) — not merely
+  unbuilt. Nothing here assumes their shape, and nothing here should be written in anticipation of it.
 - **`@axiumine/marketplace-common` is published to npm** — `1.0.1`, consumers on `^1.0.1` (ADR-037).
   ⚠️ This bullet said it was *not* published, which was true until 2026-08-26. `deploy-local.sh` in that
   repo is still required: it deploys the built package into each consumer's `node_modules`, carrying

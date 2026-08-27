@@ -196,11 +196,12 @@ describe('productJsonLd', () => {
 
 	/*
 	 * ⚠️ No `offers`, and this assertion is the guard on it. An `offers` block needs a price and an
-	 * availability; `item` has neither, because cart, order state and payment are out of scope. Marking
-	 * up a price the page does not display is a manual-action offence that turns off rich results for
-	 * the whole domain, not just for the page that did it.
+	 * availability; `item` has neither, because cart, order state and payment are permanently out of
+	 * scope (ADR-038, 2026-08-27). Marking up a price the page does not display is a manual-action
+	 * offence that turns off rich results for the whole domain, not just for the page that did it —
+	 * and this guard is not waiting for a price to arrive, because none is coming.
 	 */
-	it('publishes no offers, because there is no price to publish', () => {
+	it('publishes no offers, because there is no price to publish and never will be', () => {
 		expect('offers' in productJsonLd(ITEM)).toBe(false)
 	})
 })
