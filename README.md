@@ -558,7 +558,7 @@ to `localStorage` or a readable cookie · the tier assertion of §3.7.
 - **The PMTiles archive needs a refresh job.** Monthly is fine for shop locations.
 - **Orders, cart, delivery and payment are permanently out of scope** (ADR-038, 2026-08-27) — not merely
   unbuilt. Nothing here assumes their shape, and nothing here should be written in anticipation of it.
-- **`@axiumine/marketplace-common` is published to npm** — `2.0.0`, consumers on `^2.0.0` (ADR-037).
+- **`@axiumine/marketplace-common` is published to npm** — `2.0.1`, consumers on `^2.0.0` (ADR-037).
   ⚠️ This bullet said it was *not* published, which was true until 2026-08-26. `deploy-local.sh` in that
   repo is still required: it deploys the built package into each consumer's `node_modules`, carrying
   edits no release has shipped. Redeploy after every edit to common. ⚠️ It is **not** part of installing:
