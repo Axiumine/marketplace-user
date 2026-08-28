@@ -10,7 +10,8 @@ import { absoluteUrl, SITE_NAME, siteRootUrl } from '@/lib/seo'
  * ⚠️ **Structured data must describe what the page actually shows.** Marking up a price the page does
  * not display, or a rating that does not exist, is a manual-action offence and gets the whole domain's
  * rich results turned off — not just the offending page. There is no `price` in `Product` below for
- * exactly that reason: `item` has no price field, because orders and payment are out of scope.
+ * exactly that reason: `item` has no price field, because orders and payment are permanently out of
+ * scope (ADR-038, 2026-08-27). No later version of this file grows an `offers` block.
  *
  * Emitted through `<script type="application/ld+json">`, which means `dangerouslySetInnerHTML` and
  * therefore a real injection surface: a shop description containing `</script>` would close the tag
@@ -107,9 +108,10 @@ export interface JsonLdItem {
 /**
  * `Product` **without** `offers`.
  *
- * An `offers` block needs a price and an availability, and this platform has neither: `item` carries
- * `name` and `description` only, because cart, order state and payment are out of scope. Inventing a
- * price to satisfy a validator would be marking up something the page does not show.
+ * An `offers` block needs a price and an availability, and this platform has neither and never will:
+ * `item` carries `name` and `description` only, because cart, order state and payment are permanently
+ * out of scope (ADR-038). Inventing a price to satisfy a validator would be marking up something the
+ * page does not show — and there is no future state of the platform in which it would show one.
  */
 export const productJsonLd = (item: JsonLdItem): JsonLd => ({
 	'@context': 'https://schema.org',
