@@ -25,6 +25,12 @@ exports[`AccountNav links > matches the snapshot 1`] = `
   >
     Password
   </a>
+  <a
+    class="rounded-box px-3 py-2 text-sm text-slate-600 hover:bg-slate-100"
+    href="/account/close"
+  >
+    Close account
+  </a>
   <button
     class="rounded-box px-3 py-2 text-sm text-slate-600 hover:bg-slate-100 ml-auto underline"
     type="button"
@@ -58,6 +64,12 @@ exports[`AccountNav links > matches the snapshot on a sibling screen 1`] = `
     href="/account/password"
   >
     Password
+  </a>
+  <a
+    class="rounded-box px-3 py-2 text-sm text-slate-600 hover:bg-slate-100"
+    href="/account/close"
+  >
+    Close account
   </a>
   <button
     class="rounded-box px-3 py-2 text-sm text-slate-600 hover:bg-slate-100 ml-auto underline"

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 
 import { accountRouteOptions } from '@/routeOptions/account'
 import { accountAddressesRouteOptions } from '@/routeOptions/accountAddresses'
+import { accountCloseRouteOptions } from '@/routeOptions/accountClose'
 import { accountPasswordRouteOptions } from '@/routeOptions/accountPassword'
 import { accountProfileRouteOptions } from '@/routeOptions/accountProfile'
 
@@ -40,6 +41,7 @@ describe('the account layout', () => {
 		expect(nav.getByRole('link', { name: 'Profile' })).toHaveAttribute('href', '/account')
 		expect(nav.getByRole('link', { name: 'Addresses' })).toHaveAttribute('href', '/account/addresses')
 		expect(nav.getByRole('link', { name: 'Password' })).toHaveAttribute('href', '/account/password')
+		expect(nav.getByRole('link', { name: 'Close account' })).toHaveAttribute('href', '/account/close')
 		expect(nav.getByRole('button', { name: 'Sign out' })).toBeInTheDocument()
 	})
 
@@ -98,14 +100,30 @@ describe('the account screens', () => {
 	})
 
 	/*
-	 * ⚠️ None of the three defines a head. TanStack Router *merges* heads along the matched chain rather than
+	 * ⚠️ A screen of its own rather than a card under the password form, which is where a fourth control is
+	 * cheapest to bolt on. A destructive action sitting under a form is one mis-aimed press away from the
+	 * wrong outcome, and this is the only screen in the private area that ends the session it is standing
+	 * in — nothing above it survives the press.
+	 */
+	it('renders the close screen, behind its own heading', async () => {
+		await mount('/account/close')
+
+		const section = within(await screen.findByRole('region', { name: 'Close my account' }))
+
+		expect(section.getByRole('heading', { level: 2, name: 'Close my account' })).toBeInTheDocument()
+		expect(section.getByRole('button', { name: 'Close my account' })).toBeDisabled()
+	})
+
+	/*
+	 * ⚠️ None of the four defines a head. TanStack Router *merges* heads along the matched chain rather than
 	 * replacing them, so a child repeating the layout's head would give one page two `<title>` tags. The only
 	 * reason to define one here would be to change the title, and "Your account" is right for all three.
 	 */
 	it.each([
 		[accountProfileRouteOptions, 'the profile screen'],
 		[accountAddressesRouteOptions, 'the address book'],
-		[accountPasswordRouteOptions, 'the password screen']
+		[accountPasswordRouteOptions, 'the password screen'],
+		[accountCloseRouteOptions, 'the close screen']
 	])('leaves the head to the layout: %#, %s', (options) => {
 		expect(options).not.toHaveProperty('head')
 	})
