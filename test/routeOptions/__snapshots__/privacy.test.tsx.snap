@@ -16,7 +16,7 @@ exports[`the privacy notice snapshot > renders 1`] = `
     <p
       class="mt-2 text-slate-600"
     >
-      What the web server records about a visit to this site, and for how long it is kept. This page covers those log files and nothing else; anything more will be added here when it has been decided, rather than described in advance.
+      What the web server records about a visit to this site, what happens to an account when it is closed, and for how long either is kept. This page covers those two things and nothing else; anything more will be added here when it has been decided, rather than described in advance.
     </p>
     <h2
       class="mt-8 text-xl font-semibold text-palette-bg"
@@ -49,6 +49,66 @@ exports[`the privacy notice snapshot > renders 1`] = `
         shredded
       </strong>
        — its contents are overwritten before the file is removed — rather than only deleted.
+    </p>
+    <h2
+      class="mt-8 text-xl font-semibold text-palette-bg"
+    >
+      A registration you have not confirmed
+    </h2>
+    <p
+      class="mt-2 text-slate-600"
+    >
+      Filling in the registration form does not create an account. What it creates is a temporary record holding what you typed, and that record 
+      <strong>
+        expires by itself after three days
+      </strong>
+      . If you never confirm the message we send you, nothing is ever written to the account database and there is nothing left to close: ignoring the mail is the whole of it.
+    </p>
+    <h2
+      class="mt-8 text-xl font-semibold text-palette-bg"
+    >
+      Closing an account
+    </h2>
+    <p
+      class="mt-2 text-slate-600"
+    >
+      Closing an account — your own, or one an operator closes — does not remove it from the database. It is marked as closed, every session it has open ends, and anything it had published goes off the marketplace at once. You cannot sign in with it from that moment.
+    </p>
+    <p
+      class="mt-4 text-slate-600"
+    >
+      For 
+      <strong>
+        thirty days
+      </strong>
+       afterwards it can be brought back. Register again at the same email address and confirm the message we send you, and that same account returns — the same details, and for a seller the same shops and the same catalogue. What returns is 
+      <strong>
+        unpublished
+      </strong>
+      , and a seller’s account goes back into the approval queue, so an operator approves it once more first. A suspension is not lifted by any of this: if an operator suspended the account, it comes back suspended, and only an operator can take that off.
+    </p>
+    <p
+      class="mt-4 text-slate-600"
+    >
+      Confirming that message is the whole of the check. Anyone able to read mail at the address during those thirty days can bring the account back and see what was in it, which is the same assumption a password reset makes — so if the address is one you are about to give up, closing the account is not the last step.
+    </p>
+    <p
+      class="mt-4 text-slate-600"
+    >
+      After the thirty days the personal details are 
+      <strong>
+        overwritten in place
+      </strong>
+      : the email address is replaced by one that cannot receive mail, the name by 
+      <em>
+        Deleted User
+      </em>
+      , the password by a value nobody holds. What is left is a record that an account existed, when it closed and at whose instruction — and from that point nothing brings it back, because there is nothing left to bring.
+    </p>
+    <p
+      class="mt-4 text-slate-600"
+    >
+      There is no separate “erase my data” request to make, and no queue one would go into. Closing the account starts the thirty days, and those thirty days are the shortest route there is.
     </p>
   </div>
 </main>
