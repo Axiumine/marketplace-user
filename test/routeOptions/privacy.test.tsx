@@ -143,7 +143,7 @@ describe('the privacy notice on an account', () => {
 		await mount()
 
 		expect(screen.getByText(/Closing an account —/).textContent).toBe(
-			'Closing an account — your own, or one an operator closes — does not remove it from the database. It is marked as closed, every session it has open ends, and anything it had published goes off the marketplace at once. You cannot sign in with it from that moment.'
+			'Closing an account — your own, or one an admin closes — does not remove it from the database. It is marked as closed, every session it has open ends, and anything it had published goes off the marketplace at once. You cannot sign in with it from that moment.'
 		)
 	})
 
@@ -158,7 +158,7 @@ describe('the privacy notice on an account', () => {
 		await mount()
 
 		expect(screen.getByText(/afterwards it can be brought back/).textContent).toBe(
-			'For thirty days afterwards it can be brought back. Register again at the same email address and confirm the message we send you, and that same account returns — the same details, and for a seller the same shops and the same catalogue. What returns is unpublished, and a seller’s account goes back into the approval queue, so an operator approves it once more first. A suspension is not lifted by any of this: if an operator suspended the account, it comes back suspended, and only an operator can take that off.'
+			'For thirty days afterwards it can be brought back. Register again at the same email address and confirm the message we send you, and that same account returns — the same details, and for a seller the same shops and the same catalogue. What returns is unpublished, and a seller’s account goes back into the approval queue, so an admin approves it once more first. A suspension is not lifted by any of this: if an admin suspended the account, it comes back suspended, and only an admin can take that off.'
 		)
 	})
 

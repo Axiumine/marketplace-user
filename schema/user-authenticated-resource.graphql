@@ -90,7 +90,7 @@ type MutationsApi {
 	customer's account'.
 
 	Stamps `deleted` and nothing else. `disabled` is untouched in either direction, so closing
-	neither lifts a standing suspension nor hands one back to an operator, and no `deletedBy` is
+	neither lifts a standing suspension nor hands one back to an admin, and no `deletedBy` is
 	written: its absence is what says the holder closed it themselves.
 
 	Every session ends once the write lands — the caller's included, so the next request on this

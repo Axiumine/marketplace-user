@@ -72,7 +72,7 @@ exports[`the privacy notice snapshot > renders 1`] = `
     <p
       class="mt-2 text-slate-600"
     >
-      Closing an account — your own, or one an operator closes — does not remove it from the database. It is marked as closed, every session it has open ends, and anything it had published goes off the marketplace at once. You cannot sign in with it from that moment.
+      Closing an account — your own, or one an admin closes — does not remove it from the database. It is marked as closed, every session it has open ends, and anything it had published goes off the marketplace at once. You cannot sign in with it from that moment.
     </p>
     <p
       class="mt-4 text-slate-600"
@@ -85,7 +85,7 @@ exports[`the privacy notice snapshot > renders 1`] = `
       <strong>
         unpublished
       </strong>
-      , and a seller’s account goes back into the approval queue, so an operator approves it once more first. A suspension is not lifted by any of this: if an operator suspended the account, it comes back suspended, and only an operator can take that off.
+      , and a seller’s account goes back into the approval queue, so an admin approves it once more first. A suspension is not lifted by any of this: if an admin suspended the account, it comes back suspended, and only an admin can take that off.
     </p>
     <p
       class="mt-4 text-slate-600"

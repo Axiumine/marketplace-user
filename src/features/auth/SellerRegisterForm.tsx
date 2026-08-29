@@ -12,7 +12,7 @@ import { useRegistration } from './useRegistration'
  *
  * ⚠️ **This does not create a shop, and the account it does create cannot be logged into yet.** The
  * resolver writes `waitApprov: true`, and the shop-owner authorization service refuses a session while
- * that flag is up — so what this form starts is an application, which an operator either admits or does
+ * that flag is up — so what this form starts is an application, which an admin either admits or does
  * not. Both screens below say so, and that is the whole reason they differ from the customer's: a
  * "check your inbox" that leads to a login refused with no explanation is indistinguishable from a
  * registration that silently failed.
@@ -40,7 +40,7 @@ export const SellerRegisterForm = () => {
 				</p>
 
 				{/* The second half of the answer, and the half that is specific to a seller. Confirming the
-				    address is not what opens the shop area: the account waits for an operator after that, and
+				    address is not what opens the shop area: the account waits for an admin after that, and
 				    somebody who is not told will read the refused login as a broken registration. */}
 				<p className="text-sm text-slate-600">
 					Confirming the address is the first of two steps. Our team reviews every application by hand, and you will hear from us

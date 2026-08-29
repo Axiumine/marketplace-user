@@ -91,9 +91,9 @@ const Privacy = () => (
 		 * and `scrubbedAt` — and saying otherwise here would be the promise the sweeper cannot keep.
 		 */}
 		<p className="mt-2 text-slate-600">
-			Closing an account &mdash; your own, or one an operator closes &mdash; does not remove it from the database. It is marked
-			as closed, every session it has open ends, and anything it had published goes off the marketplace at once. You cannot sign
-			in with it from that moment.
+			Closing an account &mdash; your own, or one an admin closes &mdash; does not remove it from the database. It is marked as
+			closed, every session it has open ends, and anything it had published goes off the marketplace at once. You cannot sign in
+			with it from that moment.
 		</p>
 
 		{/*
@@ -106,8 +106,8 @@ const Privacy = () => (
 			For <strong>thirty days</strong> afterwards it can be brought back. Register again at the same email address and confirm
 			the message we send you, and that same account returns &mdash; the same details, and for a seller the same shops and the
 			same catalogue. What returns is <strong>unpublished</strong>, and a seller&rsquo;s account goes back into the approval
-			queue, so an operator approves it once more first. A suspension is not lifted by any of this: if an operator suspended the
-			account, it comes back suspended, and only an operator can take that off.
+			queue, so an admin approves it once more first. A suspension is not lifted by any of this: if an admin suspended the
+			account, it comes back suspended, and only an admin can take that off.
 		</p>
 
 		{/*

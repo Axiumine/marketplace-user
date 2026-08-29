@@ -8,7 +8,7 @@ import { env } from '@/env'
  * ⚠️ This is the one substantive difference from `marketplace-shopowner`'s copy of this file, and it is
  * not an optimisation. That one calls `https://nominatim.openstreetmap.org` directly, which is a free
  * service on donated hardware with a usage policy of at most one request per second and no bulk
- * querying. Two internal panels with a handful of operators fit inside that. A public site sized for
+ * querying. Two internal panels with a handful of admins fit inside that. A public site sized for
  * 500 000 registered customers does not — it is a policy breach at any traffic worth having, and the
  * enforcement is an IP block, not a throttle. `VITE_NOMINATIM_URL` points at the local instance;
  * `docs/nominatim/README.md` is its setup.

@@ -34,7 +34,7 @@ export const UserRegisterDocument = graphql(`
  *
  * ⚠️ **The account cannot be logged into afterwards.** `shopOwnerRegister` writes `waitApprov: true` and
  * the authorization service refuses a session while the flag is up, so this form is a seller *asking* to
- * sell here rather than becoming one — selling is a commercial relationship with the operator, and no
+ * sell here rather than becoming one — selling is a commercial relationship with the admin, and no
  * form may open it. The screen has to say so, because "check your inbox" followed by a login that is
  * refused with no explanation reads as a broken registration.
  *

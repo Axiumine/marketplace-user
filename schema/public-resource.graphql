@@ -195,7 +195,7 @@ type MutationsPublic {
 	send reset password link
 
 	⚠️ The SHOP OWNER's pair, kept in this slice only because the service exposes it. The link it mails is
-	built on APP_DOMAIN, the operator origin — this app must never call it. Use userResetPwd.
+	built on APP_DOMAIN, the admin origin — this app must never call it. Use userResetPwd.
 	"""
 	resetPwd(email: String!): Boolean!
 
@@ -205,11 +205,11 @@ type MutationsPublic {
 	updatePwd(email: String!, hash: String!, password: String!): Boolean!
 
 	"""
-	Register a new shop owner, pending operator approval, and send the activation link
+	Register a new shop owner, pending admin approval, and send the activation link
 
 	⚠️ The account it creates **cannot be logged into**: the resolver writes `waitApprov: true` and
 	`checkShopOwnerApproval` refuses a session while the flag is up. Confirming the address proves the
-	person exists; an operator clearing the flag in the admin app is what admits them. The activation
+	person exists; an admin clearing the flag in the admin app is what admits them. The activation
 	link it mails is built on APP_DOMAIN, the shop-owner origin — this app hosts the form, not the
 	panel the seller lands in afterwards.
 	"""

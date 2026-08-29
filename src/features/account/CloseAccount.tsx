@@ -80,13 +80,13 @@ export const CloseAccount = () => {
 
 			{/*
 			 * Said here because it is the one consequence a customer may believe they are buying: closing and
-			 * re-registering is not a way out of a suspension. ADR-044 gives the operator tier the only hand
+			 * re-registering is not a way out of a suspension. ADR-044 gives the admin tier the only hand
 			 * that lifts one, and ADR-046 leaves `disabled`, `disabledBy` and `disabledReason` untouched
 			 * through the whole restore, precisely so this route cannot be used as one.
 			 */}
 			<p>
-				A suspension is not lifted by closing your account. If an operator has suspended you, the suspension comes back with the
-				account, and only an operator can take it off.
+				A suspension is not lifted by closing your account. If an admin has suspended you, the suspension comes back with the
+				account, and only an admin can take it off.
 			</p>
 
 			{/*

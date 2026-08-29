@@ -19,7 +19,7 @@ exports[`CloseAccount copy > matches the snapshot 1`] = `
      to change your mind. Register again at this same email address inside that window and confirm the message we send you: the account comes back as it was, with the same details and the same addresses.
   </p>
   <p>
-    A suspension is not lifted by closing your account. If an operator has suspended you, the suspension comes back with the account, and only an operator can take it off.
+    A suspension is not lifted by closing your account. If an admin has suspended you, the suspension comes back with the account, and only an admin can take it off.
   </p>
   <p>
     After thirty days your personal details are overwritten and the account cannot be brought back at all. The record that an account existed and when it closed is kept; nothing here is a way to have your data kept — it is the opposite. What we do with it either way is on our
