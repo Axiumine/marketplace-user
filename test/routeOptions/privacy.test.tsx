@@ -65,16 +65,20 @@ describe('the privacy notice', () => {
 	})
 
 	/*
-	 * ⚠️ It scopes itself to the logs *in the text*, because the alternative failure of a notice is claiming
-	 * a process nobody operates. Nothing has been decided about lawful basis, access requests or any other
-	 * retention (`RISK_REGISTER` R25), so the page promises a later paragraph instead of inventing one.
+	 * ⚠️ It scopes itself *in the text* to the two things that have code behind them, because the alternative
+	 * failure of a notice is claiming a process nobody operates. Nothing has been decided about lawful basis,
+	 * controller identity or an access request (`RISK_REGISTER` R25), so the page promises a later paragraph
+	 * instead of inventing one.
+	 *
+	 * The list is still exactly two items after the account sections were added: those are prose, and this
+	 * assertion is what keeps a third log file from being quietly listed beside the two the edge configures.
 	 */
-	it('scopes itself to those files and promises nothing else', async () => {
+	it('scopes itself to the logs and to an account, and promises nothing else', async () => {
 		await mount()
 
 		expect(
 			screen.getByText(
-				'What the web server records about a visit to this site, and for how long it is kept. This page covers those log files and nothing else; anything more will be added here when it has been decided, rather than described in advance.'
+				'What the web server records about a visit to this site, what happens to an account when it is closed, and for how long either is kept. This page covers those two things and nothing else; anything more will be added here when it has been decided, rather than described in advance.'
 			)
 		).toBeInTheDocument()
 		expect(statements()).toHaveLength(2)
@@ -109,7 +113,100 @@ describe('the privacy notice head', () => {
 	})
 
 	it('describes itself for a search result', () => {
-		expect(metaOf(head(), 'description')).toBe('What this site records about a visit, and for how long.')
+		expect(metaOf(head(), 'description')).toBe('What this site records about a visit and about an account, and for how long.')
+	})
+})
+
+/*
+ * ⚠️ Quotations again, and for a sharper reason than the log paragraphs: these sentences are the public
+ * half of ADR-041 and ADR-046, and every number and every "not" in them is load-bearing. Thirty days is
+ * `retentionSweep.mts`; three days is `PENDING_TTL_SECONDS`; "overwritten in place" is the option ADR-041
+ * chose over deleting the row; "register again" rather than "log in" is the only door ADR-046 built. A
+ * looser matcher would keep passing while the page drifted into describing a platform this is not, which on
+ * a privacy notice is not a stale test but a false statement.
+ */
+describe('the privacy notice on an account', () => {
+	// ADR-042: until the link is clicked there is no account, only a Redis key that expires on its own. It is
+	// the one case where doing nothing is the complete answer, so the page says so rather than leaving a
+	// reader to wonder what became of a form they abandoned.
+	it('says an unconfirmed registration expires by itself and writes nothing', async () => {
+		await mount()
+
+		expect(screen.getByText(/Filling in the registration form/).textContent).toBe(
+			'Filling in the registration form does not create an account. What it creates is a temporary record holding what you typed, and that record expires by itself after three days. If you never confirm the message we send you, nothing is ever written to the account database and there is nothing left to close: ignoring the mail is the whole of it.'
+		)
+	})
+
+	// ADR-041's central sentence, said to the person it is about. "Does not remove it from the database" is
+	// the whole difference between this platform and the one option A would have built.
+	it('says a closed account is marked, not removed, and goes dark at once', async () => {
+		await mount()
+
+		expect(screen.getByText(/Closing an account —/).textContent).toBe(
+			'Closing an account — your own, or one an operator closes — does not remove it from the database. It is marked as closed, every session it has open ends, and anything it had published goes off the marketplace at once. You cannot sign in with it from that moment.'
+		)
+	})
+
+	/*
+	 * ⚠️ The undo, and the assertion that it is described as a **re-registration**. `checkUserAuthorizationDisDel`
+	 * refuses a closed account at the login gate on all three tiers, so a reader who understood this as "sign
+	 * in again within thirty days" would meet the same generic refusal as somebody with no account at all and
+	 * conclude the undo does not exist. The three riders are here too: unpublished, back into the approval
+	 * queue, and a suspension that survives the round trip.
+	 */
+	it('says the account comes back by registering again, unpublished and still suspended if it was', async () => {
+		await mount()
+
+		expect(screen.getByText(/afterwards it can be brought back/).textContent).toBe(
+			'For thirty days afterwards it can be brought back. Register again at the same email address and confirm the message we send you, and that same account returns — the same details, and for a seller the same shops and the same catalogue. What returns is unpublished, and a seller’s account goes back into the approval queue, so an operator approves it once more first. A suspension is not lifted by any of this: if an operator suspended the account, it comes back suspended, and only an operator can take that off.'
+		)
+	})
+
+	// ADR-046's Negative consequence, in the notice rather than only in the ADR. Mailbox control alone
+	// recovers the account, and the person it matters to — whose work address is reassigned inside the
+	// window — will never read an ADR.
+	it('says mailbox control alone is the whole check', async () => {
+		await mount()
+
+		expect(screen.getByText(/Confirming that message/).textContent).toBe(
+			'Confirming that message is the whole of the check. Anyone able to read mail at the address during those thirty days can bring the account back and see what was in it, which is the same assumption a password reset makes — so if the address is one you are about to give up, closing the account is not the last step.'
+		)
+	})
+
+	// "Overwritten in place", never "deleted": the row is permanent and the placeholders are what free the
+	// address. A page that said the account is deleted on day 30 would be describing the option ADR-041
+	// declined, and it is the one sentence a reader is most likely to quote back.
+	it('says day thirty overwrites rather than deletes, and ends the undo', async () => {
+		await mount()
+
+		expect(screen.getByText(/After the thirty days/).textContent).toBe(
+			'After the thirty days the personal details are overwritten in place: the email address is replaced by one that cannot receive mail, the name by Deleted User, the password by a value nobody holds. What is left is a record that an account existed, when it closed and at whose instruction — and from that point nothing brings it back, because there is nothing left to bring.'
+		)
+	})
+
+	/*
+	 * ⚠️ The refusal, stated as one. There is no erasure-on-request flow, no resolver behind one and no
+	 * decision authorising one, so the page says there is none and points at what does exist. Inventing a
+	 * queue here would be the exact failure the page's own scoping paragraph exists to prevent — and it is
+	 * the sentence a reader arrives looking for, so leaving it out is not neutral either.
+	 */
+	it('says there is no separate erasure request, and what to do instead', async () => {
+		await mount()
+
+		expect(screen.getByText(/no separate/).textContent).toBe(
+			'There is no separate “erase my data” request to make, and no queue one would go into. Closing the account starts the thirty days, and those thirty days are the shortest route there is.'
+		)
+	})
+
+	// The three headings a reader scans before reading a word of it.
+	it('divides itself into the three things it covers', async () => {
+		await mount()
+
+		expect(
+			within(screen.getByRole('main'))
+				.getAllByRole('heading', { level: 2 })
+				.map((heading) => heading.textContent)
+		).toEqual(['The two log files', 'A registration you have not confirmed', 'Closing an account'])
 	})
 })
 
