@@ -8,20 +8,21 @@ import { AccountNav } from '@/features/account/AccountNav'
 
 import type { GraphQLReplies } from '../../helpers/graphql'
 import { stubGraphQL } from '../../helpers/graphql'
+import { stubLocationAssign } from '../../helpers/location'
 import { CUSTOMER_EMAIL, renderWithRouter } from '../../helpers/render'
 
-/** Signing out lands on `/`, whose loader asks for these two. */
-const REPLIES: GraphQLReplies = {
-	Companies: { data: { companies: { nodes: [], total: 0 } } },
-	ItemCategories: { data: { itemCategories: [] } },
-	Logout: { data: { logout: true } }
-}
+/** All signing out asks of the server. The exit itself is a page load, so home's loader never runs here. */
+const REPLIES: GraphQLReplies = { Logout: { data: { logout: true } } }
 
+/**
+ * The location stub goes in *after* the render: `renderWithRouter` points jsdom's URL at `path` and then
+ * lets the router read it, and a copy taken before that would freeze the router on the wrong page.
+ */
 const mount = async (path = '/account') => {
 	const stub = stubGraphQL(REPLIES)
 	const result = await renderWithRouter(<AccountNav />, { token: 'access-token', session: CUSTOMER_EMAIL, path })
 
-	return { ...result, stub, user: userEvent.setup() }
+	return { ...result, stub, assign: stubLocationAssign(), user: userEvent.setup() }
 }
 
 describe('AccountNav links', () => {
@@ -141,13 +142,16 @@ describe('AccountNav sign out', () => {
 		expect(getSession().signedIn).toBe(false)
 	})
 
+	// A full page load, not a router navigation: the urql client is a module singleton holding a document
+	// cache, and `Me` takes no variables, so only a real load keeps the next customer to sign in on this
+	// tab from being handed this one's account.
 	it('leaves the private area', async () => {
-		const { user, router } = await mount()
+		const { user, assign } = await mount()
 
 		await user.click(screen.getByRole('button', { name: 'Sign out' }))
 
 		await waitFor(() => {
-			expect(router.state.location.pathname).toBe('/')
+			expect(assign).toHaveBeenCalledExactlyOnceWith('/')
 		})
 	})
 

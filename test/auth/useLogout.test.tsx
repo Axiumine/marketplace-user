@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react'
+import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 
@@ -9,13 +9,8 @@ import { useLogout } from '@/auth/useLogout'
 
 import type { GraphQLReplies } from '../helpers/graphql'
 import { graphQLError, stubGraphQL } from '../helpers/graphql'
+import { stubLocationAssign } from '../helpers/location'
 import { CUSTOMER_EMAIL, renderWithRouter } from '../helpers/render'
-
-/** What the home route's loader asks for, since logging out lands the customer there. */
-const HOME: GraphQLReplies = {
-	Companies: { data: { companies: { nodes: [], total: 0 } } },
-	ItemCategories: { data: { itemCategories: [] } }
-}
 
 const SignOut = () => {
 	const logout = useLogout()
@@ -27,17 +22,23 @@ const SignOut = () => {
 	)
 }
 
+/**
+ * The location stub goes in *after* the render: `renderWithRouter` points jsdom's URL at `path` and then
+ * lets the router read it, and a copy taken before that would freeze the router on the wrong page.
+ */
 const signOut = async (replies: GraphQLReplies) => {
-	const stub = stubGraphQL({ ...HOME, ...replies })
-	const { router } = await renderWithRouter(<SignOut />, {
+	const stub = stubGraphQL(replies)
+	await renderWithRouter(<SignOut />, {
 		token: 'abc123',
 		session: CUSTOMER_EMAIL,
 		path: '/login'
 	})
 
+	const assign = stubLocationAssign()
+
 	await userEvent.click(screen.getByRole('button', { name: 'Sign out' }))
 
-	return { router, stub }
+	return { assign, stub }
 }
 
 describe('useLogout', () => {
@@ -83,13 +84,15 @@ describe('useLogout', () => {
 	 * Home, not the login page. This app has a public site to fall back to, and a signed-out customer
 	 * reading shop pages is the normal case rather than an error state — bouncing them to a login form
 	 * they did not ask for reads as "something went wrong".
+	 *
+	 * ⚠️ And a full page load, not a router navigation: the urql client is a module singleton holding a
+	 * document cache, and `Me` takes no variables, so only a real load guarantees the next customer to
+	 * sign in on this tab is not handed the previous one's account.
 	 */
-	it('drops the customer on the public home page', async () => {
-		const { router } = await signOut({ Logout: { data: { logout: true } } })
+	it('drops the customer on the public home page, by loading it', async () => {
+		const { assign } = await signOut({ Logout: { data: { logout: true } } })
 
-		await waitFor(() => {
-			expect(router.state.location.pathname).toBe('/')
-		})
+		expect(assign).toHaveBeenCalledExactlyOnceWith('/')
 	})
 
 	/*
@@ -109,12 +112,10 @@ describe('useLogout', () => {
 		expect(getSession().signedIn).toBe(false)
 	})
 
-	it('still navigates home when the mutation failed', async () => {
-		const { router } = await signOut({ Logout: { networkError: 'Failed to fetch' } })
+	it('still leaves for home when the mutation failed', async () => {
+		const { assign } = await signOut({ Logout: { networkError: 'Failed to fetch' } })
 
-		await waitFor(() => {
-			expect(router.state.location.pathname).toBe('/')
-		})
+		expect(assign).toHaveBeenCalledExactlyOnceWith('/')
 	})
 
 	/*
@@ -134,8 +135,9 @@ describe('useLogout', () => {
 	// Clicking twice must not throw, and must not send a second mutation with a token that no longer
 	// exists — the second call is a no-op against an already-empty store.
 	it('survives a second click', async () => {
-		const stub = stubGraphQL({ ...HOME, Logout: { data: { logout: true } } })
+		const stub = stubGraphQL({ Logout: { data: { logout: true } } })
 		await renderWithRouter(<SignOut />, { token: 'abc123', session: CUSTOMER_EMAIL, path: '/login' })
+		stubLocationAssign()
 
 		const button = screen.getByRole('button', { name: 'Sign out' })
 		await userEvent.click(button)

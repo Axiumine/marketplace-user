@@ -9,23 +9,25 @@ import { CLOSE_REFUSED, CloseAccount, CONFIRM_LABEL } from '@/features/account/C
 
 import type { GraphQLReplies } from '../../helpers/graphql'
 import { graphQLError, stubGraphQL } from '../../helpers/graphql'
+import { stubLocationAssign } from '../../helpers/location'
 import { meReply } from '../../helpers/me'
 import { CUSTOMER_EMAIL, renderRoute, renderWithRouter } from '../../helpers/render'
 
 /**
- * The mutation answers, plus what signing out costs: `useLogout` sends `Logout` and then lands on `/`,
- * whose loader asks for these two. All four are stubbed everywhere, because an operation nobody
- * configured throws — which is the point of the double, and would otherwise fail the success tests for a
- * reason that has nothing to do with closing an account.
+ * What signing out costs: `useLogout` sends `Logout` and then leaves the page. It is stubbed everywhere,
+ * because an operation nobody configured throws — which is the point of the double, and would otherwise
+ * fail the success tests for a reason that has nothing to do with closing an account. Home asks for
+ * nothing here: the exit is a `location.assign`, which jsdom cannot follow and a real browser answers with
+ * a new document.
  */
-const AFTER: GraphQLReplies = {
-	Logout: { data: { logout: true } },
-	Companies: { data: { companies: { nodes: [], total: 0 } } },
-	ItemCategories: { data: { itemCategories: [] } }
-}
+const AFTER: GraphQLReplies = { Logout: { data: { logout: true } } }
 
 const ACCEPTED: GraphQLReplies = { ...AFTER, UserDel: { data: { userDel: true } } }
 
+/**
+ * The location stub goes in *after* the render: `renderWithRouter` points jsdom's URL at `path` and then
+ * lets the router read it, and a copy taken before that would freeze the router on the wrong page.
+ */
 const mount = async (replies: GraphQLReplies = ACCEPTED) => {
 	const stub = stubGraphQL(replies)
 	const result = await renderWithRouter(<CloseAccount />, {
@@ -34,7 +36,7 @@ const mount = async (replies: GraphQLReplies = ACCEPTED) => {
 		path: '/account/close'
 	})
 
-	return { ...result, stub, user: userEvent.setup() }
+	return { ...result, stub, assign: stubLocationAssign(), user: userEvent.setup() }
 }
 
 const button = () => screen.getByRole('button', { name: 'Close my account' })
@@ -208,14 +210,16 @@ describe('CloseAccount on success', () => {
 	})
 
 	// Home rather than the login page: this app has a public site to fall back to, and somebody who has
-	// just closed their account is not a visitor to send to a sign-in form.
+	// just closed their account is not a visitor to send to a sign-in form. It is a full page load rather
+	// than a router navigation, for the reason `useLogout` documents: nothing of this session, cached
+	// account data included, may survive into whatever is signed in next on this tab.
 	it('leaves the private area', async () => {
-		const { user, router } = await mount()
+		const { user, assign } = await mount()
 
 		await confirmAndPress(user)
 
 		await waitFor(() => {
-			expect(router.state.location.pathname).toBe('/')
+			expect(assign).toHaveBeenCalledExactlyOnceWith('/')
 		})
 	})
 
@@ -246,6 +250,7 @@ describe('CloseAccount on success', () => {
 		const stub = stubGraphQL({ ...ACCEPTED, ...meReply() })
 		const user = userEvent.setup()
 		await renderRoute('/account/close', { token: 'access-token', session: CUSTOMER_EMAIL })
+		stubLocationAssign()
 
 		await screen.findByRole('button', { name: 'Close my account' })
 		await confirmAndPress(user)
