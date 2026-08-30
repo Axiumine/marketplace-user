@@ -6,13 +6,12 @@
 #
 # ⚠️ This WIPES node_modules before mounting. Do not run it if you have local patches there.
 #
-# ⚠️ This repo is one of the consumers of `@axiumine/marketplace-common`. Since 2026-08-26 that package
-# is published (registry.npmjs.org, 1.0.1, consumers on ^1.0.1 — ADR-037), so `yarn install` puts it back
-# on its own and this script needs nothing from `BEs/marketplace-common/deploy-local.sh`. This comment
-# used to say the package was on no registry and that only the deploy script could restore it; that was
-# true until 2026-08-26. It still holds in one case: if common is carrying an edit no release has
-# shipped, wiping node_modules loses it, and the install restores the released build instead — re-run
-# the deploy script after this one, then.
+# ⚠️ This repo is one of the consumers of `@axiumine/marketplace-common`. That package is published
+# (registry.npmjs.org, 3.0.0, consumers on ^3.0.0 — ADR-037), and since 2026-08-30 publishing is the only
+# way an edit there reaches anybody (ADR-047). So wiping node_modules costs nothing: `yarn install`
+# restores the exact version this repo's yarn.lock names, and there is no hand-placed build to lose.
+# This comment used to say the package was on no registry and that only a local deploy script could
+# restore it; that was true until 2026-08-26, and the script itself is now deleted.
 
 mkdir -p /var/ram/marketplace-user/node_modules
 rm -rf node_modules/*
