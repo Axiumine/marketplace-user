@@ -73,12 +73,12 @@ describe('the privacy notice', () => {
 	 * The list is still exactly two items after the account sections were added: those are prose, and this
 	 * assertion is what keeps a third log file from being quietly listed beside the two the edge configures.
 	 */
-	it('scopes itself to the logs and to an account, and promises nothing else', async () => {
+	it('scopes itself to the logs, to who can see an account and to closing one, and promises nothing else', async () => {
 		await mount()
 
 		expect(
 			screen.getByText(
-				'What the web server records about a visit to this site, what happens to an account when it is closed, and for how long either is kept. This page covers those two things and nothing else; anything more will be added here when it has been decided, rather than described in advance.'
+				'What the web server records about a visit to this site and for how long, who at this platform can see an account and what they can do to it, and what happens to an account when it is closed. This page covers those three things and nothing else; anything more will be added here when it has been decided, rather than described in advance.'
 			)
 		).toBeInTheDocument()
 		expect(statements()).toHaveLength(2)
@@ -198,15 +198,46 @@ describe('the privacy notice on an account', () => {
 		)
 	})
 
-	// The three headings a reader scans before reading a word of it.
-	it('divides itself into the three things it covers', async () => {
+	/*
+	 * ⚠️ Quotations once more, and the pair of them is the whole of E19 §6 question 4: the admin's customers
+	 * table lists every account's email address, and the two levers beside it end sessions and can close the
+	 * account outright. The field list is asserted word for word because it is the disclosure — a matcher
+	 * that only checked the paragraph existed would keep passing while a column was added to that table and
+	 * never mentioned here, which is the one way this section can become false.
+	 */
+	it('says which of your fields an admin sees, and which are not on that screen', async () => {
+		await mount()
+
+		expect(screen.getByText(/Accounts are administered/).textContent).toBe(
+			'Accounts are administered by people who work on this platform. They have one screen for it, and it lists every account: the email address you sign in with, the day you registered, whether you have confirmed that address, and whether the account is suspended together with the reason given for it. Your name and the addresses you save are not on that screen.'
+		)
+	})
+
+	// The consequences a customer can observe — signed out, unable to return — rather than the mutation
+	// names. The last clause is `deletedBy`: an account closed for you is indistinguishable from one you
+	// closed yourself, so the notice is where a reader learns the platform knows which it was.
+	it('says an admin can suspend or close the account, and that the record names them', async () => {
+		await mount()
+
+		expect(screen.getByText(/The same people can suspend/).textContent).toBe(
+			'The same people can suspend an account and can close one. A suspension ends every session it has open at that moment and you cannot sign in again until an admin lifts it; the platform records which admin suspended it and the reason they gave. A closure works the same way and starts the thirty days described below, and what is recorded of it names the admin rather than you.'
+		)
+	})
+
+	// The four headings a reader scans before reading a word of it.
+	it('divides itself into the four things it covers', async () => {
 		await mount()
 
 		expect(
 			within(screen.getByRole('main'))
 				.getAllByRole('heading', { level: 2 })
 				.map((heading) => heading.textContent)
-		).toEqual(['The two log files', 'A registration you have not confirmed', 'Closing an account'])
+		).toEqual([
+			'The two log files',
+			'A registration you have not confirmed',
+			'Who at this platform can see your account',
+			'Closing an account'
+		])
 	})
 })
 
