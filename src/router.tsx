@@ -33,9 +33,27 @@ export interface RouterContext {
  * `typeof document === 'undefined'` is the test rather than `import.meta.env.SSR`, because this module
  * is also loaded by vitest, where the SSR flag is false but the environment is whatever the test asked
  * for. The browser branch is what a jsdom test gets, which is what a test of the private area needs.
+ *
+ * ⚠️ **A lost session ends in a full page load, exactly as the sign-out button does** (see
+ * `src/auth/useLogout.ts`). A router navigation would leave the document cache behind, and the next
+ * customer to sign in inside the same page load could be served the previous one's `Me` — that query
+ * takes no variables, so its cache key is identical across the two sessions. `clearSession` still runs
+ * first: `assign` is asynchronous, and anything rendering between the call and the unload has to see a
+ * signed-out app rather than an identity with no session behind it.
+ *
+ * Home rather than `/login`, for the reason the sign-out button lands there: this app has a public site
+ * to fall back to. It also keeps a future regression in the anonymous-endpoint list from becoming a
+ * loop — `/` renders for a visitor, `/login` under a broken guard need not.
  */
 const createClient = (): Client =>
-	typeof document === 'undefined' ? createSsrClient() : createGraphQLClient({ onSessionLost: clearSession })
+	typeof document === 'undefined'
+		? createSsrClient()
+		: createGraphQLClient({
+				onSessionLost: () => {
+					clearSession()
+					window.location.assign('/')
+				}
+			})
 
 /**
  * ⚠️ Called **per request** during server rendering. Anything constructed in here is per-request state

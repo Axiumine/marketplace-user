@@ -7,6 +7,7 @@ import { getRouter } from '@/router'
 
 import { categoriesReply } from './helpers/catalogue'
 import { graphQLError, stubGraphQL } from './helpers/graphql'
+import { stubLocationAssign } from './helpers/location'
 
 afterEach(() => {
 	vi.unstubAllGlobals()
@@ -86,15 +87,23 @@ describe('the router', () => {
 	 *
 	 * 401 rather than 498: 498 is the one status a refresh can fix, so it goes to `authExchange` and is
 	 * retried. The three terminal ones arrive on ordinary domain operations and land in the `mapExchange`.
+	 *
+	 * ⚠️ And it ends with a **page load**, home, not a router navigation. The client is built once per page
+	 * load and its document cache is keyed by query and variables alone — `Me` takes none — so a session
+	 * that ended in memory could still be read back by whoever signs in next on the same tab. The session
+	 * is cleared first all the same: `assign` is asynchronous, and whatever renders before the unload has
+	 * to see a signed-out app.
 	 */
-	it('ends the session in the browser when a query says it is gone', async () => {
+	it('ends the session in the browser when a query says it is gone, and reloads onto the public site', async () => {
 		stubGraphQL({ ItemCategories: { errors: [graphQLError('Unauthorized')], status: HTTP.unauthorized } })
 		setSession('customer@marketplace.it')
+		const assign = stubLocationAssign()
 
 		const { gql } = getRouter().options.context
 		await gql.query(ItemCategoriesDocument, {}).toPromise()
 
 		expect(getSession()).toEqual({ signedIn: false, email: null })
+		expect(assign).toHaveBeenCalledExactlyOnceWith('/')
 	})
 
 	it('builds the server client when there is no document', async () => {
