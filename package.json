@@ -33,7 +33,7 @@
 		"prepare": "yarn run hooks:install"
 	},
 	"dependencies": {
-		"@axiumine/marketplace-common": "^2.0.0",
+		"@axiumine/marketplace-common": "^3.0.0",
 		"@hookform/resolvers": "^5.6.0",
 		"@sentry/react": "^10.69.0",
 		"@tanstack/react-router": "^1.170.18",
