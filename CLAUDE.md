@@ -61,12 +61,16 @@ carries both. ⚠️ **No sign-in link on the seller page** — `/login` here au
 would refuse a shop owner with the same message a wrong password gets. The shop area is a separate app
 on an origin this repo is not configured with, and the activation mail is what carries the link to it.
 
-⚠️ **`/privacy` is the public half of a configuration in another repo.** It states the retention the edge
-keeps — 14 days, `shred` on removal — and `marketplace-nginx/logrotate.d/nginx` in the **parent workspace**
-is what enforces it. Changing the period there without changing the page turns the page into a false
-statement, so the two move together and the configuration wins. It is the one non-catalogue page that is
-**not** `noIndex` and is not disallowed in `robots.txt`: a notice a data subject cannot find is not a
-notice. Its only entry point is the footer, which the root route renders on every page.
+⚠️ **`/privacy` is the public half of code that lives in other repos, and none of it is here.** It states
+the retention the edge keeps — 14 days, `shred` on removal, enforced by `marketplace-nginx/logrotate.d/nginx`
+in the **parent workspace** — the thirty days `retentionSweep.mts` gives a closed account, and what an admin
+can see of a customer and do to one: the `usersActiveTbl` columns, `userUpdateStatus` and `userDel` on
+`marketplace-dev-admin-authenticated-resource`. Changing any of those without changing the page turns the
+page into a false statement, so they move together and the code wins. The tests quote the page word for
+word for that reason — a matcher that only checked a paragraph existed would keep passing while a column
+was added to the admin's table and never disclosed here. It is the one non-catalogue page that is **not**
+`noIndex` and is not disallowed in `robots.txt`: a notice a data subject cannot find is not a notice. Its
+only entry point is the footer, which the root route renders on every page.
 
 ⚠️ **The reset credential lives in the URL fragment, and the confirm route is why.** The mail sends
 `…/reset-password/confirm#/<address>/<hash>` — built by `RESET_PATH_USER` in

@@ -3,19 +3,25 @@ import { headFor } from '@/lib/seo'
 /**
  * `/privacy` — the platform's privacy notice, and deliberately the smallest one that is true.
  *
- * ⚠️ **This page is the public half of two configurations, not a compliance document.** The edge keeps two
- * log files that record something about a visitor, and the platform owner's answer of 2026-08-11 was that
- * their *lifetime* is the control rather than their content — 14 days, shredded on removal. The account
- * database keeps a closed account for thirty days and then overwrites it in place
+ * ⚠️ **This page is the public half of three things the platform does, not a compliance document.**
+ *
+ * The edge keeps two log files that record something about a visitor, and the platform owner's answer of
+ * 2026-08-11 was that their *lifetime* is the control rather than their content — 14 days, shredded on
+ * removal. The account database keeps a closed account for thirty days and then overwrites it in place
  * (ADR-041 in the parent workspace), and inside those thirty days a confirmed registration at the same
- * address hands the account back (ADR-046). Both
- * halves have code behind them — `marketplace-nginx/logrotate.d/nginx`, `retentionSweep.mts` and
- * `confirmRegistration.mts` — and this page states what they do. A page promising a period the
- * configuration does not keep is a false statement, so they are edited together or not at all: the code is
- * the source of truth and this text follows it, never the other way round.
+ * address hands the account back (ADR-046). And an admin reaches into a customer account from one table
+ * and two mutations on `marketplace-dev-admin-authenticated-resource` — read, suspend, close — which is
+ * stated here on the platform owner's ruling of 2026-08-30: a screen listing every account's email address
+ * is a disclosure whether or not anybody writes it down.
+ *
+ * All three have code behind them — `marketplace-nginx/logrotate.d/nginx`, `retentionSweep.mts`,
+ * `confirmRegistration.mts`, `usersActiveTbl` with `userUpdateStatus` and `userDel` — and this page states
+ * what they do. A page promising a period the configuration does not keep is a false statement, so they are
+ * edited together or not at all: the code is the source of truth and this text follows it, never the other
+ * way round.
  *
  * ⚠️ **Nothing here describes a process nobody operates.** No lawful basis, no controller identity, no
- * access or erasure flow, no retention period for anything the three sections below do not name: none of
+ * access or erasure flow, no retention period for anything the four sections below do not name: none of
  * those has a decision behind it yet (`RISK_REGISTER` R25, `phase1/NFR.md` open question 1), and a notice
  * that describes an imaginary procedure is worse than a short one that describes a real one. Add a
  * paragraph here when a decision exists, not when a template suggests one.
@@ -40,9 +46,9 @@ const Privacy = () => (
 	<div className="mx-auto max-w-3xl px-4 py-8">
 		<h1 className="text-3xl font-semibold text-palette-bg">Privacy</h1>
 		<p className="mt-2 text-slate-600">
-			What the web server records about a visit to this site, what happens to an account when it is closed, and for how long
-			either is kept. This page covers those two things and nothing else; anything more will be added here when it has been
-			decided, rather than described in advance.
+			What the web server records about a visit to this site and for how long, who at this platform can see an account and what
+			they can do to it, and what happens to an account when it is closed. This page covers those three things and nothing else;
+			anything more will be added here when it has been decided, rather than described in advance.
 		</p>
 
 		<h2 className="mt-8 text-xl font-semibold text-palette-bg">The two log files</h2>
@@ -81,6 +87,43 @@ const Privacy = () => (
 			Filling in the registration form does not create an account. What it creates is a temporary record holding what you typed,
 			and that record <strong>expires by itself after three days</strong>. If you never confirm the message we send you, nothing
 			is ever written to the account database and there is nothing left to close: ignoring the mail is the whole of it.
+		</p>
+
+		<h2 className="mt-8 text-xl font-semibold text-palette-bg">Who at this platform can see your account</h2>
+
+		{/*
+		 * ⚠️ The disclosure this section exists for, and the reason it is a *list* of fields rather than a
+		 * reassurance: `GraphQLUserActiveTbl` hands the admin `login.email` in the clear — deterministically
+		 * encrypted, so the driver decrypts it — beside `registeredAt`, `emailVerify.valid`, `disabled`,
+		 * `disabledBy` and `disabledReason`. Naming them is cheap and checkable; "we take your privacy
+		 * seriously" is neither.
+		 *
+		 * The last sentence is about that screen, not about what the collection holds: `personalData` is on
+		 * the document and no admin surface reads it. Phrasing it as an impossibility would be a promise
+		 * this repo cannot keep — the notice says what the screen shows, which is what a reader can hold
+		 * anyone to.
+		 */}
+		<p className="mt-2 text-slate-600">
+			Accounts are administered by people who work on this platform. They have one screen for it, and it lists every account: the
+			email address you sign in with, the day you registered, whether you have confirmed that address, and whether the account is
+			suspended together with the reason given for it. Your name and the addresses you save are not on that screen.
+		</p>
+
+		{/*
+		 * The two levers, said as consequences rather than as mutation names. Suspension revokes on the way
+		 * in and not on the way out (`userUpdateStatus` calls `endEveryUserSession` only when `disabled` is
+		 * true), and a closure revokes unconditionally — a customer reading this needs the part they can
+		 * observe, which is being signed out and unable to return.
+		 *
+		 * ⚠️ "Names the admin rather than you" is `deletedBy` (ADR-044, ADR-048), and it is the one thing a
+		 * data subject cannot see anywhere else: an account closed *for* them looks identical from outside
+		 * to one they closed themselves, and the platform is the only party that knows which it was.
+		 */}
+		<p className="mt-4 text-slate-600">
+			The same people can suspend an account and can close one. A suspension ends every session it has open at that moment and
+			you cannot sign in again until an admin lifts it; the platform records which admin suspended it and the reason they gave. A
+			closure works the same way and starts the thirty days described below, and what is recorded of it names the admin rather
+			than you.
 		</p>
 
 		<h2 className="mt-8 text-xl font-semibold text-palette-bg">Closing an account</h2>

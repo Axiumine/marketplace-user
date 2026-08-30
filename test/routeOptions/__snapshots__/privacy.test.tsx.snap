@@ -16,7 +16,7 @@ exports[`the privacy notice snapshot > renders 1`] = `
     <p
       class="mt-2 text-slate-600"
     >
-      What the web server records about a visit to this site, what happens to an account when it is closed, and for how long either is kept. This page covers those two things and nothing else; anything more will be added here when it has been decided, rather than described in advance.
+      What the web server records about a visit to this site and for how long, who at this platform can see an account and what they can do to it, and what happens to an account when it is closed. This page covers those three things and nothing else; anything more will be added here when it has been decided, rather than described in advance.
     </p>
     <h2
       class="mt-8 text-xl font-semibold text-palette-bg"
@@ -63,6 +63,21 @@ exports[`the privacy notice snapshot > renders 1`] = `
         expires by itself after three days
       </strong>
       . If you never confirm the message we send you, nothing is ever written to the account database and there is nothing left to close: ignoring the mail is the whole of it.
+    </p>
+    <h2
+      class="mt-8 text-xl font-semibold text-palette-bg"
+    >
+      Who at this platform can see your account
+    </h2>
+    <p
+      class="mt-2 text-slate-600"
+    >
+      Accounts are administered by people who work on this platform. They have one screen for it, and it lists every account: the email address you sign in with, the day you registered, whether you have confirmed that address, and whether the account is suspended together with the reason given for it. Your name and the addresses you save are not on that screen.
+    </p>
+    <p
+      class="mt-4 text-slate-600"
+    >
+      The same people can suspend an account and can close one. A suspension ends every session it has open at that moment and you cannot sign in again until an admin lifts it; the platform records which admin suspended it and the reason they gave. A closure works the same way and starts the thirty days described below, and what is recorded of it names the admin rather than you.
     </p>
     <h2
       class="mt-8 text-xl font-semibold text-palette-bg"
