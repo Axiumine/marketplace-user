@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run the full Qodana Ultimate scan set for the operator SPA, with QODANA_TOKEN taken
+# Run the full Qodana Ultimate scan set for the admin SPA, with QODANA_TOKEN taken
 # from the process env or, failing that, from .env (the Qodana CLI reads process env,
 # never the file). The token is exported into the process env and is never printed.
 #

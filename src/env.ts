@@ -13,7 +13,7 @@
  * `src/api/ssr.ts`, which reads `process.env` and is never bundled for the browser.
  *
  * ⚠️ The three authenticated paths are the **User** tier's — 4031, 4032, and the shared logout on 4030.
- * They are different services from the shop-owner and operator apps', backed by a different collection
+ * They are different services from the shop-owner and admin apps', backed by a different collection
  * and a different session tier. Since the Phase 0 tier fix, pointing this app at another tier's path
  * fails closed with a 403 rather than quietly succeeding.
  */

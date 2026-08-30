@@ -26,7 +26,7 @@ import type { RouterContext } from '@/router'
  * second, indexable URL for the same content, mintable in unlimited quantity.
  */
 
-/** A category with no items yet is a real page, not a 404 — the operator created it on purpose. */
+/** A category with no items yet is a real page, not a 404 — the admin created it on purpose. */
 export interface CategoryLoaderResult {
 	readonly category: FlatCategory
 	/**
@@ -89,7 +89,7 @@ export const loadCategory = async ({
 		{ name: category.name, path: basePath }
 	]
 
-	// Sorted here rather than by the resolver: `position` is the operator's ordering and ties are broken
+	// Sorted here rather than by the resolver: `position` is the admin's ordering and ties are broken
 	// by name with the same `en-GB` collator `nestCategories` uses, so both navigations agree.
 	const children = tree.itemCategories
 		.filter((candidate) => candidate.idParent === category._id)

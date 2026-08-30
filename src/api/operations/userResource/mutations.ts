@@ -83,3 +83,22 @@ export const UserUpdatePwdDocument = graphql(`
 		userUpdatePwd(passwordOld: $passwordOld, passwordNew: $passwordNew)
 	}
 `)
+
+/**
+ * Closes the signed-in customer's own account.
+ *
+ * ⚠️ **No variables, and the absence is the security property** — the account it closes is the one the
+ * Redis session behind the access token names. An `_id` here would ask the backend to accept from a
+ * browser the one thing the session already proves, which is the rule the header of this file states for
+ * every write on this tier.
+ *
+ * ⚠️ **Sent with `CTX_USER_RESOURCE`, not `CTX_ACCOUNT_WRITE`** — the one write in this file that is not.
+ * `additionalTypenames: ['GraphQLUserMe']` exists to make `AccountGate` re-read the account after a
+ * change; there is no account left to re-read after this one, and the refetch it would trigger races the
+ * sign-out that follows and answers 401. What comes after the `true` is a logout, not an invalidation.
+ */
+export const UserDelDocument = graphql(`
+	mutation UserDel {
+		userDel
+	}
+`)

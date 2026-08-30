@@ -18,6 +18,7 @@ import { Route as SearchRouteImport } from './routes/search'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AccountIndexRouteImport } from './routes/account.index'
 import { Route as AccountAddressesRouteImport } from './routes/account.addresses'
+import { Route as AccountCloseRouteImport } from './routes/account.close'
 import { Route as AccountPasswordRouteImport } from './routes/account.password'
 import { Route as RegisterIndexRouteImport } from './routes/register.index'
 import { Route as RegisterSellerRouteImport } from './routes/register.seller'
@@ -74,6 +75,11 @@ const AccountIndexRoute = AccountIndexRouteImport.update({
 const AccountAddressesRoute = AccountAddressesRouteImport.update({
   id: '/addresses',
   path: '/addresses',
+  getParentRoute: () => AccountRoute,
+} as any)
+const AccountCloseRoute = AccountCloseRouteImport.update({
+  id: '/close',
+  path: '/close',
   getParentRoute: () => AccountRoute,
 } as any)
 const AccountPasswordRoute = AccountPasswordRouteImport.update({
@@ -146,6 +152,7 @@ export interface FileRoutesByFullPath {
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/account/addresses': typeof AccountAddressesRoute
+  '/account/close': typeof AccountCloseRoute
   '/account/password': typeof AccountPasswordRoute
   '/register/seller': typeof RegisterSellerRoute
   '/reset-password/confirm': typeof ResetPasswordConfirmRoute
@@ -168,6 +175,7 @@ export interface FileRoutesByTo {
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/account/addresses': typeof AccountAddressesRoute
+  '/account/close': typeof AccountCloseRoute
   '/account/password': typeof AccountPasswordRoute
   '/register/seller': typeof RegisterSellerRoute
   '/reset-password/confirm': typeof ResetPasswordConfirmRoute
@@ -192,6 +200,7 @@ export interface FileRoutesById {
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/account/addresses': typeof AccountAddressesRoute
+  '/account/close': typeof AccountCloseRoute
   '/account/password': typeof AccountPasswordRoute
   '/register/seller': typeof RegisterSellerRoute
   '/reset-password/confirm': typeof ResetPasswordConfirmRoute
@@ -217,6 +226,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/sitemap.xml'
     | '/account/addresses'
+    | '/account/close'
     | '/account/password'
     | '/register/seller'
     | '/reset-password/confirm'
@@ -239,6 +249,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/sitemap.xml'
     | '/account/addresses'
+    | '/account/close'
     | '/account/password'
     | '/register/seller'
     | '/reset-password/confirm'
@@ -262,6 +273,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/sitemap.xml'
     | '/account/addresses'
+    | '/account/close'
     | '/account/password'
     | '/register/seller'
     | '/reset-password/confirm'
@@ -363,6 +375,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountAddressesRouteImport
       parentRoute: typeof AccountRoute
     }
+    '/account/close': {
+      id: '/account/close'
+      path: '/close'
+      fullPath: '/account/close'
+      preLoaderRoute: typeof AccountCloseRouteImport
+      parentRoute: typeof AccountRoute
+    }
     '/account/password': {
       id: '/account/password'
       path: '/password'
@@ -452,12 +471,14 @@ declare module '@tanstack/react-router' {
 
 interface AccountRouteChildren {
   AccountAddressesRoute: typeof AccountAddressesRoute
+  AccountCloseRoute: typeof AccountCloseRoute
   AccountPasswordRoute: typeof AccountPasswordRoute
   AccountIndexRoute: typeof AccountIndexRoute
 }
 
 const AccountRouteChildren: AccountRouteChildren = {
   AccountAddressesRoute: AccountAddressesRoute,
+  AccountCloseRoute: AccountCloseRoute,
   AccountPasswordRoute: AccountPasswordRoute,
   AccountIndexRoute: AccountIndexRoute,
 }

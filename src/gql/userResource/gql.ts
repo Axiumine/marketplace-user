@@ -20,6 +20,7 @@ type Documents = {
     "\n\tmutation UserDefaultAddressSet($_id: ID!) {\n\t\tuserDefaultAddressSet(_id: $_id)\n\t}\n": typeof types.UserDefaultAddressSetDocument,
     "\n\tmutation UserPersonalDataUpdate($personalData: GraphQLInputUserPersonalData!) {\n\t\tuserPersonalDataUpdate(personalData: $personalData)\n\t}\n": typeof types.UserPersonalDataUpdateDocument,
     "\n\tmutation UserUpdatePwd($passwordOld: String!, $passwordNew: String!) {\n\t\tuserUpdatePwd(passwordOld: $passwordOld, passwordNew: $passwordNew)\n\t}\n": typeof types.UserUpdatePwdDocument,
+    "\n\tmutation UserDel {\n\t\tuserDel\n\t}\n": typeof types.UserDelDocument,
     "\n\tquery Me {\n\t\tme {\n\t\t\t_id\n\t\t\temail\n\t\t\tregisteredAt\n\t\t\tdefaultAddress\n\t\t\tpersonalData {\n\t\t\t\tfirstName\n\t\t\t\tlastName\n\t\t\t\tbirth {\n\t\t\t\t\tdate\n\t\t\t\t}\n\t\t\t\tcontacts {\n\t\t\t\t\tmobile\n\t\t\t\t\tlandline\n\t\t\t\t\temail\n\t\t\t\t}\n\t\t\t}\n\t\t\taddresses {\n\t\t\t\t_id\n\t\t\t\tlabel\n\t\t\t\tstreet\n\t\t\t\tpostalCode\n\t\t\t\tcity\n\t\t\t\tprovince\n\t\t\t\tposition {\n\t\t\t\t\ttype\n\t\t\t\t\tcoordinates\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n": typeof types.MeDocument,
 };
 const documents: Documents = {
@@ -29,6 +30,7 @@ const documents: Documents = {
     "\n\tmutation UserDefaultAddressSet($_id: ID!) {\n\t\tuserDefaultAddressSet(_id: $_id)\n\t}\n": types.UserDefaultAddressSetDocument,
     "\n\tmutation UserPersonalDataUpdate($personalData: GraphQLInputUserPersonalData!) {\n\t\tuserPersonalDataUpdate(personalData: $personalData)\n\t}\n": types.UserPersonalDataUpdateDocument,
     "\n\tmutation UserUpdatePwd($passwordOld: String!, $passwordNew: String!) {\n\t\tuserUpdatePwd(passwordOld: $passwordOld, passwordNew: $passwordNew)\n\t}\n": types.UserUpdatePwdDocument,
+    "\n\tmutation UserDel {\n\t\tuserDel\n\t}\n": types.UserDelDocument,
     "\n\tquery Me {\n\t\tme {\n\t\t\t_id\n\t\t\temail\n\t\t\tregisteredAt\n\t\t\tdefaultAddress\n\t\t\tpersonalData {\n\t\t\t\tfirstName\n\t\t\t\tlastName\n\t\t\t\tbirth {\n\t\t\t\t\tdate\n\t\t\t\t}\n\t\t\t\tcontacts {\n\t\t\t\t\tmobile\n\t\t\t\t\tlandline\n\t\t\t\t\temail\n\t\t\t\t}\n\t\t\t}\n\t\t\taddresses {\n\t\t\t\t_id\n\t\t\t\tlabel\n\t\t\t\tstreet\n\t\t\t\tpostalCode\n\t\t\t\tcity\n\t\t\t\tprovince\n\t\t\t\tposition {\n\t\t\t\t\ttype\n\t\t\t\t\tcoordinates\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n": types.MeDocument,
 };
 
@@ -70,6 +72,10 @@ export function graphql(source: "\n\tmutation UserPersonalDataUpdate($personalDa
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n\tmutation UserUpdatePwd($passwordOld: String!, $passwordNew: String!) {\n\t\tuserUpdatePwd(passwordOld: $passwordOld, passwordNew: $passwordNew)\n\t}\n"): (typeof documents)["\n\tmutation UserUpdatePwd($passwordOld: String!, $passwordNew: String!) {\n\t\tuserUpdatePwd(passwordOld: $passwordOld, passwordNew: $passwordNew)\n\t}\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n\tmutation UserDel {\n\t\tuserDel\n\t}\n"): (typeof documents)["\n\tmutation UserDel {\n\t\tuserDel\n\t}\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

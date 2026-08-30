@@ -1,6 +1,6 @@
 # Nominatim — on-premises geocoder
 
-Free, open source, self-hosted. Replaces `nominatim.openstreetmap.org`, which the two existing operator panels
+Free, open source, self-hosted. Replaces `nominatim.openstreetmap.org`, which the two existing admin panels
 call today and which **cannot** be used by the customer app.
 
 ## Why this is not optional
@@ -17,7 +17,7 @@ that is a hard rule, not advice:
 The consequence of ignoring it is a block at the OSMF edge, not a slow response — and the block lands on the
 whole platform, including the two internal panels that were using it legitimately.
 
-Self-hosting removes the limit entirely, removes the third-party data leak (today every address an operator
+Self-hosting removes the limit entirely, removes the third-party data leak (today every address an admin
 types is sent to a server we do not run), and removes the network hop: a local query answers in single-digit
 milliseconds instead of 200–800 ms.
 
@@ -180,7 +180,7 @@ Three things it does that matter:
 3. **A rate limit anyway.** Not because Nominatim has a policy any more, but because a client with a broken
    debounce would otherwise saturate a database that is also serving everyone else.
 
-The operator and shop-owner panels reach the same instance through their own vhosts; add an identical
+The admin and shop-owner panels reach the same instance through their own vhosts; add an identical
 `location /geocode/` block to each. In development, Vite proxies it — see below.
 
 ## Repointing the two existing apps

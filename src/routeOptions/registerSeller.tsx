@@ -13,7 +13,7 @@ import { headFor } from '@/lib/seo'
  * pages a person chooses between, and the copy on each has to say plainly who it is for.
  *
  * `noIndex` for the reasons `/register` carries it — a registration form that ranks is one bots find —
- * and for one more: this page is an application to trade here, and the queue behind it is an operator's
+ * and for one more: this page is an application to trade here, and the queue behind it is an admin's
  * working list rather than an audience to grow.
  */
 const head = () =>

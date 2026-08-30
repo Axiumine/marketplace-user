@@ -85,8 +85,8 @@ describe('the category route', () => {
 		)
 	})
 
-	// A category the operator created and nobody has filled yet is a real page, not a 404 — it exists on
-	// purpose, and it is the URL the operator will link to once there is something in it.
+	// A category the admin created and nobody has filled yet is a real page, not a 404 — it exists on
+	// purpose, and it is the URL the admin will link to once there is something in it.
 	it('renders an empty category rather than 404ing it', async () => {
 		await mount('/category/apparel', itemsReply([]))
 
@@ -116,7 +116,7 @@ describe('the category route', () => {
 		)
 	})
 
-	// Ordered by the operator's `position`, ties broken by name with the same `en-GB` collator the
+	// Ordered by the admin's `position`, ties broken by name with the same `en-GB` collator the
 	// navigation uses, so the two orderings can never disagree.
 	it('orders the subcategories by position, then by name', async () => {
 		await mount('/category/apparel', itemsReply([]), [

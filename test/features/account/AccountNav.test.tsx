@@ -25,12 +25,25 @@ const mount = async (path = '/account') => {
 }
 
 describe('AccountNav links', () => {
-	it('links to the three account screens', async () => {
+	it('links to the four account screens', async () => {
 		await mount()
 
 		expect(screen.getByRole('link', { name: 'Profile' })).toHaveAttribute('href', '/account')
 		expect(screen.getByRole('link', { name: 'Addresses' })).toHaveAttribute('href', '/account/addresses')
 		expect(screen.getByRole('link', { name: 'Password' })).toHaveAttribute('href', '/account/password')
+		expect(screen.getByRole('link', { name: 'Close account' })).toHaveAttribute('href', '/account/close')
+	})
+
+	/*
+	 * ⚠️ Closing an account is reached by a plain link, styled like its three neighbours. The screen behind
+	 * it is where the consequences are stated and where the tick lives; a red tab here would make the
+	 * *route* look like the destructive act, and somebody who only wants to read what closing does should be
+	 * able to walk in and back out again.
+	 */
+	it('does not dress the close link as the destructive act', async () => {
+		await mount()
+
+		expect(screen.getByRole('link', { name: 'Close account' })).not.toHaveClass('bg-app-error')
 	})
 
 	it('is a labelled landmark of its own', async () => {
@@ -68,10 +81,10 @@ describe('AccountNav links', () => {
 	})
 
 	/*
-	 * ⚠️ All three links are checked, not only the first, and the *colours* are what is checked. Every one
+	 * ⚠️ All four links are checked, not only the first, and the *colours* are what is checked. Every one
 	 * carries its own `activeProps`, and `aria-current` is the router's doing — it appears on the current
 	 * link whatever `activeProps` holds. So a link that lost its active styling still satisfies the two
-	 * tests above while rendering identically to its neighbours: three grey tabs, and nothing saying which
+	 * tests above while rendering identically to its neighbours: four grey tabs, and nothing saying which
 	 * screen the customer is on.
 	 *
 	 * The layout utilities are asserted alongside them because the active class repeats them rather than
@@ -83,7 +96,8 @@ describe('AccountNav links', () => {
 	it.each([
 		['Profile', '/account'],
 		['Addresses', '/account/addresses'],
-		['Password', '/account/password']
+		['Password', '/account/password'],
+		['Close account', '/account/close']
 	])('paints %s as the current screen while standing on it', async (name, path) => {
 		await mount(path)
 
@@ -93,11 +107,12 @@ describe('AccountNav links', () => {
 		expect(active).toHaveClass('rounded-box', 'px-3', 'py-2', 'text-sm')
 	})
 
-	it('leaves the other two links unpainted', async () => {
+	it('leaves the other three links unpainted', async () => {
 		await mount('/account/addresses')
 
 		expect(screen.getByRole('link', { name: 'Profile' })).not.toHaveClass('bg-palette-bg')
 		expect(screen.getByRole('link', { name: 'Password' })).not.toHaveClass('bg-palette-bg')
+		expect(screen.getByRole('link', { name: 'Close account' })).not.toHaveClass('bg-palette-bg')
 	})
 
 	it('matches the snapshot', async () => {
@@ -146,10 +161,11 @@ describe('AccountNav sign out', () => {
 
 	/*
 	 * ⚠️ `ml-auto` is asserted rather than left as decoration: it is the whole of what keeps sign-out at the
-	 * far end of the bar. Flush against "Password" — the arrangement the class is the only thing preventing
-	 * — it is one mis-tap from the link beside it, and the mis-tap ends the session.
+	 * far end of the bar. Flush against "Close account" — the arrangement the class is the only thing
+	 * preventing — it is one mis-tap from the link beside it, and that link leads to the screen that ends
+	 * the account rather than only the session.
 	 *
-	 * The rest of `LINK` comes with it, so sign-out is the same height as the three links it sits in a row
+	 * The rest of `LINK` comes with it, so sign-out is the same height as the four links it sits in a row
 	 * with, and `underline` is what says it does something rather than being a label.
 	 */
 	it('sits apart from the links, and reads as an action', async () => {

@@ -38,7 +38,7 @@ describe('nestCategories', () => {
 	})
 
 	/*
-	 * The operator UI does not force distinct positions, and Mongo's answer order for two equal ones is
+	 * The admin UI does not force distinct positions, and Mongo's answer order for two equal ones is
 	 * not stable between requests — so without a tiebreak the navigation reshuffles itself at random.
 	 * `en-GB` rather than the default collation because the default sorts every accented letter after
 	 * `z`: `Àprons` would come after `Zippers`.

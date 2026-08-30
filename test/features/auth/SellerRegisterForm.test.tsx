@@ -40,7 +40,7 @@ const harness = { mount, fillIn, submit }
 describe('SellerRegisterForm fields', () => {
 	/*
 	 * Email and password, and deliberately not one field more. The company, the trading name, the VAT
-	 * number and the catalogue are all collected in the shop-owner app after an operator has approved the
+	 * number and the catalogue are all collected in the shop-owner app after an admin has approved the
 	 * account — asking for them here would collect a business's registration details against an address
 	 * nobody has confirmed, for an application that may be refused.
 	 */
@@ -147,7 +147,7 @@ describe('SellerRegisterForm success screen', () => {
 	 * confirm an address and then to a sign-in that fails with no explanation, which reads as a broken
 	 * registration rather than as a queue.
 	 */
-	it('says the account waits for an operator after the address is confirmed', async () => {
+	it('says the account waits for an admin after the address is confirmed', async () => {
 		const { user } = mount()
 
 		await fillIn(user)

@@ -42,6 +42,16 @@ export const AccountNav = () => {
 				Password
 			</Link>
 
+			{/*
+			 * Last of the four, and deliberately not styled as a danger control here. The screen behind it is
+			 * where the consequences are stated and where the tick lives; a red link in the navigation would
+			 * make the *route* look like the destructive act, and a customer who wants to read what closing
+			 * does should be able to walk in and back out again.
+			 */}
+			<Link to="/account/close" className={LINK} activeProps={{ className: LINK_ACTIVE }}>
+				Close account
+			</Link>
+
 			<button type="button" onClick={() => void logout()} className={`${LINK} ml-auto underline`}>
 				Sign out
 			</button>

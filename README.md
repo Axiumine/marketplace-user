@@ -201,7 +201,7 @@ clustering, no client-side restyling, and visible tile seams while panning.
 **Rejected: the static OSM `export/embed.html` iframe** that `marketplace-admin` and
 `marketplace-shopowner` both use today. It shows exactly one pin and cannot be interacted with. Correct
 for "here is the address you just typed", useless for "here are the shops near you" — and it inherits the
-tile-policy problem above, which matters here where the two panels are used by a handful of operators and
+tile-policy problem above, which matters here where the two panels are used by a handful of admins and
 this app is not. The customer's address form therefore reuses this stack rather than copying the iframe:
 `PositionPicker` is the same MapLibre and the same PMTiles archive with one draggable marker, which the
 iframe could not have offered — see §3.5's brand-new-building case for why dragging is the point.
@@ -236,7 +236,7 @@ Setup instructions are in [`docs/nominatim/`](docs/nominatim/README.md).
   and placed by hand, and `position` stays optional so one that is never placed still saves.
 
 **Rejected: staying on the public Nominatim** (what both existing apps do today). Fine for two internal
-panels used by a handful of operators. Against the published usage policy for a public customer-facing
+panels used by a handful of admins. Against the published usage policy for a public customer-facing
 site, and it would be blocked.
 
 **Rejected: Photon.** Lighter and nicer for autocomplete, but it is a search layer over the same data
@@ -452,7 +452,7 @@ index), `geo.js` (`address()`, `position()`, `COORDINATE_TUPLE`) and `shopOwner.
 | `personalData` is optional | Registration is email + password + repeat. Everything else is filled in after the email is confirmed. `shopOwner` requires it because a shop owner is onboarded, not self-registered. |
 | `addresses` is an array, capped at six | A customer has several delivery addresses; a shop owner has one. `maxItems: 6`, because an unbounded array sits under a 16 MB document ceiling and every read of the account loads the whole of it. The account area stops offering "Add an address" at six and says why; the refusal itself is the validator's, and the service turns it into a 400 naming the limit. |
 | `defaultAddress` exists | §4.1. |
-| no `waitApprov` | Customers self-serve. There is no operator approval step, and a field that is always the same value is a field that will eventually be read as if it meant something. |
+| no `waitApprov` | Customers self-serve. There is no admin approval step, and a field that is always the same value is a field that will eventually be read as if it meant something. |
 
 ### 4.3 `item`
 

@@ -89,7 +89,7 @@ describe('the authentication pages', () => {
 	/*
 	 * The seller's own page. The intro says what the form does *not* do, because "create an account" is what
 	 * a seller expects it to do and is precisely what it does not: the shop, the company and the catalogue
-	 * come afterwards, in another app, and only once an operator has cleared `waitApprov`.
+	 * come afterwards, in another app, and only once an admin has cleared `waitApprov`.
 	 */
 	it('says an application is not yet a shop', async () => {
 		await mount('/register/seller')
@@ -214,7 +214,7 @@ describe('the authentication heads', () => {
 		/*
 		 * ⚠️ `noindex` on the seller's page is a choice against the obvious one. "Sell on Marketplace" is
 		 * exactly the query a prospective shop owner types, and this is the page that answers it — but what
-		 * is behind the form is an operator's approval queue, not a signup that completes itself, and a
+		 * is behind the form is an admin's approval queue, not a signup that completes itself, and a
 		 * ranking application form fills that queue with whatever finds it. Sellers are recruited, and the
 		 * page they are sent to is this one.
 		 */

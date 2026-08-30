@@ -2,7 +2,7 @@
 # `/user-authenticated-resource`). A copy of what the resolvers build, not the contract — see the header
 # of `public-resource.graphql`.
 #
-# The whole private area is this one query and these six mutations.
+# The whole private area is this one query and these seven mutations.
 #
 # ⚠️ **No mutation here takes a user id, and none ever should.** The resolvers read the owner from
 # `ctx.state.user._id` — the Redis session behind the access token. Adding an id to a variable set would
@@ -83,6 +83,24 @@ type MutationsApi {
 
 	userPersonalDataUpdate(personalData: GraphQLInputUserPersonalData!): Boolean!
 	userUpdatePwd(passwordOld: String!, passwordNew: String!): Boolean!
+
+	"""
+	Closes the signed-in customer's own account. Takes no id, like every other mutation here, and
+	here the absence matters most: an id accepted from a browser would make this 'close any
+	customer's account'.
+
+	Stamps `deleted` and nothing else. `disabled` is untouched in either direction, so closing
+	neither lifts a standing suspension nor hands one back to an admin, and no `deletedBy` is
+	written: its absence is what says the holder closed it themselves.
+
+	Every session ends once the write lands — the caller's included, so the next request on this
+	token is refused. The document is never removed (ADR-041); the personal fields are overwritten
+	in place at day 30.
+
+	Undoable for thirty days: registering again at the same address inside the window and confirming
+	the message restores this same document, `_id` and all (ADR-046).
+	"""
+	userDel: Boolean!
 }
 
 type OnlyIdType {

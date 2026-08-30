@@ -3,7 +3,7 @@
 # workspace is written in plaintext to the session transcript and cannot be un-sent.
 
 # Dev server port. Read by vite.config.ts via `loadEnv`, so this file is the single place the port
-# is written — the same invariant every backend service holds. 3043 is the operator app and 3044 the
+# is written — the same invariant every backend service holds. 3043 is the admin app and 3044 the
 # shop-owner one; this is the third and last frontend.
 PORT=3045
 
