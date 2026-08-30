@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Link, useNavigate } from '@tanstack/react-router'
+import { Link } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useMutation } from 'urql'
@@ -30,6 +30,15 @@ import { useTurnstileToken } from './useTurnstileToken'
  * so the copy here must not try to be more helpful than the answer it received. The one concession is
  * the resend link below, which is offered unconditionally rather than only after a verification
  * failure: it is useless to anyone who is not waiting on an activation mail, and it reveals nothing.
+ *
+ * ⚠️ **A successful sign-in leaves the page — `window.location.assign`, never the router**
+ * ([`ADR-051`](../../../../docs/devprotocol/phase3/adr/ADR-051-a-session-exit-is-a-page-load.md)). This is
+ * the entrance half of the rule the sign-out button obeys, and it is needed here because this app links to
+ * `/login` from the header and the footer: a customer who is already signed in can reach this form without
+ * a page load. The urql client is a module singleton and its document cache keys a result by the query and
+ * its variables and by nothing that names a session, so `Me` — which takes no variables — would answer the
+ * second customer with the first one's account. A document load rebuilds the client, the token store and
+ * the session store together, which is what makes that impossible rather than merely unlikely.
  */
 const schema = z.object({
 	email: z.email('Enter a valid email address.'),
@@ -40,9 +49,12 @@ const schema = z.object({
 type Values = z.infer<typeof schema>
 
 export const LoginForm = () => {
-	const navigate = useNavigate()
 	const turnstile = useTurnstileToken()
 	const [failure, setFailure] = useState<string | undefined>(undefined)
+	// Set once and never cleared: the only thing that ends it is the document the `assign` below is
+	// fetching. Without it `isSubmitting` drops back to false the moment this handler returns and the
+	// button goes live again for the length of the load, where a second click buys a second `LoginUser`.
+	const [leaving, setLeaving] = useState(false)
 	const [, login] = useMutation(LoginUserDocument)
 
 	const {
@@ -65,12 +77,16 @@ export const LoginForm = () => {
 			return
 		}
 
-		// Order matters: the token has to be readable before anything navigates, or the first private
-		// query fires without an `Authorization` header and bounces straight back to this page.
+		// ⚠️ Both stores are module state, so the load below rebuilds them empty and neither value reaches
+		// the account page. They are written anyway, for the interval between here and the unload: the
+		// header reads `signedIn`, and leaving it false would show "Sign in" over a form that has just
+		// succeeded. `/account` re-mints the token from the httpOnly refresh cookie, which is the path a
+		// reload of the private area has always taken.
 		setAccessToken(data.loginUser.accessToken)
 		setSession(values.email)
 
-		await navigate({ to: '/account' })
+		setLeaving(true)
+		window.location.assign('/account')
 	})
 
 	return (
@@ -94,7 +110,7 @@ export const LoginForm = () => {
 
 			<FormStatus tone="error" message={failure} />
 
-			<SubmitButton busy={isSubmitting} busyLabel="Signing in…">
+			<SubmitButton busy={isSubmitting || leaving} busyLabel="Signing in…">
 				Sign in
 			</SubmitButton>
 

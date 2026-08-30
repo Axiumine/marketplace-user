@@ -9,6 +9,7 @@ import { LoginForm } from '@/features/auth/LoginForm'
 
 import type { GraphQLReplies } from '../../helpers/graphql'
 import { graphQLError, stubGraphQL } from '../../helpers/graphql'
+import { stubLocationAssign } from '../../helpers/location'
 import { CUSTOMER_EMAIL, renderWithRouter } from '../../helpers/render'
 
 const PASSWORD = 'a passphrase that is long enough'
@@ -23,11 +24,16 @@ const REFUSED: GraphQLReplies = {
 	LoginUser: { errors: [graphQLError('Wrong credentials', undefined, 403)], status: 403 }
 }
 
+/*
+ * ⚠️ The location is stubbed **after** the render, never before. `renderWithRouter` moves jsdom's URL to
+ * `/login` and then lets the browser history read `window.location`; a stub installed first would freeze
+ * the router on a copy of the wrong location.
+ */
 const mount = async (replies: GraphQLReplies = ACCEPTED) => {
 	const stub = stubGraphQL(replies)
 	const result = await renderWithRouter(<LoginForm />, { path: '/login' })
 
-	return { ...result, stub, user: userEvent.setup() }
+	return { ...result, stub, assign: stubLocationAssign(), user: userEvent.setup() }
 }
 
 const fillIn = async (user: ReturnType<typeof userEvent.setup>, email = CUSTOMER_EMAIL, password = PASSWORD) => {
@@ -176,33 +182,62 @@ describe('LoginForm submission', () => {
 
 describe('LoginForm on success', () => {
 	/*
-	 * ⚠️ Order matters, and this is the assertion that pins it. The token has to be readable before
-	 * anything navigates, or the first private query fires with no `Authorization` header and bounces
-	 * straight back to this page.
+	 * ⚠️ A document load, not a router navigation, and this is the assertion that pins it (ADR-051). The
+	 * header and the footer link to `/login` from every page, so a signed-in customer can reach this form
+	 * without leaving the page — and the urql client is a module singleton whose document cache keys `Me`
+	 * by nothing but the query, which takes no variables. A soft navigation would hand the second customer
+	 * the first one's account. Only a load rebuilds the client.
 	 */
-	it('stores the access token before it navigates', async () => {
-		const { user, router } = await mount()
+	it('leaves the page for the account area', async () => {
+		const { user, assign } = await mount()
 
 		await fillIn(user)
 		await submit(user)
 
 		await waitFor(() => {
-			expect(router.state.location.pathname).toBe('/account')
+			expect(assign).toHaveBeenCalledExactlyOnceWith('/account')
 		})
-		expect(getAccessToken()).toBe('minted-token')
 	})
 
-	// The session store holds the address the customer typed — the mutation answers a token and nothing
-	// else, so there is nowhere else for the header's "Account" link to learn it from.
-	it('records the signed-in address', async () => {
-		const { user } = await mount()
+	/*
+	 * Both stores are module state that the load rebuilds empty, so neither value reaches the account
+	 * page. They are written for the interval before the unload: the header reads `signedIn`, and a form
+	 * that has just succeeded under a "Sign in" link is the frame this prevents.
+	 */
+	it('stores the access token and the signed-in address before it goes', async () => {
+		const { user, assign } = await mount()
 
 		await fillIn(user)
 		await submit(user)
 
 		await waitFor(() => {
-			expect(getSession()).toEqual({ signedIn: true, email: CUSTOMER_EMAIL })
+			expect(assign).toHaveBeenCalled()
 		})
+		expect(getAccessToken()).toBe('minted-token')
+		expect(getSession()).toEqual({ signedIn: true, email: CUSTOMER_EMAIL })
+	})
+
+	/*
+	 * ⚠️ `assign` is asynchronous — the document is still here, and the form with it. `isSubmitting` drops
+	 * back to false the moment the handler returns, so without a state of its own the button would go live
+	 * again for the whole length of the load and a second click would buy a second `LoginUser`.
+	 */
+	it('stays busy while the browser leaves', async () => {
+		const { user, stub, assign } = await mount()
+
+		await fillIn(user)
+		await submit(user)
+
+		await waitFor(() => {
+			expect(assign).toHaveBeenCalled()
+		})
+
+		const button = await screen.findByRole('button', { name: 'Signing in…' })
+
+		expect(button).toBeDisabled()
+
+		await user.click(button)
+		expect(stub.calls.filter((call) => call.operationName === 'LoginUser')).toHaveLength(1)
 	})
 })
 
@@ -228,13 +263,14 @@ describe('LoginForm on refusal', () => {
 	})
 
 	it('stays on the login page', async () => {
-		const { user, router } = await mount(REFUSED)
+		const { user, router, assign } = await mount(REFUSED)
 
 		await fillIn(user)
 		await submit(user)
 
 		await screen.findByRole('alert')
 		expect(router.state.location.pathname).toBe('/login')
+		expect(assign).not.toHaveBeenCalled()
 	})
 
 	// A second attempt clears the first failure before it starts, so a stale "wrong credentials" never
