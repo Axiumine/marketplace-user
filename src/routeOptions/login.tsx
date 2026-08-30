@@ -20,6 +20,13 @@ import { headFor } from '@/lib/seo'
  * module state that only exists in the browser, so a loader cannot see it — and a server that guessed
  * would emit HTML the first client render contradicts. If they are signed in already, the account link
  * in the header is right there.
+ *
+ * ⚠️ What that leaves — a customer reaching this form without a page load, and signing in as somebody
+ * else inside a urql client that still holds the first account's `Me` — is closed in `LoginForm` instead,
+ * by leaving the page on success rather than navigating
+ * ([`ADR-051`](../../../docs/devprotocol/phase3/adr/ADR-051-a-session-exit-is-a-page-load.md)). A guard
+ * here would have to be a redirect the server cannot decide; a load is decided by the browser, after the
+ * only event that can change the answer.
  */
 const head = () =>
 	headFor({
