@@ -48,7 +48,7 @@ names the tests that should have failed, and it costs nobody the machine.
 ⚠️ **`ssr: false` is two routes, and the table above is the corrected one.** It used to list `/login`,
 `/register` and `/reset-password*` as client-only; measured, they are server-rendered and always were —
 `src/routeOptions/login.tsx` says so in its own header. The only `ssr: false` in the repo were
-`src/routeOptions/account.tsx` and, since E12-S26, `src/routeOptions/resetPasswordConfirm.tsx`.
+`src/routeOptions/account.tsx` and `src/routeOptions/resetPasswordConfirm.tsx`.
 
 ⚠️ **Two registrations live here, writing two different collections.** `/register` → `userRegister` →
 `user`; `/register/seller` → `shopOwnerRegister` → `shopOwner`, `waitApprov: true`. Both are on

@@ -8,7 +8,7 @@ import { clearAccessToken, getAccessToken, setAccessToken } from '@/api/tokenSto
 
 /**
  * How many times a `refresh` refused with `REFRESH_RACE_RETRY` is sent again before the session is treated
- * as lost (E14-S04). Retries, not attempts: the first send is not one, so this is three calls at worst.
+ * as lost. Retries, not attempts: the first send is not one, so this is three calls at worst.
  */
 const REFRESH_RACE_RETRIES = 2
 
@@ -100,7 +100,7 @@ export const createGraphQLClient = ({ onSessionLost }: CreateGraphQLClientOption
 
 				/**
 				 * Mint a new access token from the refresh cookie, retrying the one failure that is not a
-				 * failure (E14-S04).
+				 * failure.
 				 *
 				 * Two tabs reloading at the same moment both send the same refresh cookie. One wins and
 				 * rotates it; the other presents a token the backend consumed milliseconds ago, and inside

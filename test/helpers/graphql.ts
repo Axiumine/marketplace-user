@@ -137,8 +137,8 @@ export const stubGraphQL = (replies: GraphQLReplies, rest?: RestHandler): GraphQ
 /**
  * The shape `throwGraphQLError(status, title, description)` puts on the wire.
  *
- * `code` is the fourth argument because only one error on the platform carries one — the lost refresh race
- * of E14-S04, which `throwRefreshRaceRetry` raises directly rather than through `throwGraphQLError`.
+ * `code` is the fourth argument because only one error on the platform carries one — the lost refresh
+ * race, which `throwRefreshRaceRetry` raises directly rather than through `throwGraphQLError`.
  */
 export const graphQLError = (title: string, description?: string, status = 400, code?: string) => ({
 	message: title,
