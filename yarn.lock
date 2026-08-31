@@ -42,10 +42,10 @@
     is-potential-custom-element-name "^1.0.1"
     lru-cache "^11.5.2"
 
-"@axiumine/marketplace-common@^3.0.0":
-  version "3.0.0"
-  resolved "https://registry.npmjs.org/@axiumine/marketplace-common/-/marketplace-common-3.0.0.tgz#7fa13f020ba1829790dc32ef8056a61c4843413b"
-  integrity sha512-RKkxleL2S0ER2BsWhYhfvco9fftWDt52gOXOQkHnhowyFCYHcZvoAdL33PFzY36DD7OT2fwO0Mxk9cv7Ol3azg==
+"@axiumine/marketplace-common@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.npmjs.org/@axiumine/marketplace-common/-/marketplace-common-4.0.0.tgz#68fb636d21b2985040031334ed68c21ef4dd5be1"
+  integrity sha512-lxdOZz3qEPzAbX0dmpdTgm69ujD+NngeIFzcyfaVveczq/F3JqstSNYRt3cA3jVAvH5flCeqLsuWB46SS4f2Xw==
   dependencies:
     graphql-scalars "^1.25.0"
 

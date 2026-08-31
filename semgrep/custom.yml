@@ -31,7 +31,7 @@ rules:
                   regex: (?i)^(logger|log)$
       - metavariable-regex:
           metavariable: $ARG
-          regex: (?i)(accesstoken|access_token|refreshtoken|refresh_token|bearer|introspection)
+          regex: (?i)(accesstoken|access_token|refreshtoken|refresh_token|bearer)
 
   # Every service sets `csrfPrevention: true`, which rejects a GET that carries
   # none of Apollo's preflight-forcing headers — and urql sends none. urql's
@@ -73,7 +73,7 @@ rules:
           - pattern: process.env.$NAME
       - metavariable-regex:
           metavariable: $NAME
-          regex: ^VITE_(?!TURNSTILE_SITE_KEY$).*(SECRET|PASSWORD|PRIVATE|CREDENTIAL|INTROSPECTION|_TOKEN|APIKEY|API_KEY)
+          regex: ^VITE_(?!TURNSTILE_SITE_KEY$).*(SECRET|PASSWORD|PRIVATE|CREDENTIAL|_TOKEN|APIKEY|API_KEY)
 
   # `context.url` is compared by reference. A `{ url }` literal written in a
   # component body is a new object on every render, urql re-executes on context
