@@ -527,10 +527,10 @@ Turnstile and a Redis rate limiter on every public auth path · bcrypt with 14 r
 authentication errors throughout, so no endpoint reveals whether an account exists · Keygrip SHA-512
 signed httpOnly refresh cookie, `Secure` in production · Apollo `csrfPrevention: true` and urql
 `preferGetMethod: false`, which are load-bearing together · GraphQL depth limit 10 plus a complexity limit
-on the public tier · introspection disabled in production · strict CSP and HSTS from nginx ·
-`INTROSPECTION_CODE` never reaches a browser — the SSR server calls the public resource service, which
-requires no authentication at all · the access token lives in a module-level variable and is never written
-to `localStorage` or a readable cookie · the tier assertion of §3.7.
+on the public tier · introspection disabled in production · strict CSP and HSTS from nginx · no backend
+credential reaches a browser — the SSR server calls the public resource service, which requires no
+authentication at all · the access token lives in a module-level variable and is never written to
+`localStorage` or a readable cookie · the tier assertion of §3.7.
 
 ---
 

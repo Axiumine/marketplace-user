@@ -8,8 +8,8 @@
  *
  * ⚠️ Everything in here is **public**. `import.meta.env` values are inlined into the client bundle at
  * build time, so a `VITE_`-prefixed variable is readable by anyone who opens the page. Nothing secret
- * may be added: not `INTROSPECTION_CODE`, not a Turnstile *secret* key (the site key below is the
- * public half and is meant to be seen), not a database URL. Server-only configuration lives in
+ * may be added: not a backend credential of any kind, not a Turnstile *secret* key (the site key below
+ * is the public half and is meant to be seen), not a database URL. Server-only configuration lives in
  * `src/api/ssr.ts`, which reads `process.env` and is never bundled for the browser.
  *
  * ⚠️ The three authenticated paths are the **User** tier's — 4031, 4032, and the shared logout on 4030.
