@@ -199,11 +199,12 @@ describe('the privacy notice on an account', () => {
 	})
 
 	/*
-	 * ⚠️ Quotations once more, and the pair of them is the whole of E19 §6 question 4: the admin's customers
-	 * table lists every account's email address, and the two levers beside it end sessions and can close the
-	 * account outright. The field list is asserted word for word because it is the disclosure — a matcher
-	 * that only checked the paragraph existed would keep passing while a column was added to that table and
-	 * never mentioned here, which is the one way this section can become false.
+	 * ⚠️ Quotations once more, and the pair of them is the whole of what an admin sees of a customer
+	 * (ADR-049): the admin's customers table lists every account's email address, and the two levers beside
+	 * it end sessions and can close the account outright. The field list is asserted word for word because
+	 * it is the disclosure — a matcher that only checked the paragraph existed would keep passing while a
+	 * column was added to that table and never mentioned here, which is the one way this section can become
+	 * false.
 	 */
 	it('says which of your fields an admin sees, and which are not on that screen', async () => {
 		await mount()

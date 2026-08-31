@@ -44,7 +44,7 @@ export const PRIVATE_CACHE = 'private, no-store'
 /**
  * The reset flow, both halves of it.
  *
- * ⚠️ **Measured, on the production build, before the fragment landed** (E12-S26): a request to
+ * ⚠️ **Measured, on the production build, before the fragment landed**: a request to
  * `/reset-password/<address>/<hash>` came back `200` carrying `cache-control: public, s-maxage=60,
  * stale-while-revalidate=600` and a body with the address and the live hash inside the router's
  * dehydration script. That is this origin inviting every shared cache in the path to keep a copy of a

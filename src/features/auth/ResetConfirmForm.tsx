@@ -21,7 +21,7 @@ import { useTurnstileToken } from './useTurnstileToken'
  * The second half of the reset: consumes the emailed hash and sets the new password.
  *
  * The email and the hash come from the URL rather than from fields, because they came from the link the
- * customer clicked — from its **fragment** since E12-S26, read by `resetLink.ts` and handed here as props.
+ * customer clicked — from its **fragment**, read by `resetLink.ts` and handed here as props.
  * Neither is rendered: the address would be readable over a shoulder, and the hash is a one-time
  * credential that has no business being selectable and copyable off the page.
  *

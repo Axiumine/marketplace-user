@@ -36,7 +36,7 @@ const refreshed = (accessToken = 'fresh-token') => ({ data: { refresh: { status:
 const ME = { data: { me: { email: 'customer@marketplace.it' } } }
 
 /**
- * What the backend answers the loser of a multi-tab refresh race (E14-S04): a 409 carrying the one
+ * What the backend answers the loser of a multi-tab refresh race: a 409 carrying the one
  * `extensions.code` on the platform, and no token of any kind — the grace branch mints nothing.
  */
 const raceLost = {
@@ -284,7 +284,7 @@ describe('the retry on 498', () => {
 
 		expect(getAccessToken()).toBeNull()
 		expect(onSessionLost).toHaveBeenCalled()
-		// Sent once. The retry loop of E14-S04 is for the lost race and nothing else: re-sending a cookie
+		// Sent once. The retry loop is for the lost race and nothing else: re-sending a cookie
 		// the backend has already refused would triple the cost of every genuine expiry.
 		expect(names(stub).filter((name) => name === 'Refresh')).toHaveLength(1)
 	})
@@ -300,7 +300,7 @@ describe('the retry on 498', () => {
 })
 
 /*
- * E14-S04, the whole point of the grace window. Several tabs of one catalogue are the normal way this app
+ * The whole point of the grace window. Several tabs of one catalogue are the normal way this app
  * is read, they reload together, and they share one cookie jar — so one of them loses the rotation race on
  * a regular day. The loser must not be signed out, and the family it belongs to must not be revoked: the
  * backend answers a code of its own, and the client sends the refresh again with the cookie the winner has
@@ -340,7 +340,7 @@ describe('the lost refresh race', () => {
 	})
 
 	// And it stops. A backend answering the same code forever is not a race any more, and a client that
-	// keeps asking would drive itself into the refresh endpoint's own rate limiter (E14-S08).
+	// keeps asking would drive itself into the refresh endpoint's own rate limiter.
 	it('gives up after two retries and clears the session', async () => {
 		const { client, onSessionLost, stub } = clientWith({
 			Me: { errors: [graphQLError('Invalid Token', undefined, HTTP.invalidToken)], status: 498 },

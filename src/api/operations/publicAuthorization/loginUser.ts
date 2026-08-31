@@ -14,7 +14,7 @@ import { graphql } from '@gql/publicAuthorization'
  * wizard. The refresh token is never in the payload — the resolver sets it as a signed httpOnly cookie
  * that this code cannot read.
  *
- * `rememberMe` picks the server-side session cap, one day against thirty (E14-S05, E14-S07) — not the
+ * `rememberMe` picks the server-side session cap, one day against thirty — not the
  * cookie's lifetime, which is 90 days either way. It is not a client-side "stay signed in" checkbox this app
  * then honours: the value is stamped into the refresh session at login and every refresh after that is
  * refused once the session is older than the cap it was opened with.

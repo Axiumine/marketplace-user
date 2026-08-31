@@ -129,7 +129,7 @@ export default [
 			globals: { ...globals.node }
 		}
 	},
-	// E18-S08 — neither Sentry setting this backlog removed can come back here either.
+	// Neither Sentry setting this backlog removed can come back here either.
 	//
 	// The same `no-restricted-syntax` block the ten backend repos carry, minus their Node-only
 	// `maxIncomingRequestBodySize` selector: this app's `Sentry.init` takes no `httpIntegration`. Until
@@ -155,38 +155,38 @@ export default [
 				{
 					selector: "AssignmentExpression[left.property.name='rejectUnauthorized']",
 					message:
-						'E12-S04: certificate verification stays on. Trust the collector CA from outside the process — NODE_EXTRA_CA_CERTS=/path/to/ca.pem — as the parent workspace SETUP.md §7 describes.'
+						'certificate verification stays on. Trust the collector CA from outside the process — NODE_EXTRA_CA_CERTS=/path/to/ca.pem — as the parent workspace SETUP.md §7 describes.'
 				},
 				{
 					selector: "Property[key.name='rejectUnauthorized']",
 					message:
-						'E12-S04: certificate verification stays on. Trust the collector CA from outside the process — NODE_EXTRA_CA_CERTS=/path/to/ca.pem — as the parent workspace SETUP.md §7 describes.'
+						'certificate verification stays on. Trust the collector CA from outside the process — NODE_EXTRA_CA_CERTS=/path/to/ca.pem — as the parent workspace SETUP.md §7 describes.'
 				},
 				{
 					selector: "Property[key.value='rejectUnauthorized']",
 					message:
-						'E12-S04: certificate verification stays on. Trust the collector CA from outside the process — NODE_EXTRA_CA_CERTS=/path/to/ca.pem — as the parent workspace SETUP.md §7 describes.'
+						'certificate verification stays on. Trust the collector CA from outside the process — NODE_EXTRA_CA_CERTS=/path/to/ca.pem — as the parent workspace SETUP.md §7 describes.'
 				},
 				{
 					selector: "Property[key.name='sendDefaultPii']",
 					message:
-						'E12-S04: the blanket Sentry PII flag is absent by decision, not set to false. Name the individual dataCollection categories instead — the observability section of docs/architecture.md says which, and why.'
+						'the blanket Sentry PII flag is absent by decision, not set to false. Name the individual dataCollection categories instead — the observability section of docs/architecture.md says which, and why.'
 				},
 				{
 					selector:
 						"ObjectExpression:has(> Property[key.name='beforeSend']):not(:has(> Property[key.name='beforeSendTransaction']))",
 					message:
-						'E12-S22: `beforeSend` and `beforeSendTransaction` are wired together or not at all. The SDK routes transaction events to the second hook only, and the address this app puts in a URL rides on the transaction — one hook without the other means a `tracesSampleRate` switches the redaction off.'
+						'`beforeSend` and `beforeSendTransaction` are wired together or not at all. The SDK routes transaction events to the second hook only, and the address this app puts in a URL rides on the transaction — one hook without the other means a `tracesSampleRate` switches the redaction off.'
 				},
 				{
 					selector: "MemberExpression[property.name='NODE_TLS_REJECT_UNAUTHORIZED']",
 					message:
-						'E12-S04: certificate verification stays on. Trust the collector CA from outside the process — NODE_EXTRA_CA_CERTS=/path/to/ca.pem — as the parent workspace SETUP.md §7 describes.'
+						'certificate verification stays on. Trust the collector CA from outside the process — NODE_EXTRA_CA_CERTS=/path/to/ca.pem — as the parent workspace SETUP.md §7 describes.'
 				},
 				{
 					selector: "Literal[value='NODE_TLS_REJECT_UNAUTHORIZED']",
 					message:
-						'E12-S04: certificate verification stays on. Trust the collector CA from outside the process — NODE_EXTRA_CA_CERTS=/path/to/ca.pem — as the parent workspace SETUP.md §7 describes.'
+						'certificate verification stays on. Trust the collector CA from outside the process — NODE_EXTRA_CA_CERTS=/path/to/ca.pem — as the parent workspace SETUP.md §7 describes.'
 				}
 			]
 		}

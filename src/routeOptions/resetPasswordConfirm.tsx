@@ -8,7 +8,7 @@ import { headFor } from '@/lib/seo'
 /**
  * `/reset-password/confirm` — the target of the emailed link, and a URL that carries no credential.
  *
- * ⚠️ **The address and the hash arrive in the fragment, not in the path** (E12-S26). The mail builds
+ * ⚠️ **The address and the hash arrive in the fragment, not in the path**. The mail builds
  * `…/reset-password/confirm#/<address>/<hash>`; RFC 3986 §3.5 says a fragment is never sent, so the pair
  * exists only in this browser. Before that it was `/reset-password/$email/$hash`, and the credential was
  * in the request line of every hop — measured, it was also inside the HTML: the router dehydrates each

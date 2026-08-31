@@ -61,7 +61,7 @@ describe('Footer navigation', () => {
 
 	/*
 	 * ⚠️ The privacy notice is reachable from here and only from here, which makes this assertion the one
-	 * that keeps it reachable at all. It states the retention the edge configures (E12-S25), a visitor is
+	 * that keeps it reachable at all. It states the retention the edge configures, a visitor is
 	 * logged on every request, and the footer is the single element the root route renders on every page —
 	 * so a link removed here does not break a page, it quietly makes the statement unfindable.
 	 */

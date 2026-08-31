@@ -91,7 +91,7 @@ describe('cacheControlFor on a signed-in visitor', () => {
 })
 
 /*
- * ⚠️ **Measured before the fragment landed** (E12-S26): a production build answered
+ * ⚠️ **Measured before the fragment landed**: a production build answered
  * `/reset-password/<address>/<hash>` with `200`, `cache-control: public, s-maxage=60,
  * stale-while-revalidate=600`, and the address and live hash inside the router's dehydration script —
  * this origin inviting every shared cache in the path to keep a one-time credential for ten minutes.

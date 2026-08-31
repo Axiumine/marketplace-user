@@ -27,9 +27,9 @@ import { describe, expect, it } from 'vitest'
 // the repo root.
 const FIXTURES = join(process.cwd(), 'test/fixtures/restrictedSyntax')
 
-const TLS_MESSAGE = 'E12-S04: certificate verification stays on.'
-const PII_MESSAGE = 'E12-S04: the blanket Sentry PII flag is absent by decision, not set to false.'
-const HOOKS_MESSAGE = 'E12-S22: `beforeSend` and `beforeSendTransaction` are wired together or not at all.'
+const TLS_MESSAGE = 'certificate verification stays on.'
+const PII_MESSAGE = 'the blanket Sentry PII flag is absent by decision, not set to false.'
+const HOOKS_MESSAGE = '`beforeSend` and `beforeSendTransaction` are wired together or not at all.'
 
 const lintFixture = async (name: string) => {
 	const code = await readFile(join(FIXTURES, `${name}.ts.fixture`), 'utf8')
