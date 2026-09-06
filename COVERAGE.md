@@ -7,14 +7,27 @@ none survived, out of 2050 generated — so every gate passes on its own and
 down: **do not lower a threshold and do not remove a gate to make a commit pass** — the numbers only stay
 meaningful while nothing has ever been allowed past them.
 
-Two numbers, both 100, both blocking — plus a scan that re-checks the first one and much else:
+Two numbers, both 100, both blocking — plus a file count that keeps the first of them honest, and a
+scan that re-checks it and much else:
 
 | Gate | Command | Where the threshold lives |
 |---|---|---|
 | Coverage — statements, branches, functions, lines | `yarn test:cov` | `vitest.config.ts`, `qodana.yaml` |
+| Every gated source file is in that report | `yarn test:cov` | `scripts/coverage-audit.mjs`, `coverage-exempt.txt` (exact paths, no globs) |
 | Mutation score | `yarn test:mutation` | `stryker.config.mjs` (`thresholds.break: 100`) |
 | Inspections, SAST, license audit, coverage | `./qodana.sh` | `qodana.yaml` (`failureConditions`) |
 | Dependency advisories, HIGH and CRITICAL | trivy, in `.githooks/pre-push` | pinned `aquasec/trivy:0.70.0`, no config file |
+
+⚠️ **A percentage is only as good as its denominator, and `scripts/coverage-audit.mjs` is what
+checks the denominator.** `yarn test:cov` runs it straight after vitest: it takes every
+git-tracked file `coverage.include` gates, subtracts the files `coverage/lcov.info` actually
+contains, and fails unless what is left matches `coverage-exempt.txt` exactly. Both directions
+fail — a file missing from the report and unnamed there is a file the 100% threshold said nothing
+about (`RISK_REGISTER` R07), and a name there that is now covered is a stale line holding the hole
+open for the next file to carry that path. Exemptions are exact paths, never globs — a glob would
+exempt the next file dropped beside the named one, in silence, with the run still green, which is
+the failure the gate exists to catch. **Never widen a `coverage.exclude` entry to make a red run
+green:** give the file a test, or name it with the reason it can never have one.
 
 All three run in `.githooks/pre-push`, after `yarn semgrep:ci`, trivy and then `yarn lint:check` and
 `tsc --noEmit`; coverage and Qodana run again in `.githooks/pre-commit`. Semgrep — SAST, rules vendored
