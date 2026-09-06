@@ -145,6 +145,12 @@ that mattered is split anyway — see the map section.
 - **`yarn start` runs `serve.mjs`, not the build output.** `vite build` emits `dist/server/server.js`,
   default export `{ fetch }` — a handler with no listener. No `.output/` here: that path belongs to the
   Nitro preset, which this app does not install. The process serves SSR only; nginx serves `dist/client`.
+  ⚠️ **It is gated, and the import that makes that awkward is aliased in `vitest.config.ts`.** `serve.mjs`
+  is the one source file outside `src/`, so until 2026-09-06 no `coverage.include` or `mutate` glob had
+  ever reached it (`RISK_REGISTER` R61) — it is named by exact path in both now. Its import of
+  `./dist/server/server.js` cannot resolve on a tree that has not built, so the alias points that one
+  specifier at `test/doubles/ssrHandler.ts`; the key is the whole specifier deliberately, because Vite
+  matches a string alias as a prefix and a shorter one would catch every future `./dist/…` import.
 - **Every component under `src/components/` and `src/features/` carries a snapshot**, and a new component
   keeps that whole. Take it at `renderWithRouter` / `renderWithClient` level: `renderRoute` mounts the root
   route's `shellComponent`, so it snapshots a whole HTML document rather than a fragment. `vitest.setup.ts`
