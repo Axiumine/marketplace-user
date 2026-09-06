@@ -42,6 +42,12 @@ export default {
 	ignorePatterns: ['.agents', '.claude', '.qodana', '.output', '.tanstack', 'coverage', 'dist'],
 	mutate: [
 		'src/**/*.{ts,tsx}',
+		// `yarn start`. Forty-seven lines outside `src/` that read PORT, refuse anything that is not a
+		// usable port and hand the build's handler to srvx — measured by neither gate until 2026-09-06,
+		// because no glob in either config had ever reached outside that directory (RISK_REGISTER R61).
+		// `test/serve.test.ts` drives it, boundary by boundary: 0 refused and 1 served, 65536 refused and
+		// 65535 served, and the loopback address asserted on its own line.
+		'serve.mjs',
 		// graphql-codegen output: `graphql()` document maps and generated types. Mutating a generated file
 		// tests the generator, and the mutants are unkillable by design — the document strings are compared
 		// by identity, so flipping a character in one produces a document no test can send.
