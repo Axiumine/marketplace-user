@@ -1,0 +1,79 @@
+# Every tracked source file that `coverage.include` gates but the coverage report does not contain,
+# with the reason it can never be there. `scripts/coverage-audit.mjs` runs after vitest inside
+# `yarn test:cov` and fails when this list and reality disagree in EITHER direction: a file missing
+# from the report and unnamed here is a file the 100% threshold said nothing about (RISK_REGISTER
+# R07), and a name here that is now covered is a stale line holding the hole open for the next file
+# to carry that path.
+#
+# Exact paths only, never globs. A directory glob exempts whatever lands in that directory next, in
+# silence, with the run still green — which is the failure this file exists to close. One line per
+# file is the cost, and it is the point: an untestable source file becomes a visible decision.
+
+# graphql-codegen output, rewritten wholesale by every `yarn codegen`. Editing one is pointless and
+# testing one tests the generator. Listed file by file rather than as a directory: a hand-written
+# module dropped into src/gql/ must go red, and under the old `src/gql/**` exclude it would not have.
+src/gql/logout/gql.ts
+src/gql/logout/graphql.ts
+src/gql/logout/index.ts
+src/gql/publicAuthorization/gql.ts
+src/gql/publicAuthorization/graphql.ts
+src/gql/publicAuthorization/index.ts
+src/gql/publicResource/gql.ts
+src/gql/publicResource/graphql.ts
+src/gql/publicResource/index.ts
+src/gql/userAuthorization/gql.ts
+src/gql/userAuthorization/graphql.ts
+src/gql/userAuthorization/index.ts
+src/gql/userResource/gql.ts
+src/gql/userResource/graphql.ts
+src/gql/userResource/index.ts
+
+
+# Written by TanStack Router's generator on every dev-server start and every build, and not stable
+# between runs.
+src/routeTree.gen.ts
+
+
+# One-line `createFileRoute(...)(options)` modules. The `options` objects they pass live in
+# src/routeOptions/ and are covered there; what is left in each file is the framework's own
+# registration call, which cannot be exercised without booting the plugin. A route file that grows
+# real logic has to move that logic to src/routeOptions/ — it does not get to stay on this list.
+src/routes/__root.tsx
+src/routes/account.addresses.tsx
+src/routes/account.close.tsx
+src/routes/account.index.tsx
+src/routes/account.password.tsx
+src/routes/account.tsx
+src/routes/category.$slug.$childSlug.tsx
+src/routes/category.$slug.index.tsx
+src/routes/index.tsx
+src/routes/login.tsx
+src/routes/privacy.tsx
+src/routes/register.index.tsx
+src/routes/register.seller.tsx
+src/routes/reset-password.confirm.tsx
+src/routes/reset-password.index.tsx
+src/routes/robots[.]txt.ts
+src/routes/search.tsx
+src/routes/shop.$slug.index.tsx
+src/routes/shop.$slug.item.$itemSlug.tsx
+src/routes/shops.$city.tsx
+src/routes/shops.index.tsx
+src/routes/sitemap[.]xml.ts
+src/routes/sitemaps.$kind.$cursor.ts
+
+
+# The two framework entries. client.tsx hydrates a real document and server.ts is the request handler
+# the node build wraps; neither has a unit, and the one thing they could get wrong — mounting the
+# wrong router — is what every other test already covers.
+src/client.tsx
+src/server.ts
+
+
+# A single `Sentry.init` call guarded by a DSN check. Asserting it was called asserts that the SDK
+# exists.
+src/instrument.ts
+
+
+# An ambient declaration file. It emits no JavaScript, so there is nothing for v8 to instrument.
+src/vite-env.d.ts

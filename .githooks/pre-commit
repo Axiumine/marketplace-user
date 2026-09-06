@@ -296,9 +296,15 @@ fi
 # eslint.config.js was already here and the two prettier files now are, because
 # the lint gate reads all three: an edit there changes the verdict for every file
 # in the tree without appearing in any of them.
+#
+# `coverage-exempt.txt` and `scripts/coverage-audit.mjs` join them for the same
+# reason. The gate that proves every source file is actually in the coverage
+# report reads one and is the other, so a commit that adds an exemption — the
+# single edit that can widen the hole this gate exists to close — would
+# otherwise be the commit that ran no gate at all.
 RELEVANT_PATHS='^(src/|test/|schema/|\.githooks/|package\.json$|yarn\.lock$|qodana\.(yaml|sh)$'
 RELEVANT_PATHS+='|vitest[^/]*\.ts$|vite\.config\.ts$|tsconfig[^/]*\.json$|stryker\.config\.mjs$'
-RELEVANT_PATHS+='|codegen\.ts$|eslint\.config\.js$|\.prettier(rc|ignore)$|index\.html$)'
+RELEVANT_PATHS+='|codegen\.ts$|eslint\.config\.js$|\.prettier(rc|ignore)$|index\.html$|coverage-exempt\.txt$|scripts/coverage-audit\.mjs$)'
 
 # Same reasoning as the secret guard's list above: unguarded, a failed `git diff` is
 # indistinguishable from an empty one, and the empty one is the branch that exits 0 having
