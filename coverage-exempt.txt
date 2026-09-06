@@ -1,9 +1,14 @@
-# Every tracked source file that `coverage.include` gates but the coverage report does not contain,
-# with the reason it can never be there. `scripts/coverage-audit.mjs` runs after vitest inside
-# `yarn test:cov` and fails when this list and reality disagree in EITHER direction: a file missing
-# from the report and unnamed here is a file the 100% threshold said nothing about (RISK_REGISTER
-# R07), and a name here that is now covered is a stale line holding the hole open for the next file
-# to carry that path.
+# Every tracked source file under a declared source root that the coverage report does not account
+# for, with the reason it can never be there. There are two ways in, and the second was invisible
+# until 2026-09-06: `coverage.include` gates the file and vitest reported nothing for it (RISK_REGISTER
+# R07), or no `coverage.include` glob matches the file at all — a `.js` where the globs say `.ts`, a
+# stylesheet beside them (RISK_REGISTER R56). The second kind is absent from the report AND from the
+# list the report used to be compared against, so nothing anywhere went red for it.
+#
+# `scripts/coverage-audit.mjs` runs after vitest inside `yarn test:cov` and fails when this list and
+# reality disagree in EITHER direction: a file the report does not account for and unnamed here is a
+# file the 100% threshold said nothing about, and a name here that is now covered is a stale line
+# holding the hole open for the next file to carry that path.
 #
 # Exact paths only, never globs. A directory glob exempts whatever lands in that directory next, in
 # silence, with the run still green — which is the failure this file exists to close. One line per
@@ -77,3 +82,8 @@ src/instrument.ts
 
 # An ambient declaration file. It emits no JavaScript, so there is nothing for v8 to instrument.
 src/vite-env.d.ts
+
+# The app's stylesheet: under `src/`, and matched by no `coverage.include` glob — the globs name
+# `.ts` and `.tsx`, and a stylesheet is neither. Nothing in it executes, so there is no branch to
+# cover and no mutant to kill; what it can get wrong is visual, which is a browser's job.
+src/styles.css
