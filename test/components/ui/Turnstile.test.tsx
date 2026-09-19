@@ -239,15 +239,32 @@ describe('rendering the widget', () => {
 	// The script can resolve without defining the global — an ad blocker answering the request with an
 	// empty body does exactly this. It must not throw; the form still submits and the server still decides.
 	it('survives a script that loaded but defined nothing', async () => {
-		const onToken = vi.fn()
-		vi.stubGlobal('turnstile', undefined)
-		const Turnstile = await loadTurnstile(SITE_KEY)
-		render(<Turnstile onToken={onToken} />)
+		// ⚠️ "Survives" is the claim, and nothing on the page can make it. The component starts the widget with
+		// `void start()`, so a version that skipped the `undefined` check would throw reading `.render` inside a
+		// promise nobody awaits: the DOM and `onToken` look exactly as they do below, and the throw surfaces
+		// only as a run-level unhandled rejection beside a passing test — which the mutation gate records as
+		// RuntimeError, a status its score leaves out, rather than as a kill.
+		const rejections: unknown[] = []
+		const onRejection = (reason: unknown) => rejections.push(reason)
+		process.on('unhandledRejection', onRejection)
 
-		await scriptLoads()
+		try {
+			const onToken = vi.fn()
+			vi.stubGlobal('turnstile', undefined)
+			const Turnstile = await loadTurnstile(SITE_KEY)
+			render(<Turnstile onToken={onToken} />)
 
-		expect(onToken).not.toHaveBeenCalled()
-		expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+			await scriptLoads()
+
+			expect(onToken).not.toHaveBeenCalled()
+			expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+
+			// Node raises `unhandledRejection` once the microtask queue that produced it has drained.
+			await new Promise((resolve) => setTimeout(resolve, 0))
+			expect(rejections).toEqual([])
+		} finally {
+			process.off('unhandledRejection', onRejection)
+		}
 	})
 })
 
