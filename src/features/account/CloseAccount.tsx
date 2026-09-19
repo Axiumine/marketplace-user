@@ -118,8 +118,15 @@ export const CloseAccount = () => {
 			</label>
 
 			{/* The live region has to be in the DOM before its content changes, or the change is never
-			    announced — see `FormStatus`. This wrapper never unmounts; only its content varies. */}
-			<div>{refused === undefined ? null : <FormStatus tone="error" message={refused} />}</div>
+			    announced — see `FormStatus`. This wrapper never unmounts; only its content varies.
+
+			    ⚠️ `refused` goes in unconditionally, as it does at every other call site. `FormStatus`
+			    already returns null for an absent or empty message, so a `refused === undefined ? null :`
+			    guard here renders the identical DOM either way — a branch no test can tell apart, which is
+			    a mutant no test can kill. */}
+			<div>
+				<FormStatus tone="error" message={refused} />
+			</div>
 
 			<div>
 				<button

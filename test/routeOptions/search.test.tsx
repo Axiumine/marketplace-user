@@ -35,6 +35,17 @@ const parse = (search: Record<string, unknown>) => searchRouteOptions.validateSe
 
 const EMPTY_PAGE = { nodes: [], total: 0, totalIsExact: true, hasMore: false }
 
+/*
+ * The two class strings the kind tabs choose between, copied whole rather than matched loosely.
+ *
+ * ⚠️ Whole, and asserted with `toHaveAttribute('class', …)` rather than `toHaveClass`. The tabs are the
+ * one place on this page where the styling *is* the information — it is what tells a sighted visitor
+ * which of the two result sets they are looking at — so a test that accepts any superset of the classes
+ * accepts a tab that has picked up the other one's background too.
+ */
+const TAB_CURRENT_CLASS = 'rounded-box bg-palette-bg px-4 py-2 text-sm font-medium text-palette-white'
+const TAB_OTHER_CLASS = 'rounded-box border border-slate-300 bg-white px-4 py-2 text-sm text-slate-600'
+
 describe('the search route', () => {
 	/*
 	 * ⚠️ One kind per request, and the *other* document is never sent. The two are separate text-index
@@ -193,6 +204,40 @@ describe('the search kind tabs', () => {
 
 		expect(tabs.getByRole('link', { name: 'Items' })).toHaveAttribute('href', '/search?q=satchel')
 		expect(tabs.getByRole('link', { name: 'Shops' })).toHaveAttribute('aria-current', 'page')
+	})
+
+	/*
+	 * ⚠️ Both tabs, and both marks, in one assertion block. `aria-current` and the class are the same
+	 * decision rendered twice — once for a screen reader, once for an eye — and each of them only says
+	 * *which* tab is showing because the other tab says the opposite. Asserting the current tab alone
+	 * passes just as happily when both tabs are marked current, which tells a visitor exactly as much as
+	 * neither being marked.
+	 */
+	it('marks the tab being shown, and only that one, to the eye and to a screen reader', async () => {
+		await mount('/search?q=satchel')
+
+		const tabs = within(screen.getByRole('navigation', { name: 'What to search' }))
+		const items = tabs.getByRole('link', { name: 'Items' })
+		const shops = tabs.getByRole('link', { name: 'Shops' })
+
+		expect(items).toHaveAttribute('aria-current', 'page')
+		expect(shops).not.toHaveAttribute('aria-current')
+		expect(items).toHaveAttribute('class', TAB_CURRENT_CLASS)
+		expect(shops).toHaveAttribute('class', TAB_OTHER_CLASS)
+	})
+
+	// The same page asked of the other collection moves both marks across, rather than adding a second set.
+	it('moves both marks to the shops tab when the shops are the ones being shown', async () => {
+		await mount('/search?q=satchel&kind=companies')
+
+		const tabs = within(screen.getByRole('navigation', { name: 'What to search' }))
+		const items = tabs.getByRole('link', { name: 'Items' })
+		const shops = tabs.getByRole('link', { name: 'Shops' })
+
+		expect(shops).toHaveAttribute('aria-current', 'page')
+		expect(items).not.toHaveAttribute('aria-current')
+		expect(shops).toHaveAttribute('class', TAB_CURRENT_CLASS)
+		expect(items).toHaveAttribute('class', TAB_OTHER_CLASS)
 	})
 
 	// The page number is not carried across: page 4 of the items is not page 4 of anything on the shops
