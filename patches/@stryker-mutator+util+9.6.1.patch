@@ -1,0 +1,25 @@
+diff --git a/node_modules/@stryker-mutator/util/dist/src/errors.js b/node_modules/@stryker-mutator/util/dist/src/errors.js
+index 69413bd..c86fd76 100644
+--- a/node_modules/@stryker-mutator/util/dist/src/errors.js
++++ b/node_modules/@stryker-mutator/util/dist/src/errors.js
+@@ -18,8 +18,18 @@ export function errorToString(error) {
+             return message;
+         }
+     }
+-    // eslint-disable-next-line @typescript-eslint/no-base-to-string -- Ignore as error is most likely a string. Don't use JSON.stringify as circular graphs could cause an error
+-    return String(error);
++    try {
++        // eslint-disable-next-line @typescript-eslint/no-base-to-string -- Ignore as error is most likely a string. Don't use JSON.stringify as circular graphs could cause an error
++        return String(error);
++    }
++    catch {
++        const { name, message, stack } = error;
++        if (typeof message !== 'string') {
++            return Object.prototype.toString.call(error);
++        }
++        const header = typeof name === 'string' ? `${name}: ${message}` : message;
++        return typeof stack === 'string' ? `${header}\n${stack}` : header;
++    }
+ }
+ export const ERROR_CODES = Object.freeze({
+     NoSuchFileOrDirectory: 'ENOENT',

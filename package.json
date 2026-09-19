@@ -30,6 +30,7 @@
 		"semgrep:ci": "docker run --rm --network none -e HOME=/tmp -u \"$(id -u):$(id -g)\" -v \"$PWD\":/src -w /src semgrep/semgrep:1.172.0 semgrep scan --metrics=off --disable-version-check --error --sarif --output semgrep.sarif --config semgrep/ src",
 		"update": "yarn upgrade-interactive --latest --network-timeout 100000",
 		"hooks:install": "git rev-parse --git-dir > /dev/null 2>&1 && git config core.hooksPath .githooks && ./scripts/lockfile-registry-filter.sh install || true",
+		"postinstall": "patch-package",
 		"prepare": "yarn run hooks:install"
 	},
 	"dependencies": {
@@ -74,6 +75,8 @@
 		"eslint-plugin-simple-import-sort": "^14.0.0",
 		"globals": "^17.8.0",
 		"jsdom": "^30.0.1",
+		"patch-package": "^8.0.1",
+		"postinstall-postinstall": "^2.1.0",
 		"prettier": "^3.9.6",
 		"tailwindcss": "^4.3.3",
 		"typescript": "^6.0.3",
