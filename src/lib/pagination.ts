@@ -7,12 +7,18 @@
  * first `limit` results and is invisible on page 1.
  */
 
+import { isFiniteNumber } from '@/lib/number'
+
 /** Items per listing page. One screen of cards, and small enough that page 1 is the LCP candidate. */
 export const PAGE_SIZE = 24
 
 /** 1-based, and clamped: `?page=0` and `?page=-3` are page 1, not an error and not an empty listing. */
 export const pageNumber = (raw: number | undefined): number => {
-	if (raw === undefined || !Number.isFinite(raw)) return 1
+	// One check, not two. The `raw === undefined` disjunct that used to lead this line was unreachable in
+	// the only sense that matters: `Number.isFinite(undefined)` is already `false`, so every value the
+	// first test rejected was rejected by the second anyway. It existed to narrow `number | undefined`
+	// for `Math.trunc` below, which `isFiniteNumber` now does — see src/lib/number.ts.
+	if (!isFiniteNumber(raw)) return 1
 	return Math.max(1, Math.trunc(raw))
 }
 

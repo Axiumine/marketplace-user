@@ -141,10 +141,14 @@ describe('SearchBox submission', () => {
 	it('sends nothing when the field is not in the form at all', async () => {
 		const { container, router, input } = await mount()
 		const form = container.querySelector('form')
+		const onWindowError = vi.fn()
+		window.addEventListener('error', onWindowError)
 
 		input.remove()
 		fireEvent.submit(form as HTMLFormElement)
 
+		window.removeEventListener('error', onWindowError)
+		expect(onWindowError).not.toHaveBeenCalled()
 		expect(router.state.location.href).toBe('/')
 	})
 

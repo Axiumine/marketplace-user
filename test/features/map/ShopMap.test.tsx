@@ -641,11 +641,24 @@ describe('ShopMap and the viewport query', () => {
 	// An answer that arrives before `load` added the source has nowhere to go. Returning is the whole
 	// handling: `setData` on `undefined` throws inside a promise nobody awaits.
 	it('survives an answer that arrives before the source exists', async () => {
-		const { map } = mount({ replies: nearby([nodeOf(1)], true) })
-		await fire(map, 'moveend')
+		const rejections: unknown[] = []
+		const onRejection = (reason: unknown) => rejections.push(reason)
+		process.on('unhandledRejection', onRejection)
 
-		expect(await screen.findByText(/Showing the first 500 shops in view/)).toBeInTheDocument()
-		expect(map.sources.size).toBe(0)
+		try {
+			const { map } = mount({ replies: nearby([nodeOf(1)], true) })
+			await fire(map, 'moveend')
+
+			expect(await screen.findByText(/Showing the first 500 shops in view/)).toBeInTheDocument()
+			expect(map.sources.size).toBe(0)
+
+			// The guard above is the whole handling — nothing awaits `load()`, so a version of it that reaches
+			// `setData` on the missing source would only ever surface as a rejection nobody catches.
+			await pause(50)
+			expect(rejections).toEqual([])
+		} finally {
+			process.off('unhandledRejection', onRejection)
+		}
 	})
 
 	/*
