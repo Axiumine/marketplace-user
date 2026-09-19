@@ -96,6 +96,10 @@ beforeEach(() => {
 
 afterEach(() => {
 	vi.unstubAllEnvs()
+	// Explicit, rather than relying solely on the runner's own global-stub teardown: a widget from a test
+	// that did not unmount cleanly must not find a *previous* test's mock still on `globalThis` and call
+	// into it after that test's assertions have already run.
+	vi.unstubAllGlobals()
 	document.getElementById(SCRIPT_ID)?.remove()
 })
 
