@@ -34,5 +34,14 @@
 	// is typed against. It is generated, so it is excluded from coverage, lint and mutation — but it must
 	// stay inside the type-check, or `createFileRoute('/shop/$slug')` loses its path literal union and
 	// every route id becomes `string`.
-	"include": ["src", "test", "codegen.ts", "vite.config.ts", "vitest.config.ts", "vitest.polyfill.ts", "vitest.setup.ts"]
+	"include": [
+		"src",
+		"test",
+		"codegen.ts",
+		"vite.config.ts",
+		"vitest.config.ts",
+		"vitest.polyfill.ts",
+		"vitest.setup.ts",
+		"vitest.testNames.ts"
+	]
 }
