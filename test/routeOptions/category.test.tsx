@@ -218,10 +218,15 @@ describe('the canonical category URL', () => {
 })
 
 describe('the category search parameter', () => {
+	// ⚠️ The label goes first. `%s` formats the *first* element of each row, so a row that led with the
+	// route options put the whole object — its Zod schema included, ~470 KB — into the test's name. Stryker
+	// joins the names of every test covering a mutant into one `testNamePattern` regex, and two names that
+	// size made it too large for V8 to compile: ten mutants then died before any test ran, and were
+	// recorded RuntimeError rather than Killed — a status the mutation score leaves out entirely.
 	it.each([
-		[categoryRouteOptions, 'the category route'],
-		[categoryChildRouteOptions, 'the subcategory route']
-	])('clamps and normalises the page on %#: %s', (options) => {
+		['the category route', categoryRouteOptions],
+		['the subcategory route', categoryChildRouteOptions]
+	])('clamps and normalises the page on %s', (_label, options) => {
 		expect(options.validateSearch.parse({ page: 'abc' }).page).toBe(1)
 		expect(options.validateSearch.parse({ page: '6' }).page).toBe(6)
 		expect(options.validateSearch.parse({}).page).toBeUndefined()
