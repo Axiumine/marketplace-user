@@ -96,10 +96,25 @@ export const PositionPicker = ({ position, onPick }: PositionPickerProps) => {
 	 *
 	 * ⚠️ MapLibre hands out `{lng, lat}` named fields; what leaves here is a GeoJSON pair, longitude first.
 	 */
-	const emit = useCallback((at: maplibregl.LngLat) => {
-		ownRef.current = true
-		onPickRef.current([at.lng, at.lat])
-	}, [])
+	const emit = useCallback(
+		(at: maplibregl.LngLat) => {
+			ownRef.current = true
+			onPickRef.current([at.lng, at.lat])
+		},
+		/*
+		 * ⚠️ Empty on purpose, and the directive below has to sit on its own `//` line directly above the
+		 * array: Stryker anchors a `next-line` rule to the line the annotated node starts on, and matches
+		 * its directive regex against the comment body with at most one leading whitespace character — a
+		 * directive written inside a block comment, or one line further away, is read as prose and ignored.
+		 *
+		 * The body reads `ownRef` and `onPickRef` and closes over nothing else, so no value this callback
+		 * produces can depend on what is listed here. Growing the array cannot make React recompute it
+		 * either, because whatever were listed would be the same on every render — which leaves the
+		 * mutation with no observable consequence for any test to assert.
+		 */
+		// Stryker disable next-line ArrayDeclaration: no closed-over value to list, and a constant dep changes nothing.
+		[]
+	)
 
 	useEffect(() => {
 		if (container === null) return
