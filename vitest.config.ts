@@ -98,8 +98,9 @@ export default defineConfig({
 			PUBLIC_RESOURCE_URL: ''
 		},
 		// Order matters: the polyfill has to run before anything imports react-dom, and `vitest.setup.ts`
-		// imports it transitively on its second line.
-		setupFiles: ['./vitest.polyfill.ts', './vitest.setup.ts'],
+		// imports it transitively on its second line. `vitest.testNames.ts` caps how long a test's name may
+		// be — the mutation gate selects tests by name, and past a size it cannot; see the file.
+		setupFiles: ['./vitest.polyfill.ts', './vitest.setup.ts', './vitest.testNames.ts'],
 		include: ['test/**/*.test.{ts,tsx}'],
 		restoreMocks: true,
 		// The GraphQL helper replaces `globalThis.fetch`. Without this the replacement outlives the test

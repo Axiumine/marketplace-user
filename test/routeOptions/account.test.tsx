@@ -118,13 +118,17 @@ describe('the account screens', () => {
 	 * ⚠️ None of the four defines a head. TanStack Router *merges* heads along the matched chain rather than
 	 * replacing them, so a child repeating the layout's head would give one page two `<title>` tags. The only
 	 * reason to define one here would be to change the title, and "Your account" is right for all three.
+	 *
+	 * The label leads each row because `%s` formats the *first* element: led by the route options, it put
+	 * the whole object, component functions included, into the test's name. See the length cap in
+	 * vitest.testNames.ts for why a name is not free text.
 	 */
 	it.each([
-		[accountProfileRouteOptions, 'the profile screen'],
-		[accountAddressesRouteOptions, 'the address book'],
-		[accountPasswordRouteOptions, 'the password screen'],
-		[accountCloseRouteOptions, 'the close screen']
-	])('leaves the head to the layout: %#, %s', (options) => {
+		['the profile screen', accountProfileRouteOptions],
+		['the address book', accountAddressesRouteOptions],
+		['the password screen', accountPasswordRouteOptions],
+		['the close screen', accountCloseRouteOptions]
+	])('leaves the head to the layout: %s', (_label, options) => {
 		expect(options).not.toHaveProperty('head')
 	})
 })
