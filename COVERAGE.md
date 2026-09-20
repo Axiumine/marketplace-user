@@ -29,8 +29,8 @@ exempt the next file dropped beside the named one, in silence, with the run stil
 the failure the gate exists to catch. **Never widen a `coverage.exclude` entry to make a red run
 green:** give the file a test, or name it with the reason it can never have one.
 
-All three run in `.githooks/pre-push`, after `yarn semgrep:ci`, trivy and then `yarn lint:check` and
-`tsc --noEmit`; coverage and Qodana run again in `.githooks/pre-commit`. Semgrep — SAST, rules vendored
+All three run in `.githooks/pre-push`, after `yarn semgrep:ci`, trivy, the OpenSSF Scorecard floor
+(`.scorecard-floor`, ADR-054) and then `yarn lint:check` and `tsc --noEmit`; coverage and Qodana run again in `.githooks/pre-commit`. Semgrep — SAST, rules vendored
 under `semgrep/`, pinned image, `--network none` — is push-only like mutation: both need Docker, and push
 is the layer that sees the merge commit. Bypass for a Docker outage, never for a finding:
 `SKIP_SEMGREP=1 git push`. The reasons both hooks scan, why `SKIP_TESTS=1` is passed, and why a
