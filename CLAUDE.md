@@ -22,6 +22,8 @@ ceremony below is there because a request renders on a shared Node process befor
   `pre-push` runs it, threshold stays 100. To reproduce a survivor, apply the mutant by hand in the
   source and run `yarn test` instead. Full rationale:
   [`REPO.md`](./REPO.md#mutation-gate-why-its-hook-only-and-how-to-reproduce-a-survivor).
+  ⚠️ Since ADR-055 the script has a second caller, `.github/workflows/gates.yml`, which runs it on
+  every pull request — two callers, both automated, and a hand is neither.
 - ⚠️ **`ssr: false` is exactly two routes** — `/account/*` and `/reset-password/confirm`. Every other
   route here, including `/login`, `/register*` and `/reset-password`, is SSR. See
   [`REPO.md`](./REPO.md#routes) for the full table.
