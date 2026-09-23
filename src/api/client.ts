@@ -2,8 +2,9 @@ import { cacheExchange, Client, fetchExchange, mapExchange } from '@urql/core'
 import { authExchange } from '@urql/exchange-auth'
 
 import { CTX_USER_AUTHORIZATION, ENDPOINT, requiresAuth } from '@/api/endpoints'
-import { isAuthExpired, isRefreshRaceRetry, isSessionGone } from '@/api/errors'
+import { isAuthExpired, isRefreshRaceRetry, isSessionGone, isTransportFailure } from '@/api/errors'
 import { RefreshDocument } from '@/api/operations/userAuthorization/refresh'
+import { createRefreshBreaker } from '@/api/refreshBreaker'
 import { clearAccessToken, getAccessToken, setAccessToken } from '@/api/tokenStore'
 
 /**
@@ -11,6 +12,15 @@ import { clearAccessToken, getAccessToken, setAccessToken } from '@/api/tokenSto
  * as lost. Retries, not attempts: the first send is not one, so this is three calls at worst.
  */
 const REFRESH_RACE_RETRIES = 2
+
+/**
+ * Thrown instead of calling `utils.mutate` while the breaker's cooldown window is open.
+ *
+ * `@urql/exchange-auth` turns a `refreshAuth` rejection into a `CombinedError` carrying this as
+ * `networkError`, for every operation currently queued behind the refresh — the exact shape a real
+ * transport failure produces — without a fetch ever going out. See the comment on `refreshAuth` below.
+ */
+const REFRESH_SUSPENDED = 'Refresh suspended after repeated transport failures'
 
 export interface CreateGraphQLClientOptions {
 	/**
@@ -24,6 +34,12 @@ export interface CreateGraphQLClientOptions {
 	 * standing on one.
 	 */
 	onSessionLost: () => void
+
+	/**
+	 * The clock the refresh breaker reads to open and check its cooldown window. Defaults to `Date.now`;
+	 * a test overrides it to make the breaker's timing deterministic instead of racing the real clock.
+	 */
+	now?: (() => number) | undefined
 }
 
 /**
@@ -42,8 +58,12 @@ export interface CreateGraphQLClientOptions {
  * `fetchOptions.credentials: 'include'` is what carries the refresh cookie. It works because the app
  * and the services share one origin; see the comment in vite.config.ts.
  */
-export const createGraphQLClient = ({ onSessionLost }: CreateGraphQLClientOptions): Client =>
-	new Client({
+export const createGraphQLClient = ({ onSessionLost, now }: CreateGraphQLClientOptions): Client => {
+	// One breaker per client, i.e. per browser page load — never a module-scoped variable. See the doc
+	// comment on `createRefreshBreaker` for why that matters on an app that also builds urql clients for SSR.
+	const refreshBreaker = createRefreshBreaker({ now })
+
+	return new Client({
 		/**
 		 * The default endpoint is the **public** catalogue, not the authenticated one — the opposite of
 		 * the two sibling apps. Most of what this app sends is anonymous, and a document that forgets its
@@ -106,21 +126,43 @@ export const createGraphQLClient = ({ onSessionLost }: CreateGraphQLClientOption
 				 * rotates it; the other presents a token the backend consumed milliseconds ago, and inside
 				 * the grace window it answers `REFRESH_RACE_RETRY` instead of revoking the family. By then
 				 * the winner's `Set-Cookie` is in the jar both tabs share, so the retry sends the current
-				 * token and succeeds — which is why there is no backoff here: the thing being waited for has
-				 * already happened, and a timer would only delay the customer's first screen.
+				 * token and succeeds — which is why there is no backoff *here*: the thing being waited for
+				 * has already happened, and a timer would only delay the customer's first screen. That is a
+				 * different failure from the one `refreshBreaker` guards below: this loop is bounded at
+				 * `REFRESH_RACE_RETRIES` because it is otherwise unbounded on a backend that keeps answering
+				 * the same code. Two is a race lost twice in a row; a third is not a race any more, and
+				 * clearing the session is the honest answer.
 				 *
-				 * Bounded at `REFRESH_RACE_RETRIES` because the loop is otherwise unbounded on a backend
-				 * that keeps answering the same code. Two is a race lost twice in a row; a third is not a
-				 * race any more, and clearing the session is the honest answer.
+				 * ⚠️ During a sustained outage every operation that hits an expired token lands here, and
+				 * without the breaker each one would fire its own `mutate` at a refresh endpoint that is
+				 * already down. `refreshBreaker` tracks *consecutive transport failures* — the mutation never
+				 * got a response at all, as opposed to the backend answering with one — and once the cooldown
+				 * window it opens is active, this returns without a network call by throwing instead of
+				 * awaiting `utils.mutate`. `@urql/exchange-auth` turns that rejection into the same
+				 * `CombinedError` shape a real transport failure produces for every operation queued behind
+				 * this refresh, so the session survives and the caller sees a network error exactly as it
+				 * would on any other dropped connection.
+				 *
+				 * A transport failure is deliberately never terminal here, unlike a failure the backend
+				 * itself answered: the visitor's connection dropping is not evidence the refresh cookie is
+				 * bad, and signing them out over it would turn a reconnect into an unexplained logout.
 				 */
 				async refreshAuth() {
+					if (refreshBreaker.isOpen()) throw new Error(REFRESH_SUSPENDED)
+
 					for (let attempt = 0; attempt <= REFRESH_RACE_RETRIES; attempt++) {
 						const result = await utils.mutate(RefreshDocument, {}, CTX_USER_AUTHORIZATION)
 						const refresh = result.data?.refresh
 
 						if (refresh !== undefined && refresh.status && refresh.accessToken !== '') {
 							setAccessToken(refresh.accessToken)
+							refreshBreaker.recordSuccess()
 							return
+						}
+
+						if (isTransportFailure(result.error)) {
+							refreshBreaker.recordFailure()
+							throw result.error
 						}
 
 						// Every other failure is terminal: a second attempt would present the same cookie to a
@@ -157,3 +199,4 @@ export const createGraphQLClient = ({ onSessionLost }: CreateGraphQLClientOption
 			fetchExchange
 		]
 	})
+}

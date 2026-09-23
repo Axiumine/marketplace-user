@@ -69,6 +69,15 @@ export const isAuthExpired = (error: CombinedError | undefined): boolean => stat
 export const isSessionGone = (error: CombinedError | undefined): boolean => SESSION_GONE.includes(statusOf(error))
 
 /**
+ * True when a request never reached the server at all — DNS, offline, an aborted fetch — rather than a
+ * failure the server itself answered. `statusOf` returns `undefined` for exactly that case; the explicit
+ * `error !== undefined` guard is what keeps "no error occurred" from reading the same way as "the network
+ * failed", since `statusOf(undefined)` is also `undefined`.
+ */
+export const isTransportFailure = (error: CombinedError | undefined): boolean =>
+	error !== undefined && statusOf(error) === undefined
+
+/**
  * The refresh the backend answered with "another request of yours just rotated this token, send it again"
  * — the loser of a multi-tab race, which is ordinary use rather than a dead session.
  *
