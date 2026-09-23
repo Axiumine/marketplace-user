@@ -399,10 +399,13 @@ describe('the refresh transport breaker', () => {
 
 		await client.query(MeDocument, {}, meContext).toPromise() // opens a 1s window
 		time.advance(999) // still inside it
-		await client.query(MeDocument, {}, meContext).toPromise()
+		const result = await client.query(MeDocument, {}, meContext).toPromise()
 
 		// One attempt only — the second call never reaches the network at all.
 		expect(names(stub)).toEqual(['Refresh'])
+		// The blocked operation still fails as a network error, surfaced exactly like a real transport
+		// failure — this is the `throw new Error(REFRESH_SUSPENDED)` branch in `refreshAuth`, verbatim.
+		expect(result.error?.networkError?.message).toBe('Refresh suspended after repeated transport failures')
 	})
 
 	it('calls refresh again once the cooldown window has elapsed', async () => {
