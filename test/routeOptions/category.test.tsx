@@ -147,6 +147,37 @@ describe('the category route', () => {
  * The length is asserted alongside the contents because the parent crumb is spread from a conditional
  * array: an extra element and a missing one are both silent if only the crumbs that *are* there get read.
  */
+/*
+ * ⚠️ The cross-shop items query throws once its offset passes `MAX_CROSS_SHOP_OFFSET` (2 000) in
+ * `marketplace-dev-public-resource`'s `liveItemsAcrossShops.mts`, rather than clamping — every skipped
+ * document there costs more than one on a single shop's own listing, which is why this cap is far
+ * shallower than `MAX_OFFSET`. Page 84 is the deepest one `offsetOf` still keeps at or under it (1 992);
+ * page 85 crosses it (2 016) and would crash the SSR loader on the backend's raw throw if the frontend
+ * ever sent it. Both routes share `loadCategory`, so one page proves it for both.
+ */
+describe('the category route past the backend’s offset cap', () => {
+	it('404s a page beyond the cap without querying anything at all', async () => {
+		const { stub } = await mount('/category/apparel?page=85')
+
+		expect(screen.getByRole('heading', { level: 1, name: 'This page does not exist' })).toBeInTheDocument()
+		expect(stub.calls).toHaveLength(0)
+	})
+
+	it('still serves the deepest page the cap allows', async () => {
+		const { stub } = await mount('/category/apparel?page=84')
+
+		expect(stub.calls.map((call) => call.operationName)).toEqual(['ItemCategories', 'Items'])
+		expect(stub.calls[1]?.variables).toEqual({ idCategory: 'cat-apparel', limit: 24, offset: 1992 })
+	})
+
+	it('404s the subcategory route the same way', async () => {
+		const { stub } = await mount('/category/apparel/footwear?page=85')
+
+		expect(screen.getByRole('heading', { level: 1, name: 'This page does not exist' })).toBeInTheDocument()
+		expect(stub.calls).toHaveLength(0)
+	})
+})
+
 describe('the category breadcrumb trail', () => {
 	const trail = () => within(screen.getByRole('navigation', { name: 'Breadcrumb' }))
 

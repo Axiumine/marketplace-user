@@ -9,7 +9,7 @@ import { Pagination } from '@/features/catalogue/Pagination'
 import { ShopGrid } from '@/features/catalogue/ShopGrid'
 import { formatTotal } from '@/lib/format'
 import { breadcrumbJsonLd, itemListJsonLd, jsonLdScripts } from '@/lib/jsonLd'
-import { offsetOf, PAGE_SIZE, pageLinks, pageNumber } from '@/lib/pagination'
+import { maxPageFor, offsetOf, PAGE_SIZE, pageLinks, pageNumber } from '@/lib/pagination'
 import { absoluteUrl, headFor } from '@/lib/seo'
 import type { RouterContext } from '@/router'
 
@@ -51,6 +51,13 @@ const crumbsFor = (city: string) => [
 	{ name: city, path: cityPath(city) }
 ]
 
+/**
+ * Mirrors `MAX_OFFSET` in `marketplace-dev-public-resource`'s `publicRead.mts` — the offset cap
+ * `companies` enforces. Past it the backend throws instead of clamping; this is what keeps a `?page=`
+ * deep enough to trigger that throw from ever reaching it.
+ */
+const MAX_PAGE = maxPageFor(10_000)
+
 const loader = async ({
 	context,
 	params,
@@ -62,6 +69,12 @@ const loader = async ({
 }) => {
 	const page = pageNumber(deps.page)
 	const city = params.city.trim()
+
+	// ⚠️ A different failure from the one the comment below explains: a real city's page 9 empties on
+	// purpose, because the backend can still answer it. A page past `MAX_PAGE` is one the backend cannot
+	// answer for *any* city — it throws on the offset alone — so this checks before the query runs rather
+	// than after.
+	if (page > MAX_PAGE) throw notFound()
 
 	const data = await runQuery(context.gql, CompaniesDocument, {
 		limit: PAGE_SIZE,

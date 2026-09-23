@@ -110,6 +110,62 @@ describe('the search route', () => {
 		expect(result).toEqual({ q: '', kind: 'items', page: 1, near: undefined, companies: EMPTY_PAGE, items: EMPTY_PAGE })
 	})
 
+	/*
+	 * ⚠️ `searchItems` throws once its offset passes `MAX_CROSS_SHOP_OFFSET` (2 000) in
+	 * `marketplace-dev-public-resource`'s `liveItemsAcrossShops.mts`, rather than clamping — it spans every
+	 * shop and costs more per skipped document than the single-collection `searchCompanies`, which is
+	 * bounded by the ordinary `MAX_OFFSET` (10 000) instead. `/search` is `noindex` on every result and has
+	 * no entity of its own to 404, so a page past either cap answers the same graceful nothing an empty
+	 * query does, rather than reach the backend and crash on its throw.
+	 */
+	it('answers nothing for an items page beyond the cross-shop cap, without touching the context', async () => {
+		const result = await searchRouteOptions.loader({
+			context: undefined as never,
+			deps: { q: 'satchel', kind: 'items', page: 85 }
+		})
+
+		expect(result).toEqual({
+			q: 'satchel',
+			kind: 'items',
+			page: 85,
+			near: undefined,
+			companies: EMPTY_PAGE,
+			items: EMPTY_PAGE
+		})
+	})
+
+	// The deepest page the cross-shop cap allows still reaches the backend — the check is `>`, not `>=`.
+	it('still queries the deepest items page the cross-shop cap allows', async () => {
+		const { stub } = await mount('/search?q=satchel&page=84')
+
+		expect(stub.calls[0]?.variables).toMatchObject({ offset: 1992 })
+	})
+
+	// The shops kind is bounded by the ordinary, deeper cap — a page well past the cross-shop one but still
+	// under this one must still reach the backend rather than being refused for the wrong kind's limit.
+	it('still queries a shops page past the cross-shop cap but under the ordinary one', async () => {
+		const { stub } = await mount('/search?q=rivers&kind=companies&page=200')
+
+		expect(stub.calls[0]?.operationName).toBe('SearchCompanies')
+		expect(stub.calls[0]?.variables).toMatchObject({ offset: 4776 })
+	})
+
+	it('answers nothing for a shops page beyond the ordinary cap', async () => {
+		const result = await searchRouteOptions.loader({
+			context: undefined as never,
+			deps: { q: 'rivers', kind: 'companies', page: 418 }
+		})
+
+		expect(result).toEqual({
+			q: 'rivers',
+			kind: 'companies',
+			page: 418,
+			near: undefined,
+			companies: EMPTY_PAGE,
+			items: EMPTY_PAGE
+		})
+	})
+
 	it('trims the query before sending it', async () => {
 		const { stub } = await mount('/search?q=%20satchel%20')
 

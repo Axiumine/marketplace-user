@@ -11,7 +11,7 @@ import type { FlatCategory } from '@/lib/categories'
 import { categoryPath, findCategory } from '@/lib/categories'
 import type { Crumb } from '@/lib/jsonLd'
 import { breadcrumbJsonLd, itemListJsonLd, jsonLdScripts } from '@/lib/jsonLd'
-import { offsetOf, PAGE_SIZE, pageLinks, pageNumber } from '@/lib/pagination'
+import { maxPageFor, offsetOf, PAGE_SIZE, pageLinks, pageNumber } from '@/lib/pagination'
 import { absoluteUrl, headFor, truncate } from '@/lib/seo'
 import type { RouterContext } from '@/router'
 
@@ -42,6 +42,14 @@ export interface CategoryLoaderResult {
 	readonly page: number
 	readonly basePath: string
 }
+
+/**
+ * Mirrors `MAX_CROSS_SHOP_OFFSET` in `marketplace-dev-public-resource`'s `liveItemsAcrossShops.mts` — an
+ * item spanning every shop costs more per skipped document than one shop's own listing, so the backend
+ * caps this offset far shallower than the ordinary `MAX_OFFSET`. Past it the backend throws instead of
+ * clamping; this is what keeps a `?page=` deep enough to trigger that throw from ever reaching it.
+ */
+const MAX_PAGE = maxPageFor(2_000)
 
 const loadItems = async (context: RouterContext, idCategory: string, page: number) => {
 	const data = await runQuery(context.gql, ItemsDocument, {
@@ -75,6 +83,12 @@ export const loadCategory = async ({
 	page: number
 }): Promise<CategoryLoaderResult | undefined> => {
 	const page = pageNumber(rawPage)
+
+	// ⚠️ Ahead of the tree fetch, and for the same reason `notFound()` is thrown for an unknown slug: a
+	// page this deep can never be answered for *any* category, so nothing below is worth asking for. Left
+	// unchecked, `offsetOf(page)` would reach the cross-shop items query past its own cap and the backend
+	// throws — see `MAX_PAGE`.
+	if (page > MAX_PAGE) return undefined
 
 	const tree = await runQuery(context.gql, ItemCategoriesDocument, {})
 	const found = findCategory(tree.itemCategories, slug)

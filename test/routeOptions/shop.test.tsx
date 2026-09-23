@@ -217,6 +217,28 @@ describe('the shop route', () => {
 	})
 })
 
+/*
+ * ⚠️ `items(companySlug:)` throws once its offset passes `MAX_OFFSET` (10 000) in
+ * `marketplace-dev-public-resource`'s `publicRead.mts`, rather than clamping. Page 417 is the deepest one
+ * `offsetOf` still keeps at or under that cap (9 984); page 418 crosses it (10 008) and would crash the
+ * SSR loader on the backend's raw throw if the frontend ever sent it.
+ */
+describe('the shop route past the backend’s offset cap', () => {
+	it('404s a page beyond the cap without querying the shop or its items at all', async () => {
+		const { stub } = await mount('/shop/rivers-boutique?page=418')
+
+		expect(screen.getByRole('heading', { level: 1, name: 'This page does not exist' })).toBeInTheDocument()
+		expect(stub.calls).toHaveLength(0)
+	})
+
+	it('still serves the deepest page the cap allows', async () => {
+		const { stub } = await mount('/shop/rivers-boutique?page=417')
+
+		expect(stub.calls.map((call) => call.operationName)).toEqual(['CompanyBySlug', 'Items'])
+		expect(stub.calls[1]?.variables).toEqual({ companySlug: 'rivers-boutique', limit: 24, offset: 9984 })
+	})
+})
+
 describe('the shop route head', () => {
 	it('titles the page with the trading name, and the page after the first', () => {
 		expect(titleOf(head(companyOf()))).toBe('Rivers Boutique · Marketplace')

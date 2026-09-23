@@ -103,6 +103,31 @@ describe('the city listing route', () => {
 	})
 })
 
+/*
+ * ⚠️ `companies` throws once its offset passes `MAX_OFFSET` (10 000) in
+ * `marketplace-dev-public-resource`'s `publicRead.mts`, rather than clamping. Page 417 is the deepest one
+ * `offsetOf` still keeps at or under that cap (9 984); page 418 crosses it (10 008) and would crash the
+ * SSR loader on the backend's raw throw if the frontend ever sent it.
+ *
+ * ⚠️ This 404 is a different failure from the "empty page past the end of a real city" case above: that
+ * one still queries and renders an empty listing because the backend *can* answer it. A page past the cap
+ * cannot be answered for any city, so it is checked and refused before the query is ever sent.
+ */
+describe('the city listing route past the backend’s offset cap', () => {
+	it('404s a page beyond the cap without querying at all', async () => {
+		const { stub } = await mount('/shops/Boston?page=418')
+
+		expect(screen.getByRole('heading', { level: 1, name: 'This page does not exist' })).toBeInTheDocument()
+		expect(stub.calls).toHaveLength(0)
+	})
+
+	it('still serves the deepest page the cap allows', async () => {
+		const { stub } = await mount('/shops/Boston?page=417')
+
+		expect(stub.calls[0]?.variables).toEqual({ limit: 24, offset: 9984, city: 'Boston' })
+	})
+})
+
 describe('the city listing search parameter', () => {
 	it.each([
 		['abc', 1],
