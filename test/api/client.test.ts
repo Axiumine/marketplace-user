@@ -7,6 +7,7 @@ import { CTX_LOGOUT, CTX_PUBLIC_RESOURCE, CTX_USER_RESOURCE, ENDPOINT } from '@/
 import { HTTP } from '@/api/errors'
 import { clearAccessToken, getAccessToken, setAccessToken } from '@/api/tokenStore'
 
+import { clock } from '../helpers/clock'
 import type { GraphQLReplies } from '../helpers/graphql'
 import { graphQLError, stubGraphQL } from '../helpers/graphql'
 
@@ -49,12 +50,6 @@ const clientWith = (replies: GraphQLReplies, now?: () => number) => {
 	const stub = stubGraphQL(replies)
 
 	return { client: createGraphQLClient({ onSessionLost, now }), onSessionLost, stub }
-}
-
-/** A clock a test can move by hand, so a breaker window's edges are asserted on exact milliseconds. */
-const clock = (start = 0) => {
-	let current = start
-	return { now: () => current, advance: (ms: number) => (current += ms) }
 }
 
 const names = (stub: ReturnType<typeof stubGraphQL>) => stub.calls.map((call) => call.operationName)

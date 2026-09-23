@@ -2,11 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { createRefreshBreaker } from '@/api/refreshBreaker'
 
-/** A clock a test can move by hand, so a window's edges are asserted on exact milliseconds. */
-const clock = (start = 0) => {
-	let current = start
-	return { now: () => current, advance: (ms: number) => (current += ms) }
-}
+import { clock } from '../helpers/clock'
 
 describe('createRefreshBreaker', () => {
 	it('starts closed', () => {
