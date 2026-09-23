@@ -9,6 +9,7 @@ import {
 	isAuthExpired,
 	isRefreshRaceRetry,
 	isSessionGone,
+	isTransportFailure,
 	messageOf,
 	REFRESH_RACE_RETRY_CODE,
 	statusOf,
@@ -195,6 +196,25 @@ describe('isSessionGone', () => {
 	it('does not end the session on a failure that never reached the server', () => {
 		expect(isSessionGone(combined({ networkError: new Error('Failed to fetch') }))).toBe(false)
 		expect(isSessionGone(undefined)).toBe(false)
+	})
+})
+
+describe('isTransportFailure', () => {
+	// The one case `statusOf` answers undefined for a real error: no response, no extension, nothing the
+	// server said — the refresh breaker's whole reason to exist.
+	it('is true for a request that never reached the server', () => {
+		expect(isTransportFailure(combined({ networkError: new Error('Failed to fetch') }))).toBe(true)
+	})
+
+	it.each([HTTP.invalidToken, HTTP.unauthorized, HTTP.badRequest])('is false for a response carrying status %i', (status) => {
+		expect(isTransportFailure(combined({ response: { status } }))).toBe(false)
+	})
+
+	// ⚠️ `statusOf(undefined)` is also undefined, which would make a naive `statusOf(error) === undefined`
+	// read "no error at all" as "the network failed". The explicit guard is what a mutant deleting it
+	// would flip.
+	it('is false when there is no error at all', () => {
+		expect(isTransportFailure(undefined)).toBe(false)
 	})
 })
 

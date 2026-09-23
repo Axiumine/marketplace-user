@@ -134,8 +134,15 @@ describe('useLogout', () => {
 
 	// Clicking twice must not throw, and must not send a second mutation with a token that no longer
 	// exists — the second call is a no-op against an already-empty store.
+	//
+	// The second click's token is already gone, so `willAuthError` refreshes before resending `Logout` —
+	// against a cookie the first, successful logout already invalidated server-side, hence a terminal
+	// refresh reply here rather than a fresh token.
 	it('survives a second click', async () => {
-		const stub = stubGraphQL({ Logout: { data: { logout: true } } })
+		const stub = stubGraphQL({
+			Logout: { data: { logout: true } },
+			Refresh: { data: { refresh: { status: false, accessToken: '' } } }
+		})
 		await renderWithRouter(<SignOut />, { token: 'abc123', session: CUSTOMER_EMAIL, path: '/login' })
 		stubLocationAssign()
 

@@ -1,11 +1,11 @@
-import type { Client, TypedDocumentNode } from '@urql/core'
+import type { Client, OperationContext, TypedDocumentNode } from '@urql/core'
 import { gql } from '@urql/core'
 import { describe, expect, it, vi } from 'vitest'
 
 import { createGraphQLClient } from '@/api/client'
 import { CTX_LOGOUT, CTX_PUBLIC_RESOURCE, CTX_USER_RESOURCE, ENDPOINT } from '@/api/endpoints'
 import { HTTP } from '@/api/errors'
-import { getAccessToken, setAccessToken } from '@/api/tokenStore'
+import { clearAccessToken, getAccessToken, setAccessToken } from '@/api/tokenStore'
 
 import type { GraphQLReplies } from '../helpers/graphql'
 import { graphQLError, stubGraphQL } from '../helpers/graphql'
@@ -44,11 +44,17 @@ const raceLost = {
 	status: 409
 }
 
-const clientWith = (replies: GraphQLReplies) => {
+const clientWith = (replies: GraphQLReplies, now?: () => number) => {
 	const onSessionLost = vi.fn()
 	const stub = stubGraphQL(replies)
 
-	return { client: createGraphQLClient({ onSessionLost }), onSessionLost, stub }
+	return { client: createGraphQLClient({ onSessionLost, now }), onSessionLost, stub }
+}
+
+/** A clock a test can move by hand, so a breaker window's edges are asserted on exact milliseconds. */
+const clock = (start = 0) => {
+	let current = start
+	return { now: () => current, advance: (ms: number) => (current += ms) }
 }
 
 const names = (stub: ReturnType<typeof stubGraphQL>) => stub.calls.map((call) => call.operationName)
@@ -353,6 +359,128 @@ describe('the lost refresh race', () => {
 		expect(names(stub).filter((name) => name === 'Refresh')).toHaveLength(3)
 		expect(getAccessToken()).toBeNull()
 		expect(onSessionLost).toHaveBeenCalled()
+	})
+})
+
+/*
+ * During a sustained outage every operation that hits an expired token calls `refreshAuth`, and without a
+ * breaker each one fires its own `mutate` at a refresh endpoint that is already down. These tests exercise
+ * that breaker through the real client rather than through `refreshBreaker.test.ts`'s direct unit tests —
+ * the wiring is what could still be wrong even with a correct breaker underneath it.
+ */
+describe('the refresh transport breaker', () => {
+	/** A refresh mutation that never reaches the server — no response, no status, offline. */
+	const failingRefresh = { networkError: 'offline' }
+
+	/*
+	 * `network-only`, throughout this block: several tests query `Me` more than once, and a `Me` that ever
+	 * succeeds — the resend after a terminal refresh failure, or after the breaker resets — would otherwise
+	 * be served from `cacheExchange` on every later call, bypassing `authExchange` and the breaker under
+	 * test entirely. Every call here is meant to reach the network.
+	 */
+	const meContext: Partial<OperationContext> = { ...CTX_USER_RESOURCE, requestPolicy: 'network-only' }
+
+	/*
+	 * ⚠️ The bug this breaker closes. Before it, a refresh that never reached the server was funnelled
+	 * through the same "every other failure is terminal" branch as a refusal the backend actually sent,
+	 * and the session ended over a dropped connection — the one case where the refresh cookie was never
+	 * shown to be bad at all.
+	 */
+	it('keeps the session and fails the operation as a network error, not a logout', async () => {
+		const { client, onSessionLost, stub } = clientWith({ Me: ME, Refresh: failingRefresh })
+
+		const result = await client.query(MeDocument, {}, meContext).toPromise()
+
+		expect(names(stub)).toEqual(['Refresh'])
+		expect(onSessionLost).not.toHaveBeenCalled()
+		expect(getAccessToken()).toBeNull()
+		expect(result.error).toBeDefined()
+		expect(result.data).toBeUndefined()
+	})
+
+	it('makes no refresh call for an operation that lands inside the cooldown window the first failure opened', async () => {
+		const time = clock()
+		const { client, stub } = clientWith({ Me: ME, Refresh: failingRefresh }, time.now)
+
+		await client.query(MeDocument, {}, meContext).toPromise() // opens a 1s window
+		time.advance(999) // still inside it
+		await client.query(MeDocument, {}, meContext).toPromise()
+
+		// One attempt only — the second call never reaches the network at all.
+		expect(names(stub)).toEqual(['Refresh'])
+	})
+
+	it('calls refresh again once the cooldown window has elapsed', async () => {
+		const time = clock()
+		const { client, stub } = clientWith({ Me: ME, Refresh: failingRefresh }, time.now)
+
+		await client.query(MeDocument, {}, meContext).toPromise()
+		time.advance(1_000) // exactly the first window's length: elapsed, not inside it
+		await client.query(MeDocument, {}, meContext).toPromise()
+
+		expect(names(stub)).toEqual(['Refresh', 'Refresh'])
+	})
+
+	/*
+	 * A refusal the backend actually sent is not what the breaker exists for, and must not feed it. The
+	 * refresh reply here is the "mutation reports failure" shape from the terminal-failure tests above —
+	 * deliberately not a status carried in `SESSION_GONE`, so the only `onSessionLost` call this produces is
+	 * `refreshAuth`'s own, and the assertion on it stays a meaningful count rather than one confounded by
+	 * `mapExchange` also reacting to the refresh operation's own response.
+	 */
+	it('does not count a response-carrying refresh failure toward the breaker', async () => {
+		const time = clock()
+		const { client, onSessionLost, stub } = clientWith(
+			{ Me: ME, Refresh: [{ data: { refresh: { status: false, accessToken: '' } } }, failingRefresh] },
+			time.now
+		)
+
+		await client.query(MeDocument, {}, meContext).toPromise() // terminal — must not touch the breaker
+		expect(onSessionLost).toHaveBeenCalledTimes(1)
+
+		await client.query(MeDocument, {}, meContext).toPromise() // the breaker's first transport failure
+		time.advance(999)
+		await client.query(MeDocument, {}, meContext).toPromise() // still inside that 1s window
+		expect(names(stub).filter((name) => name === 'Refresh')).toHaveLength(2)
+
+		time.advance(1) // a 2s window (had the terminal failure wrongly counted) would still be open here
+		await client.query(MeDocument, {}, meContext).toPromise()
+		expect(names(stub).filter((name) => name === 'Refresh')).toHaveLength(3)
+	})
+
+	it('resets the breaker on a successful refresh, so the next failure opens a 1s window again', async () => {
+		const time = clock()
+		const { client, stub } = clientWith(
+			{ Me: ME, Refresh: [failingRefresh, refreshed(), failingRefresh, failingRefresh] },
+			time.now
+		)
+
+		await client.query(MeDocument, {}, meContext).toPromise() // 1st failure: opens a 1s window
+		time.advance(1_000) // elapsed
+		await client.query(MeDocument, {}, meContext).toPromise() // succeeds: resets the breaker
+		clearAccessToken() // force the next operation through refreshAuth again
+		await client.query(MeDocument, {}, meContext).toPromise() // fails — the "first" failure again
+
+		// A 2s window (the count left un-reset) would still be open here; a fresh 1s one is not.
+		time.advance(1_000)
+		await client.query(MeDocument, {}, meContext).toPromise()
+
+		expect(names(stub).filter((name) => name === 'Refresh')).toHaveLength(4)
+	})
+
+	it("resets the breaker on the browser's online event, so the next failure opens a 1s window again", async () => {
+		const time = clock()
+		const { client, stub } = clientWith({ Me: ME, Refresh: [failingRefresh, failingRefresh, failingRefresh] }, time.now)
+
+		await client.query(MeDocument, {}, meContext).toPromise() // 1st failure: opens a 1s window
+		window.dispatchEvent(new Event('online')) // resets the breaker mid-outage
+		await client.query(MeDocument, {}, meContext).toPromise() // the "first" failure again, post-reset
+
+		// A 2s window (the count left un-reset) would still be open here; a fresh 1s one is not.
+		time.advance(1_000)
+		await client.query(MeDocument, {}, meContext).toPromise()
+
+		expect(names(stub).filter((name) => name === 'Refresh')).toHaveLength(3)
 	})
 })
 

@@ -153,7 +153,9 @@ describe('AccountGate session authority', () => {
 	 * login form they did not need.
 	 */
 	it('renders the account for a reloaded tab with no session in module state', async () => {
-		stubGraphQL(meReply())
+		// No token in module state means `willAuthError` refreshes before `Me` is even sent — the httpOnly
+		// cookie a real reload still has, which is the whole scenario this test is for.
+		stubGraphQL({ ...meReply(), Refresh: { data: { refresh: { status: true, accessToken: 'fresh-token' } } } })
 		await renderWithRouter(
 			<AccountGate>
 				<Inside />
