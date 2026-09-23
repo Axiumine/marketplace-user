@@ -74,6 +74,10 @@ export const LoginForm = () => {
 
 		if (data === undefined) {
 			setFailure(messageOf(result.error))
+			// The server verifies Turnstile before anything else, so a refusal for any other reason — a
+			// wrong password here — has already spent the token. Without this, every retry is rejected as
+			// a Cloudflare duplicate no matter how the credentials are fixed.
+			turnstile.reset()
 			return
 		}
 
@@ -106,7 +110,7 @@ export const LoginForm = () => {
 				Keep me signed in
 			</label>
 
-			<Turnstile onToken={turnstile.onToken} />
+			<Turnstile key={turnstile.resetKey} onToken={turnstile.onToken} />
 
 			<FormStatus tone="error" message={failure} />
 

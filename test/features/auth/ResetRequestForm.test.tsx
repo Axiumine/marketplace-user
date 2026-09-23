@@ -1,6 +1,6 @@
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { ENDPOINT } from '@/api/endpoints'
 import { ResetRequestForm } from '@/features/auth/ResetRequestForm'
@@ -8,6 +8,34 @@ import { ResetRequestForm } from '@/features/auth/ResetRequestForm'
 import type { GraphQLReplies } from '../../helpers/graphql'
 import { graphQLError, stubGraphQL } from '../../helpers/graphql'
 import { CUSTOMER_EMAIL, renderWithClient } from '../../helpers/render'
+
+/*
+ * ⚠️ Spied, not stubbed out — see `LoginForm.test.tsx` for why only `reset` is wrapped and the real hook
+ * still runs underneath it.
+ */
+const turnstileReset = vi.fn()
+
+vi.mock('@/features/auth/useTurnstileToken', async (importOriginal) => {
+	const actual = await importOriginal<typeof import('@/features/auth/useTurnstileToken')>()
+
+	return {
+		useTurnstileToken: () => {
+			const real = actual.useTurnstileToken()
+
+			return {
+				...real,
+				reset: () => {
+					turnstileReset()
+					real.reset()
+				}
+			}
+		}
+	}
+})
+
+afterEach(() => {
+	turnstileReset.mockClear()
+})
 
 const ACCEPTED: GraphQLReplies = { UserResetPwd: { data: { userResetPwd: true } } }
 
@@ -38,6 +66,17 @@ describe('ResetRequestForm', () => {
 
 		expect(await screen.findByText('Enter a valid email address.')).toBeInTheDocument()
 		expect(stub.calls).toHaveLength(0)
+	})
+
+	// A refusal that never reached the server spent no token — resetting the widget here would tear down a
+	// challenge the visitor may already be mid-way through solving, for no reason.
+	it('does not reset the Turnstile widget on a validation refusal', async () => {
+		const { user } = mount()
+
+		await ask(user, 'not-an-address')
+
+		await screen.findByText('Enter a valid email address.')
+		expect(turnstileReset).not.toHaveBeenCalled()
 	})
 
 	/*
@@ -104,6 +143,15 @@ describe('ResetRequestForm confirmation', () => {
 		await ask(user)
 
 		expect(await screen.findByRole('status')).toHaveTextContent('If that address is registered')
+	})
+
+	it('does not reset the Turnstile widget on success', async () => {
+		const { user } = mount()
+
+		await ask(user)
+
+		await screen.findByRole('status')
+		expect(turnstileReset).not.toHaveBeenCalled()
 	})
 
 	it('does not echo the address back', async () => {
@@ -173,5 +221,18 @@ describe('ResetRequestForm on failure', () => {
 		await ask(user)
 
 		expect(await screen.findByRole('alert')).toHaveTextContent('Error while communicating with the server')
+	})
+
+	/*
+	 * ⚠️ The server verifies Turnstile before anything else, so this refusal has already spent the token —
+	 * every retry would be rejected as a Cloudflare duplicate until this runs. See `useTurnstileToken`.
+	 */
+	it('resets the Turnstile widget so the next attempt gets a fresh token', async () => {
+		const { user } = mount({ UserResetPwd: { errors: [graphQLError('Too many requests')], status: 429 } })
+
+		await ask(user)
+
+		await screen.findByRole('alert')
+		expect(turnstileReset).toHaveBeenCalledTimes(1)
 	})
 })

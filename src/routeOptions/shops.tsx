@@ -1,4 +1,4 @@
-import { getRouteApi } from '@tanstack/react-router'
+import { getRouteApi, notFound } from '@tanstack/react-router'
 import { z } from 'zod'
 
 import { CompaniesDocument } from '@/api/operations/publicResource/queries'
@@ -9,7 +9,7 @@ import { Pagination } from '@/features/catalogue/Pagination'
 import { ShopGrid } from '@/features/catalogue/ShopGrid'
 import { formatTotal } from '@/lib/format'
 import { breadcrumbJsonLd, itemListJsonLd, jsonLdScripts } from '@/lib/jsonLd'
-import { offsetOf, PAGE_SIZE, pageLinks, pageNumber } from '@/lib/pagination'
+import { maxPageFor, offsetOf, PAGE_SIZE, pageLinks, pageNumber } from '@/lib/pagination'
 import { absoluteUrl, headFor } from '@/lib/seo'
 import type { RouterContext } from '@/router'
 
@@ -62,8 +62,16 @@ const CRUMBS = [
 	{ name: 'Shops', path: '/shops' }
 ]
 
+/**
+ * Mirrors `MAX_OFFSET` in `marketplace-dev-public-resource`'s `publicRead.mts` — the offset cap
+ * `companies` enforces. Past it the backend throws instead of clamping; this is what keeps a `?page=`
+ * deep enough to trigger that throw from ever reaching it.
+ */
+const MAX_PAGE = maxPageFor(10_000)
+
 const loader = async ({ context, deps }: { context: RouterContext; deps: { page: number } }) => {
 	const page = pageNumber(deps.page)
+	if (page > MAX_PAGE) throw notFound()
 
 	const data = await runQuery(context.gql, CompaniesDocument, {
 		limit: PAGE_SIZE,

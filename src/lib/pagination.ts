@@ -25,6 +25,18 @@ export const pageNumber = (raw: number | undefined): number => {
 export const offsetOf = (page: number, size: number = PAGE_SIZE): number => (pageNumber(page) - 1) * size
 
 /**
+ * Deepest page number a listing capped at `offsetCap` will still serve, given `PAGE_SIZE`.
+ *
+ * The public-resource service throws once `offsetOf(page)` passes its own offset cap —
+ * `assertOffset` in `marketplace-dev-public-resource`'s `publicRead.mts` — rather than clamping, because
+ * silently serving the same deepest page under every `?page=` past it is how a crawler ends up indexing a
+ * handful of documents under an unbounded number of URLs. A loader that let a page number past this reach
+ * the backend would crash on that throw instead of answering cleanly; this is what every paginated loader
+ * checks its page against first.
+ */
+export const maxPageFor = (offsetCap: number): number => Math.floor(offsetCap / PAGE_SIZE) + 1
+
+/**
  * The `rel="prev"` / `rel="next"` pair a listing emits, as paths.
  *
  * `hasMore` comes from the resolver rather than being derived from `total`, which matters because

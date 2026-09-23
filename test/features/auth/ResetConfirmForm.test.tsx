@@ -1,6 +1,6 @@
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { ENDPOINT } from '@/api/endpoints'
 import { ResetConfirmForm } from '@/features/auth/ResetConfirmForm'
@@ -8,6 +8,34 @@ import { ResetConfirmForm } from '@/features/auth/ResetConfirmForm'
 import type { GraphQLReplies } from '../../helpers/graphql'
 import { graphQLError, stubGraphQL } from '../../helpers/graphql'
 import { CUSTOMER_EMAIL, renderWithRouter } from '../../helpers/render'
+
+/*
+ * ⚠️ Spied, not stubbed out — see `LoginForm.test.tsx` for why only `reset` is wrapped and the real hook
+ * still runs underneath it.
+ */
+const turnstileReset = vi.fn()
+
+vi.mock('@/features/auth/useTurnstileToken', async (importOriginal) => {
+	const actual = await importOriginal<typeof import('@/features/auth/useTurnstileToken')>()
+
+	return {
+		useTurnstileToken: () => {
+			const real = actual.useTurnstileToken()
+
+			return {
+				...real,
+				reset: () => {
+					turnstileReset()
+					real.reset()
+				}
+			}
+		}
+	}
+})
+
+afterEach(() => {
+	turnstileReset.mockClear()
+})
 
 const HASH = 'a1b2c3d4e5f60718293a4b5c6d7e8f90'
 const PASSWORD = 'a passphrase that is long enough'
@@ -78,6 +106,18 @@ describe('ResetConfirmForm validation', () => {
 
 		expect(await screen.findByText('Use at least 10 characters.')).toBeInTheDocument()
 		expect(stub.calls).toHaveLength(0)
+	})
+
+	// A refusal that never reached the server spent no token — resetting the widget here would tear down a
+	// challenge the visitor may already be mid-way through solving, for no reason.
+	it('does not reset the Turnstile widget on a validation refusal', async () => {
+		const { user } = await mount()
+
+		await fillIn(user, 'short')
+		await submit(user)
+
+		await screen.findByText('Use at least 10 characters.')
+		expect(turnstileReset).not.toHaveBeenCalled()
 	})
 
 	it('refuses a confirmation that does not match', async () => {
@@ -152,6 +192,16 @@ describe('ResetConfirmForm on success', () => {
 		await submit(user)
 
 		expect(await screen.findByRole('status')).toHaveTextContent('Your password has been changed.')
+	})
+
+	it('does not reset the Turnstile widget on success', async () => {
+		const { user } = await mount()
+
+		await fillIn(user)
+		await submit(user)
+
+		await screen.findByRole('status')
+		expect(turnstileReset).not.toHaveBeenCalled()
 	})
 
 	/*
@@ -257,5 +307,19 @@ describe('ResetConfirmForm on refusal', () => {
 		await submit(user)
 
 		expect(await screen.findByRole('alert')).toHaveTextContent('Error while communicating with the server')
+	})
+
+	/*
+	 * ⚠️ The server verifies Turnstile before anything else, so this refusal has already spent the token —
+	 * every retry would be rejected as a Cloudflare duplicate until this runs. See `useTurnstileToken`.
+	 */
+	it('resets the Turnstile widget so the next attempt gets a fresh token', async () => {
+		const { user } = await mount(REFUSED)
+
+		await fillIn(user)
+		await submit(user)
+
+		await screen.findByRole('alert')
+		expect(turnstileReset).toHaveBeenCalledTimes(1)
 	})
 })

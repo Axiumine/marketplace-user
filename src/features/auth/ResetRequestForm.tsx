@@ -51,6 +51,10 @@ export const ResetRequestForm = () => {
 		// promising a reset email nobody sent leaves someone waiting for it instead of asking again.
 		if (dataOf(result) === undefined) {
 			setFailure(messageOf(result.error))
+			// The server verifies Turnstile before anything else, so a refusal for any other reason has
+			// already spent the token. Without this, every retry is rejected as a Cloudflare duplicate no
+			// matter how the form was fixed.
+			turnstile.reset()
 			return
 		}
 
@@ -74,7 +78,7 @@ export const ResetRequestForm = () => {
 		<form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
 			<TextField {...register('email')} label="Email" type="email" autoComplete="username" error={errors.email?.message} />
 
-			<Turnstile onToken={turnstile.onToken} />
+			<Turnstile key={turnstile.resetKey} onToken={turnstile.onToken} />
 
 			<FormStatus tone="error" message={failure} />
 

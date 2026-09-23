@@ -11,7 +11,7 @@ import { MapIsland } from '@/features/map/MapIsland'
 import { formatTotal } from '@/lib/format'
 import { toLngLat } from '@/lib/geo'
 import { breadcrumbJsonLd, itemListJsonLd, jsonLdScripts, storeJsonLd } from '@/lib/jsonLd'
-import { offsetOf, PAGE_SIZE, pageLinks, pageNumber } from '@/lib/pagination'
+import { maxPageFor, offsetOf, PAGE_SIZE, pageLinks, pageNumber } from '@/lib/pagination'
 import { absoluteUrl, headFor, truncate } from '@/lib/seo'
 import type { RouterContext } from '@/router'
 
@@ -26,6 +26,13 @@ const route = getRouteApi('/shop/$slug/')
 
 /** One pin, so the map opens on the shop rather than on the country. */
 const SHOP_ZOOM = 15
+
+/**
+ * Mirrors `MAX_OFFSET` in `marketplace-dev-public-resource`'s `publicRead.mts` — the offset cap
+ * `items(companySlug:)` enforces on a single shop's own catalogue. Past it the backend throws instead of
+ * clamping; this is what keeps a `?page=` deep enough to trigger that throw from ever reaching it.
+ */
+const MAX_PAGE = maxPageFor(10_000)
 
 const searchSchema = z.object({
 	page: z.coerce.number().int().min(1).catch(1).optional()
@@ -54,6 +61,12 @@ const loader = async ({
 	deps: { page: number }
 }) => {
 	const page = pageNumber(deps.page)
+
+	// ⚠️ Ahead of the shop lookup, and cheaper for it: a page this deep can never be answered no matter
+	// which shop it names, so there is nothing the company query could still be worth here. Left unchecked,
+	// `offsetOf(page)` would reach `items(companySlug:)` past its own cap and the backend throws — see
+	// `MAX_PAGE`.
+	if (page > MAX_PAGE) throw notFound()
 
 	// Sequential on purpose, unlike the home page's pair: the item query is pointless if the shop does
 	// not exist, and firing both would spend a text-index walk on a 404 that a crawler can request as

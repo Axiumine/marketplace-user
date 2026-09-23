@@ -1,6 +1,6 @@
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { ENDPOINT } from '@/api/endpoints'
 import { getAccessToken } from '@/api/tokenStore'
@@ -11,6 +11,32 @@ import type { GraphQLReplies } from '../../helpers/graphql'
 import { graphQLError, stubGraphQL } from '../../helpers/graphql'
 import { stubLocationAssign } from '../../helpers/location'
 import { CUSTOMER_EMAIL, renderWithRouter } from '../../helpers/render'
+
+/*
+ * ⚠️ Spied, not stubbed out. The rest of this file relies on the real `read()`/`onToken`/`token` — the
+ * "sends a null turnstile token" tests among them — so only `reset` is wrapped, and it still calls the
+ * real one underneath. What this buys is a call count independent of any Turnstile site key, which the
+ * suite runs with none of: the real widget never mounts here, so nothing else could observe a remount.
+ */
+const turnstileReset = vi.fn()
+
+vi.mock('@/features/auth/useTurnstileToken', async (importOriginal) => {
+	const actual = await importOriginal<typeof import('@/features/auth/useTurnstileToken')>()
+
+	return {
+		useTurnstileToken: () => {
+			const real = actual.useTurnstileToken()
+
+			return {
+				...real,
+				reset: () => {
+					turnstileReset()
+					real.reset()
+				}
+			}
+		}
+	}
+})
 
 const PASSWORD = 'a passphrase that is long enough'
 
@@ -47,6 +73,10 @@ const submit = async (user: ReturnType<typeof userEvent.setup>) => {
 
 const loginCall = (stub: { calls: readonly { operationName: string; variables: Record<string, unknown> }[] }) =>
 	stub.calls.find((call) => call.operationName === 'LoginUser')
+
+afterEach(() => {
+	turnstileReset.mockClear()
+})
 
 describe('LoginForm fields', () => {
 	/*
@@ -99,6 +129,18 @@ describe('LoginForm validation', () => {
 
 		expect(await screen.findByText('Enter your password.')).toBeInTheDocument()
 		expect(stub.calls).toHaveLength(0)
+	})
+
+	// A refusal that never reached the server spent no token — resetting the widget here would tear down a
+	// challenge the visitor may already be mid-way through solving, for no reason.
+	it('does not reset the Turnstile widget on a validation refusal', async () => {
+		const { user } = await mount()
+
+		await user.type(screen.getByLabelText('Email'), CUSTOMER_EMAIL)
+		await submit(user)
+
+		await screen.findByText('Enter your password.')
+		expect(turnstileReset).not.toHaveBeenCalled()
 	})
 
 	/*
@@ -199,6 +241,18 @@ describe('LoginForm on success', () => {
 		})
 	})
 
+	it('does not reset the Turnstile widget on a successful sign-in', async () => {
+		const { user, assign } = await mount()
+
+		await fillIn(user)
+		await submit(user)
+
+		await waitFor(() => {
+			expect(assign).toHaveBeenCalled()
+		})
+		expect(turnstileReset).not.toHaveBeenCalled()
+	})
+
 	/*
 	 * Both stores are module state that the load rebuilds empty, so neither value reaches the account
 	 * page. They are written for the interval before the unload: the header reads `signedIn`, and a form
@@ -271,6 +325,21 @@ describe('LoginForm on refusal', () => {
 		await screen.findByRole('alert')
 		expect(router.state.location.pathname).toBe('/login')
 		expect(assign).not.toHaveBeenCalled()
+	})
+
+	/*
+	 * ⚠️ The server verifies Turnstile before it checks the password, so this refusal has already spent the
+	 * token — every retry would be rejected as a Cloudflare duplicate, regardless of the credentials, until
+	 * this runs. See `useTurnstileToken`'s own doc comment.
+	 */
+	it('resets the Turnstile widget so the next attempt gets a fresh token', async () => {
+		const { user } = await mount(REFUSED)
+
+		await fillIn(user)
+		await submit(user)
+
+		await screen.findByRole('alert')
+		expect(turnstileReset).toHaveBeenCalledTimes(1)
 	})
 
 	// A second attempt clears the first failure before it starts, so a stale "wrong credentials" never

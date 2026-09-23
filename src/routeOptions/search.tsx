@@ -9,7 +9,7 @@ import { ItemGrid } from '@/features/catalogue/ItemGrid'
 import { Pagination } from '@/features/catalogue/Pagination'
 import { ShopGrid } from '@/features/catalogue/ShopGrid'
 import { formatTotal } from '@/lib/format'
-import { offsetOf, PAGE_SIZE, pageLinks, pageNumber } from '@/lib/pagination'
+import { maxPageFor, offsetOf, PAGE_SIZE, pageLinks, pageNumber } from '@/lib/pagination'
 import type { SearchKind } from '@/lib/search'
 import { DEFAULT_SEARCH_KIND, SEARCH_KINDS } from '@/lib/search'
 import { headFor } from '@/lib/seo'
@@ -51,6 +51,16 @@ const KIND_LABEL: Record<SearchKind, string> = { items: 'Items', companies: 'Sho
  * never rendered: the component reads the active kind's page and nothing else.
  */
 const EMPTY_PAGE = { nodes: [], total: 0, totalIsExact: true, hasMore: false }
+
+/**
+ * The offset caps the two kinds are bounded by, mirrored from `marketplace-dev-public-resource`'s
+ * `publicRead.mts` (`MAX_OFFSET`, for `searchCompanies`, a single-collection query) and
+ * `liveItemsAcrossShops.mts` (`MAX_CROSS_SHOP_OFFSET`, for `searchItems`, which spans every shop and
+ * costs more per skipped document). Past its cap the backend throws instead of clamping — this is what
+ * keeps a `?page=` deep enough to trigger that throw from ever reaching either query.
+ */
+const MAX_PAGE = maxPageFor(10_000)
+const MAX_CROSS_SHOP_PAGE = maxPageFor(2_000)
 
 /**
  * `near` is three numbers in one parameter, `lng,lat,radius`, rather than three parameters.
@@ -171,6 +181,12 @@ const loader = async ({ context, deps }: { context: RouterContext; deps: ISearch
 	// An empty query is not a request worth making. The page renders the search box and says so, and the
 	// backend never sees a text search for the empty string — which on a text index is a full scan.
 	if (q === '') return { ...base, companies: EMPTY_PAGE, items: EMPTY_PAGE }
+
+	// ⚠️ A page this deep can never be answered for either kind — the offset it turns into would reach the
+	// backend past its own cap and throw. `/search` is `noindex` on every result and has no entity of its
+	// own to 404, so this answers the same graceful nothing an empty query does, rather than crash.
+	const cap = deps.kind === 'companies' ? MAX_PAGE : MAX_CROSS_SHOP_PAGE
+	if (deps.page > cap) return { ...base, companies: EMPTY_PAGE, items: EMPTY_PAGE }
 
 	const variables = { q, near: deps.near, limit: PAGE_SIZE, offset: offsetOf(deps.page) }
 

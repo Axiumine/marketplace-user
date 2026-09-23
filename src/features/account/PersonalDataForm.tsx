@@ -31,7 +31,11 @@ import { CTX_ACCOUNT_WRITE } from './invalidate'
  * an empty contact rather than as no contact. `undefined` omits the key from the JSON entirely.
  */
 const NAME_MAX = 50
-const PHONE_MAX = 20
+// Mirrors `MAX_PHONE` in `marketplace-dev-user-authenticated-resource`'s `validateUserPersonalData.mts`.
+// A cap looser than the backend's lets a number between 13 and 20 characters pass here silently, then
+// fail the combined `userPersonalDataUpdate` mutation with one generic error that discards the rest of
+// the edit — name and birth date included — along with it.
+const PHONE_MAX = 12
 
 /**
  * `.trim()` runs before the length check, so a field of spaces fails `min(1)`.

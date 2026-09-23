@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { offsetOf, PAGE_SIZE, pageLinks, pageNumber } from '@/lib/pagination'
+import { maxPageFor, offsetOf, PAGE_SIZE, pageLinks, pageNumber } from '@/lib/pagination'
 
 describe('pageNumber', () => {
 	it('reads a page straight through', () => {
@@ -53,6 +53,34 @@ describe('offsetOf', () => {
 
 	it('takes a page size for a listing that is not the default one', () => {
 		expect(offsetOf(3, 10)).toBe(20)
+	})
+})
+
+describe('maxPageFor', () => {
+	/*
+	 * ⚠️ The two caps the backend actually enforces, spelled out rather than left implicit: `MAX_OFFSET`
+	 * (10 000) in `marketplace-dev-public-resource`'s `publicRead.mts`, and `MAX_CROSS_SHOP_OFFSET` (2 000)
+	 * in that service's `liveItemsAcrossShops.mts`. A route file computes its own constant from this rather
+	 * than repeating the arithmetic, but the arithmetic itself is only proven here.
+	 */
+	it('mirrors the ordinary offset cap', () => {
+		expect(maxPageFor(10_000)).toBe(417)
+	})
+
+	it('mirrors the cross-shop offset cap', () => {
+		expect(maxPageFor(2_000)).toBe(84)
+	})
+
+	// The boundary the formula turns on: `floor` and the `+1` both have to be exactly right, or a page one
+	// either side of the cap is misjudged — served past where the backend throws, or refused one page early.
+	it.each([
+		[0, 1],
+		[23, 1],
+		[24, 2],
+		[47, 2],
+		[48, 3]
+	])('caps at offset %i answers page %i', (offsetCap, expected) => {
+		expect(maxPageFor(offsetCap)).toBe(expected)
 	})
 })
 

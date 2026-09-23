@@ -220,14 +220,33 @@ describe('PersonalDataForm validation', () => {
 		expect(await screen.findByText('First name must be at most 50 characters.')).toBeInTheDocument()
 	})
 
-	it('caps a phone number at twenty characters', async () => {
+	/*
+	 * ⚠️ Twelve, not twenty — matching `MAX_PHONE` in `marketplace-dev-user-authenticated-resource`'s
+	 * `validateUserPersonalData.mts`. A looser cap here lets a number the backend will refuse pass
+	 * silently, then fail the combined `userPersonalDataUpdate` mutation and discard the rest of the edit.
+	 */
+	it('caps a phone number at twelve characters', async () => {
 		const { user } = await mount()
 
 		await user.clear(screen.getByLabelText('Mobile'))
-		await user.type(screen.getByLabelText('Mobile'), '1'.repeat(21))
+		await user.type(screen.getByLabelText('Mobile'), '1'.repeat(13))
 		await save(user)
 
-		expect(await screen.findByText('Use at most 20 characters.')).toBeInTheDocument()
+		expect(await screen.findByText('Use at most 12 characters.')).toBeInTheDocument()
+	})
+
+	// The boundary itself: exactly twelve is what the backend still accepts, so the form must not refuse it.
+	it('accepts a phone number of exactly twelve characters', async () => {
+		const { user, stub } = await mount()
+
+		await user.clear(screen.getByLabelText('Mobile'))
+		await user.type(screen.getByLabelText('Mobile'), '1'.repeat(12))
+		await save(user)
+
+		await waitFor(() => {
+			expect(written(stub)).toBeDefined()
+		})
+		expect(screen.queryByText('Use at most 12 characters.')).not.toBeInTheDocument()
 	})
 })
 

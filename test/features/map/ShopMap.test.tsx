@@ -638,6 +638,58 @@ describe('ShopMap and the viewport query', () => {
 		expect(screen.queryByText(/Showing the first 500 shops in view/)).not.toBeInTheDocument()
 	})
 
+	/*
+	 * ⚠️ `companiesNearby` is non-null, so a resolver error nulls the whole envelope — read with no check on
+	 * `result.error`, that collapses to the same empty pin list as "no shops here", with nothing on screen
+	 * to tell the two apart. The home page's own default centre and zoom routinely exceed the backend's
+	 * bbox cap, so this is reachable on an ordinary first load, not only during an outage.
+	 */
+	it('shows an error banner when the viewport query is refused, instead of going quiet', async () => {
+		const { map } = mount({
+			initialPins: SEED_PINS,
+			replies: { CompaniesNearby: { errors: [graphQLError('Nope')], status: 400 } }
+		})
+		await fire(map, 'load')
+
+		expect(await screen.findByRole('alert')).toHaveTextContent('Couldn’t load shops nearby')
+	})
+
+	it('says nothing has failed before the first viewport query has answered', () => {
+		mount()
+
+		expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+	})
+
+	it('says nothing has failed once a viewport query succeeds', async () => {
+		const { map } = mount({ replies: nearby([nodeOf(1)]) })
+		await fire(map, 'load')
+		await pause(400)
+
+		expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+	})
+
+	// The banner is per query, not permanent: a visitor who pans away from the refused bbox into one the
+	// backend answers should see the map recover, not carry a stale failure notice over a working map.
+	it('clears the error banner once a later query succeeds', async () => {
+		const { map } = mount({
+			initialPins: SEED_PINS,
+			replies: {
+				CompaniesNearby: [{ errors: [graphQLError('Nope')], status: 400 }, nearby([nodeOf(1)]).CompaniesNearby as never]
+			}
+		})
+		await fire(map, 'load')
+		await screen.findByRole('alert')
+
+		map.bounds.west = 11.2
+		map.bounds.east = 11.4
+		await fire(map, 'moveend')
+		await pause(400)
+
+		await waitFor(() => {
+			expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+		})
+	})
+
 	// An answer that arrives before `load` added the source has nowhere to go. Returning is the whole
 	// handling: `setData` on `undefined` throws inside a promise nobody awaits.
 	it('survives an answer that arrives before the source exists', async () => {

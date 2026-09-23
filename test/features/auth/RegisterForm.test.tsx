@@ -1,6 +1,6 @@
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { ENDPOINT } from '@/api/endpoints'
 import { RegisterForm } from '@/features/auth/RegisterForm'
@@ -9,6 +9,35 @@ import type { GraphQLReplies } from '../../helpers/graphql'
 import { graphQLError, stubGraphQL } from '../../helpers/graphql'
 import { PASSWORD, sharedFieldTests, sharedSuccessScreenTests, sharedValidationTests } from '../../helpers/registrationForm'
 import { CUSTOMER_EMAIL, renderWithClient } from '../../helpers/render'
+
+/*
+ * ⚠️ Spied, not stubbed out — see `LoginForm.test.tsx` for why only `reset` is wrapped and the real hook
+ * still runs underneath it. `RegisterForm` reaches it through `useRegistration`, not directly, so the
+ * module path is what the mock keys on rather than the call site.
+ */
+const turnstileReset = vi.fn()
+
+vi.mock('@/features/auth/useTurnstileToken', async (importOriginal) => {
+	const actual = await importOriginal<typeof import('@/features/auth/useTurnstileToken')>()
+
+	return {
+		useTurnstileToken: () => {
+			const real = actual.useTurnstileToken()
+
+			return {
+				...real,
+				reset: () => {
+					turnstileReset()
+					real.reset()
+				}
+			}
+		}
+	}
+})
+
+afterEach(() => {
+	turnstileReset.mockClear()
+})
 
 const ACCEPTED: GraphQLReplies = { UserRegister: { data: { userRegister: true } } }
 
@@ -132,6 +161,16 @@ describe('RegisterForm success screen', () => {
 		await screen.findByRole('status')
 		expect(container.firstChild).toMatchSnapshot()
 	})
+
+	it('does not reset the Turnstile widget on success', async () => {
+		const { user } = mount()
+
+		await fillIn(user)
+		await submit(user)
+
+		await screen.findByRole('status')
+		expect(turnstileReset).not.toHaveBeenCalled()
+	})
 })
 
 describe('RegisterForm on failure', () => {
@@ -166,5 +205,31 @@ describe('RegisterForm on failure', () => {
 
 		expect(alert).toHaveTextContent('Error while communicating with the server')
 		expect(screen.queryByRole('status')).not.toBeInTheDocument()
+	})
+
+	/*
+	 * ⚠️ The server verifies Turnstile before anything else, so this refusal has already spent the token —
+	 * every retry would be rejected as a Cloudflare duplicate until this runs. See `useTurnstileToken`.
+	 */
+	it('resets the Turnstile widget so the next attempt gets a fresh token', async () => {
+		const { user } = mount({ UserRegister: { errors: [graphQLError('Registration is closed', undefined, 403)], status: 403 } })
+
+		await fillIn(user)
+		await submit(user)
+
+		await screen.findByRole('alert')
+		expect(turnstileReset).toHaveBeenCalledTimes(1)
+	})
+
+	// A refusal that never reached the server spent no token — resetting the widget here would tear down a
+	// challenge the visitor may already be mid-way through solving, for no reason.
+	it('does not reset the Turnstile widget on a validation refusal', async () => {
+		const { user } = mount()
+
+		await fillIn(user, { password: 'short', repeat: 'short' })
+		await submit(user)
+
+		await screen.findByText('Use at least 10 characters.')
+		expect(turnstileReset).not.toHaveBeenCalled()
 	})
 })

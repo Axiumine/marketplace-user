@@ -64,6 +64,10 @@ export const useRegistration = <Data>(document: TypedDocumentNode<Data, Variable
 		// telling someone to go and confirm an email nobody sent is worse than telling them it failed.
 		if (dataOf(result) === undefined) {
 			setFailure(messageOf(result.error))
+			// The server verifies Turnstile before anything else, so a refusal for any other reason has
+			// already spent the token — without this, every retry is rejected as a Cloudflare duplicate no
+			// matter how the form was fixed.
+			turnstile.reset()
 			return
 		}
 
