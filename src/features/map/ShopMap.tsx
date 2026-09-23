@@ -81,6 +81,7 @@ export const ShopMap = ({ center, zoom, initialPins = [] }: ShopMapProps) => {
 	const mapRef = useRef<maplibregl.Map | null>(null)
 	const client = useClient()
 	const [truncated, setTruncated] = useState(false)
+	const [loadError, setLoadError] = useState(false)
 
 	useEffect(() => {
 		if (container === null) return
@@ -121,6 +122,13 @@ export const ShopMap = ({ center, zoom, initialPins = [] }: ShopMapProps) => {
 			// The component can unmount while a query is in flight — a navigation away from the page is the
 			// normal case. Touching a removed map throws, and the throw lands in an unhandled rejection.
 			if (disposed) return
+
+			// ⚠️ `companiesNearby` is non-null, so a resolver error — the service down, or the backend's own
+			// bbox-too-large rejection — nulls the whole envelope rather than answering an empty page. Read
+			// without this check, that is indistinguishable from "no shops here": the home page's own default
+			// centre and zoom routinely exceed the backend's bbox cap, so this is reachable on an ordinary
+			// first load, not only during an outage.
+			setLoadError(result.error !== undefined)
 
 			const nodes = result.data?.companiesNearby.nodes ?? []
 			setTruncated(result.data?.companiesNearby.truncated ?? false)
@@ -273,10 +281,16 @@ export const ShopMap = ({ center, zoom, initialPins = [] }: ShopMapProps) => {
 	return (
 		<div className="relative">
 			<div ref={setContainer} style={{ height: 'var(--map-height)' }} className="w-full rounded-box" />
-			{truncated && (
-				<p className="absolute right-2 bottom-2 rounded-box bg-white/90 px-2 py-1 text-xs text-slate-600">
-					Showing the first {MAX_PINS} shops in view — zoom in for the rest
+			{loadError ? (
+				<p role="alert" className="absolute right-2 bottom-2 rounded-box bg-white/90 px-2 py-1 text-xs text-app-error">
+					Couldn’t load shops nearby — try moving the map again.
 				</p>
+			) : (
+				truncated && (
+					<p className="absolute right-2 bottom-2 rounded-box bg-white/90 px-2 py-1 text-xs text-slate-600">
+						Showing the first {MAX_PINS} shops in view — zoom in for the rest
+					</p>
+				)
 			)}
 		</div>
 	)
