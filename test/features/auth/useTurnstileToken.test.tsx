@@ -101,4 +101,80 @@ describe('useTurnstileToken', () => {
 		expect(result.current.token).toBeNull()
 		expect(result.current.read()).toBeNull()
 	})
+
+	/*
+	 * ⚠️ The server spends the token verifying it, before anything else is checked — so a submit refused for
+	 * any other reason (a wrong password, a taken address) leaves the widget holding a token Cloudflare has
+	 * already marked used. `reset` is what a form calls on that refusal, and `resetKey` is what it pairs with
+	 * `<Turnstile key={turnstile.resetKey} …>` to force a fresh widget rather than reuse the spent one.
+	 */
+	describe('reset', () => {
+		it('starts the reset key at zero', () => {
+			const { result } = renderHook(() => useTurnstileToken())
+
+			expect(result.current.resetKey).toBe(0)
+		})
+
+		it('withdraws the token', () => {
+			const { result } = renderHook(() => useTurnstileToken())
+
+			act(() => {
+				result.current.onToken('a-turnstile-token')
+			})
+			act(() => {
+				result.current.reset()
+			})
+
+			expect(result.current.token).toBeNull()
+			expect(result.current.read()).toBeNull()
+		})
+
+		// Called with no token ever issued — a refusal that arrives before the widget solved itself, or a
+		// developer machine with no site key at all — and it must not throw or invent one.
+		it('withdraws nothing when there was nothing to withdraw', () => {
+			const { result } = renderHook(() => useTurnstileToken())
+
+			expect(() => {
+				act(() => {
+					result.current.reset()
+				})
+			}).not.toThrow()
+			expect(result.current.token).toBeNull()
+		})
+
+		// Exact values, not just "changed": a form remounts `Turnstile` by keying it on this number, so an
+		// off-by-one here either skips a remount (key unchanged) or forces one every render (key changing on
+		// its own).
+		it('advances the reset key by exactly one each call', () => {
+			const { result } = renderHook(() => useTurnstileToken())
+
+			act(() => {
+				result.current.reset()
+			})
+			expect(result.current.resetKey).toBe(1)
+
+			act(() => {
+				result.current.reset()
+			})
+			expect(result.current.resetKey).toBe(2)
+		})
+
+		// `read()` and `onToken` are asserted stable across an ordinary re-render elsewhere; `reset` carries
+		// no such contract — nothing lists it in an effect's dependency array — but calling it must still
+		// reach the same ref and state setters after one.
+		it('still withdraws the token after a re-render', () => {
+			const { result, rerender } = renderHook(() => useTurnstileToken())
+
+			act(() => {
+				result.current.onToken('a-turnstile-token')
+			})
+			rerender()
+			act(() => {
+				result.current.reset()
+			})
+
+			expect(result.current.token).toBeNull()
+			expect(result.current.resetKey).toBe(1)
+		})
+	})
 })

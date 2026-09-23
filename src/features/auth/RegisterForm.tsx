@@ -60,7 +60,7 @@ export const RegisterForm = () => {
 				error={errors.repeatPassword?.message}
 			/>
 
-			<Turnstile onToken={turnstile.onToken} />
+			<Turnstile key={turnstile.resetKey} onToken={turnstile.onToken} />
 
 			<FormStatus tone="error" message={failure} />
 

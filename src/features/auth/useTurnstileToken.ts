@@ -15,15 +15,27 @@ import { useCallback, useRef, useState } from 'react'
  *
  * `null` is a legitimate value to submit: it is what a machine with no site key configured always sends,
  * and the server accepts it in exactly that case. See the note in `Turnstile.tsx`.
+ *
+ * ⚠️ **`reset` exists because the server spends the token before it validates anything else.**
+ * `guardPublicWrite`/`guardPublicLogin` verify with Cloudflare on the first attempt, so a submit refused
+ * for any other reason — a wrong password, a taken address — leaves the widget holding a token Cloudflare
+ * has already marked used. Resubmitting with it fails as a duplicate no matter how the rest of the form
+ * was fixed, until the token expires on its own (~300 s) or the page reloads. `resetKey` is what a form
+ * pairs with `reset()`: passed as `<Turnstile key={turnstile.resetKey} …>`, bumping it remounts the
+ * widget and gets a token Cloudflare has not seen yet.
  */
 export interface TurnstileToken {
 	readonly token: string | null
+	readonly resetKey: number
 	readonly onToken: (token: string | null) => void
 	readonly read: () => string | null
+	/** Withdraws the current token and bumps `resetKey`, forcing a fresh widget on the next render. */
+	readonly reset: () => void
 }
 
 export const useTurnstileToken = (): TurnstileToken => {
 	const [token, setToken] = useState<string | null>(null)
+	const [resetKey, setResetKey] = useState(0)
 	const latest = useRef<string | null>(null)
 
 	/*
@@ -50,5 +62,14 @@ export const useTurnstileToken = (): TurnstileToken => {
 	const read = useCallback(() => latest.current, [])
 	// Stryker restore ArrayDeclaration
 
-	return { token, onToken, read }
+	// Not `useCallback`: nothing reads its identity across renders — it is called directly from a submit
+	// handler, never listed in an effect's dependency array — so there is no stability to buy and no
+	// equivalent-mutant argument to write down for it, unlike the two callbacks above.
+	const reset = () => {
+		latest.current = null
+		setToken(null)
+		setResetKey((key) => key + 1)
+	}
+
+	return { token, resetKey, onToken, read, reset }
 }

@@ -67,6 +67,10 @@ export const ResetConfirmForm = ({ email, hash }: ResetConfirmFormProps) => {
 		// announcing a password that was never changed sends someone to a login that will refuse them.
 		if (dataOf(result) === undefined) {
 			setFailure(messageOf(result.error))
+			// The server verifies Turnstile before anything else, so a refusal for any other reason — an
+			// expired hash here — has already spent the token. Without this, every retry is rejected as a
+			// Cloudflare duplicate no matter how the form was fixed.
+			turnstile.reset()
 			return
 		}
 
@@ -107,7 +111,7 @@ export const ResetConfirmForm = ({ email, hash }: ResetConfirmFormProps) => {
 				error={errors.repeatPassword?.message}
 			/>
 
-			<Turnstile onToken={turnstile.onToken} />
+			<Turnstile key={turnstile.resetKey} onToken={turnstile.onToken} />
 
 			<FormStatus tone="error" message={failure} />
 
