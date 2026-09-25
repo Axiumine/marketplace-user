@@ -11,7 +11,10 @@ import { stubGraphQL } from '../helpers/graphql'
 import type { RouteHead } from '../helpers/head'
 import { canonicalOf, metaOf, titleOf } from '../helpers/head'
 import { meReply } from '../helpers/me'
+import { installOnlineListenerGuard } from '../helpers/onlineListenerGuard'
 import { renderRoute } from '../helpers/render'
+
+installOnlineListenerGuard()
 
 const mount = async (path: string) => {
 	const stub = stubGraphQL(meReply())

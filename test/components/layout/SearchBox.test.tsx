@@ -8,7 +8,10 @@ import type { SearchKind } from '@/lib/search'
 
 import type { GraphQLReplies } from '../../helpers/graphql'
 import { stubGraphQL } from '../../helpers/graphql'
+import { installOnlineListenerGuard } from '../../helpers/onlineListenerGuard'
 import { renderWithRouter } from '../../helpers/render'
+
+installOnlineListenerGuard()
 
 const EMPTY_PAGE = { nodes: [], total: 0, totalIsExact: true, hasMore: false }
 

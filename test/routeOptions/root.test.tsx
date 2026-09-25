@@ -7,7 +7,10 @@ import { categoriesReply, companiesReply, companyOf } from '../helpers/catalogue
 import { stubGraphQL } from '../helpers/graphql'
 import type { RouteHead } from '../helpers/head'
 import { canonicalOf, linkOf, metaOf, propertyOf, titleOf } from '../helpers/head'
+import { installOnlineListenerGuard } from '../helpers/onlineListenerGuard'
 import { renderRoute } from '../helpers/render'
+
+installOnlineListenerGuard()
 
 /*
  * ⚠️ The island is stubbed even though nothing here asserts on the map, and the reason is a real flake

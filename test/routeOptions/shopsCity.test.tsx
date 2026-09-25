@@ -8,7 +8,10 @@ import type { GraphQLReply } from '../helpers/graphql'
 import { stubGraphQL } from '../helpers/graphql'
 import type { RouteHead } from '../helpers/head'
 import { canonicalOf, jsonLdTyped, linkOf, metaOf, titleOf } from '../helpers/head'
+import { installOnlineListenerGuard } from '../helpers/onlineListenerGuard'
 import { renderRoute } from '../helpers/render'
+
+installOnlineListenerGuard()
 
 const mount = async (path: string, companies: GraphQLReply = companiesReply([companyOf()])) => {
 	const stub = stubGraphQL({ Companies: companies })

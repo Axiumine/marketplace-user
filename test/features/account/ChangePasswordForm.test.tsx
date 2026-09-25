@@ -9,7 +9,10 @@ import { ChangePasswordForm } from '@/features/account/ChangePasswordForm'
 
 import type { GraphQLReplies } from '../../helpers/graphql'
 import { graphQLError, stubGraphQL } from '../../helpers/graphql'
+import { installOnlineListenerGuard } from '../../helpers/onlineListenerGuard'
 import { CUSTOMER_EMAIL, renderWithClient } from '../../helpers/render'
+
+installOnlineListenerGuard()
 
 const OLD = 'the old passphrase'
 const NEW = 'a brand new passphrase'

@@ -12,7 +12,10 @@ import { CTX_ACCOUNT_WRITE } from '@/features/account/invalidate'
 import type { GraphQLReplies } from '../../helpers/graphql'
 import { graphQLError, stubGraphQL } from '../../helpers/graphql'
 import { FULL_ME, meReply } from '../../helpers/me'
+import { installOnlineListenerGuard } from '../../helpers/onlineListenerGuard'
 import { CUSTOMER_EMAIL, renderWithRouter } from '../../helpers/render'
+
+installOnlineListenerGuard()
 
 /** Reads the account out of context — the whole point of the gate is that this cannot be undefined. */
 const Inside = () => {

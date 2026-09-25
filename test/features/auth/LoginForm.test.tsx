@@ -10,7 +10,10 @@ import { LoginForm } from '@/features/auth/LoginForm'
 import type { GraphQLReplies } from '../../helpers/graphql'
 import { graphQLError, stubGraphQL } from '../../helpers/graphql'
 import { stubLocationAssign } from '../../helpers/location'
+import { installOnlineListenerGuard } from '../../helpers/onlineListenerGuard'
 import { CUSTOMER_EMAIL, renderWithRouter } from '../../helpers/render'
+
+installOnlineListenerGuard()
 
 /*
  * ⚠️ Spied, not stubbed out. The rest of this file relies on the real `read()`/`onToken`/`token` — the

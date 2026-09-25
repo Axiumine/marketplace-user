@@ -10,7 +10,10 @@ import { useLogout } from '@/auth/useLogout'
 import type { GraphQLReplies } from '../helpers/graphql'
 import { graphQLError, stubGraphQL } from '../helpers/graphql'
 import { stubLocationAssign } from '../helpers/location'
+import { installOnlineListenerGuard } from '../helpers/onlineListenerGuard'
 import { CUSTOMER_EMAIL, renderWithRouter } from '../helpers/render'
+
+installOnlineListenerGuard()
 
 const SignOut = () => {
 	const logout = useLogout()

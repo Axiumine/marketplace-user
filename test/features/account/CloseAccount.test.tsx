@@ -11,7 +11,10 @@ import type { GraphQLReplies } from '../../helpers/graphql'
 import { graphQLError, stubGraphQL } from '../../helpers/graphql'
 import { stubLocationAssign } from '../../helpers/location'
 import { meReply } from '../../helpers/me'
+import { installOnlineListenerGuard } from '../../helpers/onlineListenerGuard'
 import { CUSTOMER_EMAIL, renderRoute, renderWithRouter } from '../../helpers/render'
+
+installOnlineListenerGuard()
 
 /**
  * What signing out costs: `useLogout` sends `Logout` and then leaves the page. It is stubbed everywhere,

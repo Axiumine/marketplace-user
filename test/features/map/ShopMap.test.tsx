@@ -5,7 +5,10 @@ import type { ShopMapProps } from '@/features/map/ShopMap'
 
 import type { GraphQLReplies, RestHandler } from '../../helpers/graphql'
 import { graphQLError, stubGraphQL } from '../../helpers/graphql'
+import { installOnlineListenerGuard } from '../../helpers/onlineListenerGuard'
 import { renderWithClient } from '../../helpers/render'
+
+installOnlineListenerGuard()
 
 /**
  * MapLibre, replaced by something jsdom can run.

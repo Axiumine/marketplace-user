@@ -6,7 +6,10 @@ import { SITE_NAME } from '@/lib/seo'
 
 import type { GraphQLReplies } from '../../helpers/graphql'
 import { stubGraphQL } from '../../helpers/graphql'
+import { installOnlineListenerGuard } from '../../helpers/onlineListenerGuard'
 import { renderWithRouter } from '../../helpers/render'
+
+installOnlineListenerGuard()
 
 /** `renderWithRouter` loads the real route tree at `/`, and the home loader asks for these two. */
 const HOME: GraphQLReplies = {

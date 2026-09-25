@@ -9,7 +9,10 @@ import type { GraphQLReplies, GraphQLReply } from '../helpers/graphql'
 import { stubGraphQL } from '../helpers/graphql'
 import type { RouteHead } from '../helpers/head'
 import { canonicalOf, jsonLdTyped, linkOf, metaOf, titleOf } from '../helpers/head'
+import { installOnlineListenerGuard } from '../helpers/onlineListenerGuard'
 import { renderRoute } from '../helpers/render'
+
+installOnlineListenerGuard()
 
 /* The island is stubbed for the same reason as on the home page. What this page owes the map is one pin
  * on the shop itself, and the stub renders it. */
