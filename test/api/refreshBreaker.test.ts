@@ -103,6 +103,23 @@ describe('createRefreshBreaker', () => {
 		expect(breaker.isOpen()).toBe(false)
 	})
 
+	/*
+	 * `exactOptionalPropertyTypes` is why this matters at the type level, but the runtime shape matters on
+	 * its own too: passing `{ signal: undefined }` is not the same call as passing no options object at
+	 * all, and asserting only on behaviour (the listener still resets the breaker) cannot tell the two
+	 * apart — jsdom's `AbortSignal` integration treats an `undefined` signal field as never-aborting either
+	 * way. Reading the actual third argument is the only way to catch a call built the wrong shape.
+	 */
+	it('registers the online listener with no options object at all when no signal is injected', () => {
+		const time = clock()
+		const addEventListener = vi.spyOn(window, 'addEventListener')
+
+		createRefreshBreaker({ now: time.now })
+
+		const call = addEventListener.mock.calls.find(([type]) => type === 'online')
+		expect(call?.[2]).toBeUndefined()
+	})
+
 	// Still registered and still resetting — passing a signal must not change the no-signal behaviour
 	// above; only aborting it does.
 	it('still resets on the online event while an injected signal has not been aborted', () => {
