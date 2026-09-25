@@ -8,7 +8,10 @@ import type { GraphQLReply } from '../helpers/graphql'
 import { stubGraphQL } from '../helpers/graphql'
 import type { RouteHead } from '../helpers/head'
 import { canonicalOf, jsonLdTyped, linkOf, metaOf, titleOf } from '../helpers/head'
+import { installOnlineListenerGuard } from '../helpers/onlineListenerGuard'
 import { renderRoute } from '../helpers/render'
+
+installOnlineListenerGuard()
 
 const OTHER = companyOf({ _id: '66b0000000000000000000c2', publicName: 'Green Boutique', slug: 'green-boutique' })
 

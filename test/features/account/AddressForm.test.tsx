@@ -11,8 +11,11 @@ import { graphQLError, stubGraphQL } from '../../helpers/graphql'
 import { HOME_ADDRESS, WORK_ADDRESS } from '../../helpers/me'
 import type { ResponseOsm } from '../../helpers/nominatim'
 import { osmStub, resultOsm } from '../../helpers/nominatim'
+import { installOnlineListenerGuard } from '../../helpers/onlineListenerGuard'
 import { PIN_DROPPED_TEXT } from '../../helpers/positionPicker'
 import { CUSTOMER_EMAIL, renderWithClient } from '../../helpers/render'
+
+installOnlineListenerGuard()
 
 /*
  * ⚠️ The map is stubbed, and it has to be: MapLibre reaches for a WebGL context jsdom does not have, so the

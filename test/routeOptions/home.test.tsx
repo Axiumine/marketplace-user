@@ -8,7 +8,10 @@ import type { GraphQLReplies } from '../helpers/graphql'
 import { stubGraphQL } from '../helpers/graphql'
 import type { RouteHead } from '../helpers/head'
 import { canonicalOf, jsonLdTyped, metaOf, titleOf } from '../helpers/head'
+import { installOnlineListenerGuard } from '../helpers/onlineListenerGuard'
 import { renderRoute } from '../helpers/render'
+
+installOnlineListenerGuard()
 
 /* ⚠️ The island is stubbed, and only the island: it needs a WebGL context jsdom does not have, and what
  * matters here is what the page hands it. `test/helpers/mapIsland.ts` says the rest. */

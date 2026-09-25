@@ -8,7 +8,10 @@ import { itemOf } from '../helpers/catalogue'
 import { stubGraphQL } from '../helpers/graphql'
 import type { RouteHead } from '../helpers/head'
 import { canonicalOf, jsonLdOf, jsonLdTyped, metaOf, titleOf } from '../helpers/head'
+import { installOnlineListenerGuard } from '../helpers/onlineListenerGuard'
 import { renderRoute } from '../helpers/render'
+
+installOnlineListenerGuard()
 
 const mount = async (path = '/shop/rivers-boutique/item/leather-satchel', item: FixtureItem | null = itemOf()) => {
 	const stub = stubGraphQL({ ItemBySlug: { data: { itemBySlug: item } } })

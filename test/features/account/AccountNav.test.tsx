@@ -9,7 +9,10 @@ import { AccountNav } from '@/features/account/AccountNav'
 import type { GraphQLReplies } from '../../helpers/graphql'
 import { stubGraphQL } from '../../helpers/graphql'
 import { stubLocationAssign } from '../../helpers/location'
+import { installOnlineListenerGuard } from '../../helpers/onlineListenerGuard'
 import { CUSTOMER_EMAIL, renderWithRouter } from '../../helpers/render'
+
+installOnlineListenerGuard()
 
 /** All signing out asks of the server. The exit itself is a page load, so home's loader never runs here. */
 const REPLIES: GraphQLReplies = { Logout: { data: { logout: true } } }

@@ -7,7 +7,10 @@ import { ResetRequestForm } from '@/features/auth/ResetRequestForm'
 
 import type { GraphQLReplies } from '../../helpers/graphql'
 import { graphQLError, stubGraphQL } from '../../helpers/graphql'
+import { installOnlineListenerGuard } from '../../helpers/onlineListenerGuard'
 import { CUSTOMER_EMAIL, renderWithClient } from '../../helpers/render'
+
+installOnlineListenerGuard()
 
 /*
  * ⚠️ Spied, not stubbed out — see `LoginForm.test.tsx` for why only `reset` is wrapped and the real hook

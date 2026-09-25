@@ -1,6 +1,6 @@
 import type { Client, OperationContext, TypedDocumentNode } from '@urql/core'
 import { gql } from '@urql/core'
-import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { createGraphQLClient } from '@/api/client'
 import { CTX_LOGOUT, CTX_PUBLIC_RESOURCE, CTX_USER_RESOURCE, ENDPOINT } from '@/api/endpoints'
@@ -10,6 +10,7 @@ import { clearAccessToken, getAccessToken, setAccessToken } from '@/api/tokenSto
 import { clock } from '../helpers/clock'
 import type { GraphQLReplies } from '../helpers/graphql'
 import { graphQLError, stubGraphQL } from '../helpers/graphql'
+import { installOnlineListenerGuard } from '../helpers/onlineListenerGuard'
 
 interface Me {
 	readonly me: { readonly email: string } | null
@@ -67,42 +68,7 @@ afterEach(() => {
 	clientControllers.clear()
 })
 
-/**
- * A file-wide regression guard for the leak the two guards above exist to close: every `online` listener
- * any client this file builds registers through `window.addEventListener` must carry a signal that ends
- * up aborted — the whole suite's proof that nothing here is still relying on the caller to clean it up.
- *
- * ⚠️ This checks the signal's `aborted` flag rather than counting `window.removeEventListener` calls.
- * jsdom's `AbortSignal` integration removes a listener internally when its signal fires — it never calls
- * the target's own `removeEventListener` to do it — so patching that method the way this probes
- * `addEventListener` would see zero removals even on a correctly cleaned-up suite, exactly the shape of a
- * false leak report.
- *
- * A plain reassignment rather than `vi.spyOn`: this config sets `restoreMocks: true`, which restores every
- * `vi.spyOn` wrapper before the *next* test — so a spy installed once in `beforeAll` would only ever see
- * the first test's calls. Wrapping the method by hand and putting it back in `afterAll` keeps the same
- * list live for the whole file regardless of that per-test restoration.
- */
-const onlineRegistrations: (AbortSignal | undefined)[] = []
-const realAddEventListener = window.addEventListener.bind(window)
-
-beforeAll(() => {
-	window.addEventListener = (
-		type: string,
-		listener: EventListenerOrEventListenerObject,
-		options?: boolean | AddEventListenerOptions
-	): void => {
-		if (type === 'online') onlineRegistrations.push(typeof options === 'object' ? options?.signal : undefined)
-		realAddEventListener(type, listener, options)
-	}
-})
-
-afterAll(() => {
-	window.addEventListener = realAddEventListener
-
-	expect(onlineRegistrations.length).toBeGreaterThan(0)
-	expect(onlineRegistrations.every((signal) => signal?.aborted === true)).toBe(true)
-})
+installOnlineListenerGuard()
 
 const clientWith = (replies: GraphQLReplies, now?: () => number, signal?: AbortSignal) => {
 	const onSessionLost = vi.fn()

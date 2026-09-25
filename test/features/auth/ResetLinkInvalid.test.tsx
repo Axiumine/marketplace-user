@@ -3,7 +3,10 @@ import { describe, expect, it } from 'vitest'
 
 import { ResetLinkInvalid } from '@/features/auth/ResetLinkInvalid'
 
+import { installOnlineListenerGuard } from '../../helpers/onlineListenerGuard'
 import { renderWithRouter } from '../../helpers/render'
+
+installOnlineListenerGuard()
 
 describe('ResetLinkInvalid', () => {
 	/*

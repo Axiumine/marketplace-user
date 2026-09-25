@@ -8,7 +8,10 @@ import { RouteError } from '@/components/layout/RouteError'
 
 import type { GraphQLReplies } from '../../helpers/graphql'
 import { stubGraphQL } from '../../helpers/graphql'
+import { installOnlineListenerGuard } from '../../helpers/onlineListenerGuard'
 import { renderWithRouter } from '../../helpers/render'
+
+installOnlineListenerGuard()
 
 const HOME: GraphQLReplies = {
 	Companies: { data: { companies: { nodes: [], total: 0 } } },

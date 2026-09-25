@@ -7,7 +7,10 @@ import { SITE_NAME } from '@/lib/seo'
 
 import type { GraphQLReplies } from '../../helpers/graphql'
 import { stubGraphQL } from '../../helpers/graphql'
+import { installOnlineListenerGuard } from '../../helpers/onlineListenerGuard'
 import { CUSTOMER_EMAIL, renderWithRouter } from '../../helpers/render'
+
+installOnlineListenerGuard()
 
 const HOME: GraphQLReplies = {
 	Companies: { data: { companies: { nodes: [], total: 0 } } },

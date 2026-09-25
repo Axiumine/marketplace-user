@@ -6,7 +6,10 @@ import type { CategoryNode } from '@/lib/categories'
 
 import type { GraphQLReplies } from '../../helpers/graphql'
 import { stubGraphQL } from '../../helpers/graphql'
+import { installOnlineListenerGuard } from '../../helpers/onlineListenerGuard'
 import { renderWithRouter } from '../../helpers/render'
+
+installOnlineListenerGuard()
 
 /**
  * The loaders of every route this file stands on: `/` asks for shops and the tree, and a category route

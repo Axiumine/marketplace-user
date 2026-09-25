@@ -7,8 +7,11 @@ import { RegisterForm } from '@/features/auth/RegisterForm'
 
 import type { GraphQLReplies } from '../../helpers/graphql'
 import { graphQLError, stubGraphQL } from '../../helpers/graphql'
+import { installOnlineListenerGuard } from '../../helpers/onlineListenerGuard'
 import { PASSWORD, sharedFieldTests, sharedSuccessScreenTests, sharedValidationTests } from '../../helpers/registrationForm'
 import { CUSTOMER_EMAIL, renderWithClient } from '../../helpers/render'
+
+installOnlineListenerGuard()
 
 /*
  * ⚠️ Spied, not stubbed out — see `LoginForm.test.tsx` for why only `reset` is wrapped and the real hook

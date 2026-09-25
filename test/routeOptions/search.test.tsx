@@ -8,7 +8,10 @@ import type { GraphQLReplies } from '../helpers/graphql'
 import { stubGraphQL } from '../helpers/graphql'
 import type { RouteHead } from '../helpers/head'
 import { canonicalOf, metaOf, titleOf } from '../helpers/head'
+import { installOnlineListenerGuard } from '../helpers/onlineListenerGuard'
 import { renderRoute } from '../helpers/render'
+
+installOnlineListenerGuard()
 
 const OTHER_ITEM = itemOf({ _id: '66b0000000000000000000e2', name: 'Canvas tote', slug: 'canvas-tote' })
 
