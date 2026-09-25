@@ -1,18 +1,40 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { createRefreshBreaker } from '@/api/refreshBreaker'
 
 import { clock } from '../helpers/clock'
+import { installOnlineListenerGuard } from '../helpers/onlineListenerGuard'
+
+installOnlineListenerGuard()
+
+/*
+ * Every breaker built on the real `window` registers an `online` listener on jsdom's shared window, so
+ * each one here takes a signal that is aborted after its test — the same teardown the client-building
+ * helpers use. The one test that has to exercise the no-signal registration stubs `addEventListener`
+ * instead, so it never registers a real listener at all.
+ */
+const controllers: AbortController[] = []
+
+const trackedSignal = (): AbortSignal => {
+	const controller = new AbortController()
+	controllers.push(controller)
+	return controller.signal
+}
+
+afterEach(() => {
+	for (const controller of controllers) controller.abort()
+	controllers.length = 0
+})
 
 describe('createRefreshBreaker', () => {
 	it('starts closed', () => {
-		const breaker = createRefreshBreaker({ now: clock().now })
+		const breaker = createRefreshBreaker({ now: clock().now, signal: trackedSignal() })
 		expect(breaker.isOpen()).toBe(false)
 	})
 
 	it('opens a 1s window after the first consecutive failure', () => {
 		const time = clock()
-		const breaker = createRefreshBreaker({ now: time.now })
+		const breaker = createRefreshBreaker({ now: time.now, signal: trackedSignal() })
 
 		breaker.recordFailure()
 		expect(breaker.isOpen()).toBe(true)
@@ -27,7 +49,7 @@ describe('createRefreshBreaker', () => {
 	// 1s, 2s, 4s: doubling on the number of failures in a row, not on time elapsed.
 	it('doubles the window on the second and third consecutive failures', () => {
 		const time = clock()
-		const breaker = createRefreshBreaker({ now: time.now })
+		const breaker = createRefreshBreaker({ now: time.now, signal: trackedSignal() })
 
 		breaker.recordFailure()
 		time.advance(1_000)
@@ -50,7 +72,7 @@ describe('createRefreshBreaker', () => {
 	// instead. Fired back to back: the counter is on consecutive calls, not on time between them.
 	it('caps the window at 30s past the sixth consecutive failure', () => {
 		const time = clock()
-		const breaker = createRefreshBreaker({ now: time.now })
+		const breaker = createRefreshBreaker({ now: time.now, signal: trackedSignal() })
 
 		for (let i = 0; i < 6; i++) breaker.recordFailure()
 
@@ -64,7 +86,7 @@ describe('createRefreshBreaker', () => {
 	// A seventh failure in a row must not push the window past the cap either.
 	it('stays at the 30s cap on a seventh consecutive failure', () => {
 		const time = clock()
-		const breaker = createRefreshBreaker({ now: time.now })
+		const breaker = createRefreshBreaker({ now: time.now, signal: trackedSignal() })
 
 		for (let failure = 0; failure < 7; failure++) breaker.recordFailure()
 
@@ -74,7 +96,7 @@ describe('createRefreshBreaker', () => {
 
 	it('resets the counter and the window on success', () => {
 		const time = clock()
-		const breaker = createRefreshBreaker({ now: time.now })
+		const breaker = createRefreshBreaker({ now: time.now, signal: trackedSignal() })
 
 		breaker.recordFailure()
 		breaker.recordFailure() // would open a 2s window next, absent the reset below
@@ -90,7 +112,7 @@ describe('createRefreshBreaker', () => {
 
 	it('resets the counter and the window on the browser online event', () => {
 		const time = clock()
-		const breaker = createRefreshBreaker({ now: time.now })
+		const breaker = createRefreshBreaker({ now: time.now, signal: trackedSignal() })
 
 		breaker.recordFailure()
 		breaker.recordFailure()
@@ -112,11 +134,14 @@ describe('createRefreshBreaker', () => {
 	 */
 	it('registers the online listener with no options object at all when no signal is injected', () => {
 		const time = clock()
-		const addEventListener = vi.spyOn(window, 'addEventListener')
+		// Stubbed rather than called through: the call is all this reads, and a real registration with no
+		// signal would outlive the test on the shared window.
+		const addEventListener = vi.spyOn(window, 'addEventListener').mockImplementation(() => undefined)
 
 		createRefreshBreaker({ now: time.now })
 
 		const call = addEventListener.mock.calls.find(([type]) => type === 'online')
+		expect(call).toBeDefined()
 		expect(call?.[2]).toBeUndefined()
 	})
 
@@ -124,8 +149,7 @@ describe('createRefreshBreaker', () => {
 	// above; only aborting it does.
 	it('still resets on the online event while an injected signal has not been aborted', () => {
 		const time = clock()
-		const controller = new AbortController()
-		const breaker = createRefreshBreaker({ now: time.now, signal: controller.signal })
+		const breaker = createRefreshBreaker({ now: time.now, signal: trackedSignal() })
 
 		breaker.recordFailure()
 		window.dispatchEvent(new Event('online'))
@@ -203,7 +227,7 @@ describe('createRefreshBreaker', () => {
 	})
 
 	it('defaults to the real clock when none is injected', () => {
-		const breaker = createRefreshBreaker()
+		const breaker = createRefreshBreaker({ signal: trackedSignal() })
 
 		expect(breaker.isOpen()).toBe(false)
 		breaker.recordFailure()
