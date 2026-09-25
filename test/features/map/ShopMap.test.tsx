@@ -618,6 +618,23 @@ describe('ShopMap and the viewport query', () => {
 	})
 
 	/*
+	 * A resolver answering `data: null` with no `errors` — valid on the wire, if not on this schema's own
+	 * `companiesNearby: [Item!]!` contract — is the one case the render's `loadError ? … : truncated && …`
+	 * does not shadow: `result.error` stays `undefined` (nothing to build a `CombinedError` from), so the
+	 * truncated branch actually renders, and `result.data?.companiesNearby.truncated` short-circuits to
+	 * `undefined` on the null before the nullish default decides what `truncated` becomes. The safe default
+	 * is "nothing was truncated" — claiming the 500-pin cap was hit on an answer that named zero shops
+	 * would be its own false statement, layered on top of the empty map.
+	 */
+	it('says nothing was truncated on a null answer with no error', async () => {
+		const { map } = mount({ replies: { CompaniesNearby: {} } })
+		await fire(map, 'load')
+		await pause(400)
+
+		expect(screen.queryByText(/Showing the first 500 shops in view/)).not.toBeInTheDocument()
+	})
+
+	/*
 	 * ⚠️ A refused query is an empty viewport, not a crash and not the previous viewport left on screen.
 	 * `result.data` is `undefined` on a GraphQL error, and reading `.companiesNearby` off it would throw
 	 * inside a promise nobody awaits — an unhandled rejection with a stack pointing at urql.
