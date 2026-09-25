@@ -4,6 +4,7 @@ import type { RenderResult } from '@testing-library/react'
 import { render, waitFor } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { Provider as UrqlProvider } from 'urql'
+import { afterEach } from 'vitest'
 
 import { createGraphQLClient } from '@/api/client'
 import { setAccessToken } from '@/api/tokenStore'
@@ -33,13 +34,38 @@ const seed = ({ token = null, session = null }: RenderOptions): void => {
 }
 
 /**
+ * One `AbortController` per client built by the helpers below (directly, or through `getRouter`),
+ * aborted in `afterEach`.
+ *
+ * `createGraphQLClient` registers a `window.addEventListener('online', …)` through its refresh breaker
+ * that otherwise outlives the test — every one of these helpers builds a fresh client per test, and
+ * without this the listener accumulates on the one jsdom `window` the whole suite shares.
+ */
+const clientControllers = new Set<AbortController>()
+
+const trackedSignal = (): AbortSignal => {
+	const controller = new AbortController()
+	clientControllers.add(controller)
+
+	return controller.signal
+}
+
+const buildClient = (): ReturnType<typeof createGraphQLClient> =>
+	createGraphQLClient({ onSessionLost: clearSession, signal: trackedSignal() })
+
+afterEach(() => {
+	for (const controller of clientControllers) controller.abort()
+	clientControllers.clear()
+})
+
+/**
  * Renders a component that needs the urql client but touches no router — the `ui/` primitives and the
  * forms built only from them.
  */
 export const renderWithClient = (ui: ReactElement, options: RenderOptions = {}): RenderResult => {
 	seed(options)
 
-	return render(<UrqlProvider value={createGraphQLClient({ onSessionLost: clearSession })}>{ui}</UrqlProvider>)
+	return render(<UrqlProvider value={buildClient()}>{ui}</UrqlProvider>)
 }
 
 export interface RouterRenderResult extends RenderResult {
@@ -76,12 +102,12 @@ export const renderWithRouter = async (ui: ReactElement, options: RenderOptions 
 	seed(options)
 	locate(options.path ?? '/')
 
-	const router = getRouter()
+	const router = getRouter(trackedSignal())
 	await router.load()
 
 	const result = render(
 		<RouterContextProvider router={router as never}>
-			<UrqlProvider value={createGraphQLClient({ onSessionLost: clearSession })}>{ui}</UrqlProvider>
+			<UrqlProvider value={buildClient()}>{ui}</UrqlProvider>
 		</RouterContextProvider>
 	)
 
@@ -104,7 +130,7 @@ export const renderRoute = async (path: string, options: RenderOptions = {}): Pr
 	seed(options)
 	locate(path)
 
-	const router = getRouter()
+	const router = getRouter(trackedSignal())
 	await router.load()
 
 	const result = render(<RouterProvider router={router as never} />)

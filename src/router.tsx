@@ -45,14 +45,15 @@ export interface RouterContext {
  * to fall back to. It also keeps a future regression in the anonymous-endpoint list from becoming a
  * loop — `/` renders for a visitor, `/login` under a broken guard need not.
  */
-const createClient = (): Client =>
+const createClient = (signal?: AbortSignal): Client =>
 	typeof document === 'undefined'
 		? createSsrClient()
 		: createGraphQLClient({
 				onSessionLost: () => {
 					clearSession()
 					window.location.assign('/')
-				}
+				},
+				signal
 			})
 
 /**
@@ -66,9 +67,14 @@ const createClient = (): Client =>
  * `defaultPreloadStaleTime: 0` hands staleness back to urql. The router would otherwise keep its own
  * copy of a loader's result for 30 seconds and skip the loader entirely, which means two caches
  * disagreeing about the same data with no way to invalidate one from the other.
+ *
+ * `signal` reaches the browser client's refresh breaker, which is the only thing on `gql` that ever
+ * registers a listener. The framework calls this with no arguments in production, where the client lives
+ * as long as the page; a test that calls `getRouter()` directly, or through a helper such as
+ * `renderRoute`, passes a per-test `AbortController`'s signal so that listener does not outlive the test.
  */
-export const getRouter = () => {
-	const gql = createClient()
+export const getRouter = (signal?: AbortSignal) => {
+	const gql = createClient(signal)
 
 	return createRouter({
 		routeTree,

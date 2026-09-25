@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { HTTP } from '@/api/errors'
 import { ItemCategoriesDocument } from '@/api/operations/publicResource/queries'
@@ -9,9 +9,58 @@ import { categoriesReply } from './helpers/catalogue'
 import { graphQLError, stubGraphQL } from './helpers/graphql'
 import { stubLocationAssign } from './helpers/location'
 
+/**
+ * `getRouter()` builds a browser client whose refresh breaker registers a `window.addEventListener('online', …)`
+ * that otherwise outlives the test — every `it` below calls `getRouter()` directly, at least once and up to
+ * twice, so without this the listener accumulates on the one jsdom `window` the whole suite shares.
+ */
+let controller: AbortController
+
+beforeEach(() => {
+	controller = new AbortController()
+})
+
 afterEach(() => {
+	controller.abort()
 	vi.unstubAllGlobals()
 	clearSession()
+})
+
+/**
+ * A file-wide regression guard for that leak: every `online` listener any `getRouter()` call above
+ * registers through `window.addEventListener` must carry a signal that ends up aborted — the whole
+ * suite's proof that nothing here is still relying on the caller to clean it up.
+ *
+ * ⚠️ This checks the signal's `aborted` flag rather than counting `window.removeEventListener` calls.
+ * jsdom's `AbortSignal` integration removes a listener internally when its signal fires — it never calls
+ * the target's own `removeEventListener` to do it — so patching that method the way this probes
+ * `addEventListener` would see zero removals even on a correctly cleaned-up suite, exactly the shape of a
+ * false leak report.
+ *
+ * A plain reassignment rather than `vi.spyOn`: this config sets `restoreMocks: true`, which restores every
+ * `vi.spyOn` wrapper before the *next* test — so a spy installed once in `beforeAll` would only ever see
+ * the first test's calls. Wrapping the method by hand and putting it back in `afterAll` keeps the same
+ * list live for the whole file regardless of that per-test restoration.
+ */
+const onlineRegistrations: (AbortSignal | undefined)[] = []
+const realAddEventListener = window.addEventListener.bind(window)
+
+beforeAll(() => {
+	window.addEventListener = (
+		type: string,
+		listener: EventListenerOrEventListenerObject,
+		options?: boolean | AddEventListenerOptions
+	): void => {
+		if (type === 'online') onlineRegistrations.push(typeof options === 'object' ? options?.signal : undefined)
+		realAddEventListener(type, listener, options)
+	}
+})
+
+afterAll(() => {
+	window.addEventListener = realAddEventListener
+
+	expect(onlineRegistrations.length).toBeGreaterThan(0)
+	expect(onlineRegistrations.every((signal) => signal?.aborted === true)).toBe(true)
 })
 
 describe('the router', () => {
@@ -22,7 +71,7 @@ describe('the router', () => {
 	 * visitor's account page to the next.
 	 */
 	it('builds a fresh client for every router it makes', () => {
-		expect(getRouter().options.context.gql).not.toBe(getRouter().options.context.gql)
+		expect(getRouter(controller.signal).options.context.gql).not.toBe(getRouter(controller.signal).options.context.gql)
 	})
 
 	/*
@@ -31,7 +80,7 @@ describe('the router', () => {
 	 * the same data, with no way to invalidate one from the other.
 	 */
 	it('preloads on intent and keeps no cache of its own', () => {
-		const { options } = getRouter()
+		const { options } = getRouter(controller.signal)
 
 		expect(options.defaultPreload).toBe('intent')
 		expect(options.defaultPreloadStaleTime).toBe(0)
@@ -41,14 +90,14 @@ describe('the router', () => {
 	// answers 404 with this markup, rather than 200 with an empty page. A soft 404 is indexed, which is
 	// strictly worse than the miss.
 	it('has a not-found and an error component for every route', () => {
-		const { options } = getRouter()
+		const { options } = getRouter(controller.signal)
 
 		expect(options.defaultNotFoundComponent).toBeDefined()
 		expect(options.defaultErrorComponent).toBeDefined()
 	})
 
 	it('restores the scroll position on a back navigation', () => {
-		expect(getRouter().options.scrollRestoration).toBe(true)
+		expect(getRouter(controller.signal).options.scrollRestoration).toBe(true)
 	})
 
 	/*
@@ -59,7 +108,7 @@ describe('the router', () => {
 	 */
 	it('builds the browser client under jsdom, cache and all', async () => {
 		const stub = stubGraphQL({ ItemCategories: categoriesReply() })
-		const { gql } = getRouter().options.context
+		const { gql } = getRouter(controller.signal).options.context
 
 		await gql.query(ItemCategoriesDocument, {}).toPromise()
 		await gql.query(ItemCategoriesDocument, {}).toPromise()
@@ -99,7 +148,7 @@ describe('the router', () => {
 		setSession('customer@marketplace.it')
 		const assign = stubLocationAssign()
 
-		const { gql } = getRouter().options.context
+		const { gql } = getRouter(controller.signal).options.context
 		await gql.query(ItemCategoriesDocument, {}).toPromise()
 
 		expect(getSession()).toEqual({ signedIn: false, email: null })
@@ -110,7 +159,7 @@ describe('the router', () => {
 		const stub = stubGraphQL({ ItemCategories: categoriesReply() })
 		vi.stubGlobal('document', undefined)
 
-		const { gql } = getRouter().options.context
+		const { gql } = getRouter(controller.signal).options.context
 
 		await gql.query(ItemCategoriesDocument, {}).toPromise()
 		await gql.query(ItemCategoriesDocument, {}).toPromise()

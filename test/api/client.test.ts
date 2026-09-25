@@ -1,6 +1,6 @@
 import type { Client, OperationContext, TypedDocumentNode } from '@urql/core'
 import { gql } from '@urql/core'
-import { describe, expect, it, vi } from 'vitest'
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { createGraphQLClient } from '@/api/client'
 import { CTX_LOGOUT, CTX_PUBLIC_RESOURCE, CTX_USER_RESOURCE, ENDPOINT } from '@/api/endpoints'
@@ -45,11 +45,70 @@ const raceLost = {
 	status: 409
 }
 
-const clientWith = (replies: GraphQLReplies, now?: () => number) => {
+/**
+ * One `AbortController` per client this file builds without an explicit `signal`, aborted in `afterEach`.
+ *
+ * `createGraphQLClient` registers a `window.addEventListener('online', …)` through its refresh breaker
+ * that otherwise outlives the test — this file builds one client per test (mostly through `clientWith`,
+ * plus the two direct `createGraphQLClient` calls at the bottom), and without this the listener
+ * accumulates on the one jsdom `window` the whole suite shares.
+ */
+const clientControllers = new Set<AbortController>()
+
+const trackedSignal = (): AbortSignal => {
+	const controller = new AbortController()
+	clientControllers.add(controller)
+
+	return controller.signal
+}
+
+afterEach(() => {
+	for (const controller of clientControllers) controller.abort()
+	clientControllers.clear()
+})
+
+/**
+ * A file-wide regression guard for the leak the two guards above exist to close: every `online` listener
+ * any client this file builds registers through `window.addEventListener` must carry a signal that ends
+ * up aborted — the whole suite's proof that nothing here is still relying on the caller to clean it up.
+ *
+ * ⚠️ This checks the signal's `aborted` flag rather than counting `window.removeEventListener` calls.
+ * jsdom's `AbortSignal` integration removes a listener internally when its signal fires — it never calls
+ * the target's own `removeEventListener` to do it — so patching that method the way this probes
+ * `addEventListener` would see zero removals even on a correctly cleaned-up suite, exactly the shape of a
+ * false leak report.
+ *
+ * A plain reassignment rather than `vi.spyOn`: this config sets `restoreMocks: true`, which restores every
+ * `vi.spyOn` wrapper before the *next* test — so a spy installed once in `beforeAll` would only ever see
+ * the first test's calls. Wrapping the method by hand and putting it back in `afterAll` keeps the same
+ * list live for the whole file regardless of that per-test restoration.
+ */
+const onlineRegistrations: (AbortSignal | undefined)[] = []
+const realAddEventListener = window.addEventListener.bind(window)
+
+beforeAll(() => {
+	window.addEventListener = (
+		type: string,
+		listener: EventListenerOrEventListenerObject,
+		options?: boolean | AddEventListenerOptions
+	): void => {
+		if (type === 'online') onlineRegistrations.push(typeof options === 'object' ? options?.signal : undefined)
+		realAddEventListener(type, listener, options)
+	}
+})
+
+afterAll(() => {
+	window.addEventListener = realAddEventListener
+
+	expect(onlineRegistrations.length).toBeGreaterThan(0)
+	expect(onlineRegistrations.every((signal) => signal?.aborted === true)).toBe(true)
+})
+
+const clientWith = (replies: GraphQLReplies, now?: () => number, signal?: AbortSignal) => {
 	const onSessionLost = vi.fn()
 	const stub = stubGraphQL(replies)
 
-	return { client: createGraphQLClient({ onSessionLost, now }), onSessionLost, stub }
+	return { client: createGraphQLClient({ onSessionLost, now, signal: signal ?? trackedSignal() }), onSessionLost, stub }
 }
 
 const names = (stub: ReturnType<typeof stubGraphQL>) => stub.calls.map((call) => call.operationName)
@@ -480,6 +539,37 @@ describe('the refresh transport breaker', () => {
 
 		expect(names(stub).filter((name) => name === 'Refresh')).toHaveLength(3)
 	})
+
+	/*
+	 * The wiring for `CreateGraphQLClientOptions['signal']`: a test builds one client per test and must be
+	 * able to stop its breaker's `online` listener from reaching into a later test, without that also
+	 * breaking the "still resets on `online`" behaviour above for a caller that passes nothing — production
+	 * never aborts, and must keep resetting for as long as the page lives.
+	 *
+	 * The already-aborted-before-construction half of this contract is `refreshBreaker.test.ts`'s to
+	 * prove, not this file's: `createGraphQLClient` only forwards `signal` to `createRefreshBreaker`,
+	 * which is the one place that ever touches `window.addEventListener`.
+	 */
+	it("stops the browser's online event from resetting the breaker once the client's signal is aborted", async () => {
+		const time = clock()
+		const controller = new AbortController()
+		const { client, stub } = clientWith(
+			{ Me: ME, Refresh: [failingRefresh, failingRefresh, failingRefresh] },
+			time.now,
+			controller.signal
+		)
+
+		await client.query(MeDocument, {}, meContext).toPromise() // 1st failure: opens a 1s window
+		controller.abort()
+		window.dispatchEvent(new Event('online')) // no longer wired to this breaker
+
+		// Still inside the 1s window the first failure opened — unlike the reset case above, the second
+		// call never reaches the network at all.
+		const result = await client.query(MeDocument, {}, meContext).toPromise()
+
+		expect(result.error?.networkError?.message).toBe('Refresh suspended after repeated transport failures')
+		expect(names(stub)).toEqual(['Refresh'])
+	})
 })
 
 describe('the other way a session ends', () => {
@@ -551,8 +641,8 @@ describe('createGraphQLClient', () => {
 	// One per page load, created in src/router.tsx. Two calls must not share a cache, or a signed-out
 	// visitor would read the previous session's cached account data.
 	it('builds a client with a cache of its own each time', async () => {
-		const first: Client = createGraphQLClient({ onSessionLost: vi.fn() })
-		const second: Client = createGraphQLClient({ onSessionLost: vi.fn() })
+		const first: Client = createGraphQLClient({ onSessionLost: vi.fn(), signal: trackedSignal() })
+		const second: Client = createGraphQLClient({ onSessionLost: vi.fn(), signal: trackedSignal() })
 		const stub = stubGraphQL({ Shops: { data: { shops: [] } } })
 
 		await first.query(ShopsDocument, {}, CTX_PUBLIC_RESOURCE).toPromise()
