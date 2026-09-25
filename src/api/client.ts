@@ -40,6 +40,15 @@ export interface CreateGraphQLClientOptions {
 	 * a test overrides it to make the breaker's timing deterministic instead of racing the real clock.
 	 */
 	now?: (() => number) | undefined
+
+	/**
+	 * Passed through to the refresh breaker, which owns the `window.addEventListener('online', …)` it
+	 * registers. Production callers pass nothing: the client, and therefore the breaker, lives as long as
+	 * the page. A test that builds a client per test passes a per-test `AbortController`'s signal and
+	 * aborts it in teardown — otherwise the listener accumulates on the one jsdom `window` the whole
+	 * suite shares, one per client ever built.
+	 */
+	signal?: AbortSignal | undefined
 }
 
 /**
@@ -58,10 +67,10 @@ export interface CreateGraphQLClientOptions {
  * `fetchOptions.credentials: 'include'` is what carries the refresh cookie. It works because the app
  * and the services share one origin; see the comment in vite.config.ts.
  */
-export const createGraphQLClient = ({ onSessionLost, now }: CreateGraphQLClientOptions): Client => {
+export const createGraphQLClient = ({ onSessionLost, now, signal }: CreateGraphQLClientOptions): Client => {
 	// One breaker per client, i.e. per browser page load — never a module-scoped variable. See the doc
 	// comment on `createRefreshBreaker` for why that matters on an app that also builds urql clients for SSR.
-	const refreshBreaker = createRefreshBreaker({ now })
+	const refreshBreaker = createRefreshBreaker({ now, signal })
 
 	return new Client({
 		/**

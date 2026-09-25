@@ -103,6 +103,72 @@ describe('createRefreshBreaker', () => {
 		expect(breaker.isOpen()).toBe(false)
 	})
 
+	// Still registered and still resetting — passing a signal must not change the no-signal behaviour
+	// above; only aborting it does.
+	it('still resets on the online event while an injected signal has not been aborted', () => {
+		const time = clock()
+		const controller = new AbortController()
+		const breaker = createRefreshBreaker({ now: time.now, signal: controller.signal })
+
+		breaker.recordFailure()
+		window.dispatchEvent(new Event('online'))
+
+		expect(breaker.isOpen()).toBe(false)
+	})
+
+	// The shape the test helpers rely on: aborting after construction removes the listener, so a later
+	// online event no longer resets an outage a test is in the middle of asserting on.
+	it('stops resetting on the online event once its signal is aborted', () => {
+		const time = clock()
+		const controller = new AbortController()
+		const breaker = createRefreshBreaker({ now: time.now, signal: controller.signal })
+
+		breaker.recordFailure()
+		controller.abort()
+		window.dispatchEvent(new Event('online'))
+
+		expect(breaker.isOpen()).toBe(true)
+	})
+
+	/*
+	 * The other half of the same contract: a signal that was already aborted before the breaker was even
+	 * built must register nothing in the first place, not register-then-immediately-remove.
+	 *
+	 * ⚠️ Real `window.addEventListener` cannot verify this one in this suite. Vitest's jsdom integration
+	 * bridges a Node-native `AbortSignal` into jsdom's own by listening for a future `'abort'` event on
+	 * it, which never fires for a signal that was already aborted before that bridge was attached — and
+	 * the bridge sits on the shared `EventTarget.prototype`, so every `EventTarget` in this file inherits
+	 * it, not only `window`. A hand-rolled `window` double, with no `EventTarget` in its prototype chain,
+	 * implements the one line of the spec this test is actually about — `addEventListener` does nothing
+	 * for a signal that is already `aborted` — and exercises `refreshBreaker`'s side of that contract
+	 * without going anywhere near the bridge.
+	 */
+	it('registers no online listener when the signal is already aborted', () => {
+		const time = clock()
+		const listeners = new Set<EventListener>()
+		const fakeWindow = {
+			addEventListener: (_type: string, callback: EventListener, options?: AddEventListenerOptions) => {
+				if (options?.signal?.aborted === true) return
+				listeners.add(callback)
+			},
+			dispatchEvent: (event: Event) => {
+				listeners.forEach((listener) => listener(event))
+				return true
+			}
+		}
+		vi.stubGlobal('window', fakeWindow)
+
+		const controller = new AbortController()
+		controller.abort()
+
+		const breaker = createRefreshBreaker({ now: time.now, signal: controller.signal })
+
+		breaker.recordFailure()
+		fakeWindow.dispatchEvent(new Event('online'))
+
+		expect(breaker.isOpen()).toBe(true)
+	})
+
 	// The SSR/non-browser guard: constructing a breaker where `window` does not exist must not throw, and
 	// the breaker it returns must still work — refreshAuth never actually runs there (see the module doc),
 	// but the guard has to hold up on its own regardless.

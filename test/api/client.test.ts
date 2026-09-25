@@ -45,11 +45,11 @@ const raceLost = {
 	status: 409
 }
 
-const clientWith = (replies: GraphQLReplies, now?: () => number) => {
+const clientWith = (replies: GraphQLReplies, now?: () => number, signal?: AbortSignal) => {
 	const onSessionLost = vi.fn()
 	const stub = stubGraphQL(replies)
 
-	return { client: createGraphQLClient({ onSessionLost, now }), onSessionLost, stub }
+	return { client: createGraphQLClient({ onSessionLost, now, signal }), onSessionLost, stub }
 }
 
 const names = (stub: ReturnType<typeof stubGraphQL>) => stub.calls.map((call) => call.operationName)
@@ -479,6 +479,37 @@ describe('the refresh transport breaker', () => {
 		await client.query(MeDocument, {}, meContext).toPromise()
 
 		expect(names(stub).filter((name) => name === 'Refresh')).toHaveLength(3)
+	})
+
+	/*
+	 * The wiring for `CreateGraphQLClientOptions['signal']`: a test builds one client per test and must be
+	 * able to stop its breaker's `online` listener from reaching into a later test, without that also
+	 * breaking the "still resets on `online`" behaviour above for a caller that passes nothing — production
+	 * never aborts, and must keep resetting for as long as the page lives.
+	 *
+	 * The already-aborted-before-construction half of this contract is `refreshBreaker.test.ts`'s to
+	 * prove, not this file's: `createGraphQLClient` only forwards `signal` to `createRefreshBreaker`,
+	 * which is the one place that ever touches `window.addEventListener`.
+	 */
+	it("stops the browser's online event from resetting the breaker once the client's signal is aborted", async () => {
+		const time = clock()
+		const controller = new AbortController()
+		const { client, stub } = clientWith(
+			{ Me: ME, Refresh: [failingRefresh, failingRefresh, failingRefresh] },
+			time.now,
+			controller.signal
+		)
+
+		await client.query(MeDocument, {}, meContext).toPromise() // 1st failure: opens a 1s window
+		controller.abort()
+		window.dispatchEvent(new Event('online')) // no longer wired to this breaker
+
+		// Still inside the 1s window the first failure opened — unlike the reset case above, the second
+		// call never reaches the network at all.
+		const result = await client.query(MeDocument, {}, meContext).toPromise()
+
+		expect(result.error?.networkError?.message).toBe('Refresh suspended after repeated transport failures')
+		expect(names(stub)).toEqual(['Refresh'])
 	})
 })
 

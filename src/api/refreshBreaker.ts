@@ -34,9 +34,17 @@ export interface RefreshBreaker {
 export interface CreateRefreshBreakerOptions {
 	/** Injected for deterministic tests; defaults to the real clock. */
 	now?: (() => number) | undefined
+	/**
+	 * Aborting this removes the `online` listener below. Production callers pass nothing: the breaker
+	 * lives as long as the client that owns it, which lives as long as the page. A test that builds a
+	 * breaker (directly, or through `createGraphQLClient`) per test passes a per-test controller's signal
+	 * and aborts it in teardown, or the listener accumulates on the one jsdom `window` the whole suite
+	 * shares.
+	 */
+	signal?: AbortSignal | undefined
 }
 
-export const createRefreshBreaker = ({ now = Date.now }: CreateRefreshBreakerOptions = {}): RefreshBreaker => {
+export const createRefreshBreaker = ({ now = Date.now, signal }: CreateRefreshBreakerOptions = {}): RefreshBreaker => {
 	let consecutiveFailures = 0
 	let openUntil = 0
 
@@ -52,7 +60,9 @@ export const createRefreshBreaker = ({ now = Date.now }: CreateRefreshBreakerOpt
 	 * why `refreshAuth`, and therefore this breaker, never actually runs there.
 	 */
 	if (typeof window !== 'undefined') {
-		window.addEventListener('online', reset)
+		// `exactOptionalPropertyTypes` rejects `{ signal: undefined }` against DOM's `AddEventListenerOptions`
+		// — the key has to be absent, not present with an undefined value, when no signal was injected.
+		window.addEventListener('online', reset, signal === undefined ? undefined : { signal })
 	}
 
 	return {
