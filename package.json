@@ -42,7 +42,7 @@
 		"@urql/core": "^6.0.3",
 		"@urql/exchange-auth": "^3.0.0",
 		"graphql": "^17.0.2",
-		"maplibre-gl": "^6.4.1",
+		"maplibre-gl": "^6.11.0",
 		"pmtiles": "^4.4.1",
 		"react": "^19.2.8",
 		"react-dom": "^19.2.8",
