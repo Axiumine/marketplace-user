@@ -1649,7 +1649,7 @@
   resolved "https://registry.npmjs.org/@tanstack/history/-/history-1.162.4.tgz#bbb72e9d2ad8885fc7beafcbd97ed34b2cd38d1b"
   integrity sha512-utTS5L2OkeYUzXGohL1Z8sefu1GLNOJcxe8Hd6iIdc/Xo1K1nDB2JEp4iSFhvYh33xKC9V91TxrS8qfrpoKobQ==
 
-"@tanstack/react-router@1.170.38", "@tanstack/react-router@^1.170.18":
+"@tanstack/react-router@1.170.38":
   version "1.170.38"
   resolved "https://registry.npmjs.org/@tanstack/react-router/-/react-router-1.170.38.tgz#9c58a40d6a46b96a64457ba5969a65f47bf44f28"
   integrity sha512-iHM9b0aDJbuvftmkiQXawzoqsdV68p2Re2safbVLCnxafe+iLKV++2i3hI/BMAP6uR92/Mjw94JKJJfD7pbwHQ==
@@ -1657,6 +1657,16 @@
     "@tanstack/history" "1.162.4"
     "@tanstack/react-store" "^0.11.0"
     "@tanstack/router-core" "1.171.32"
+    isbot "^5.1.22"
+
+"@tanstack/react-router@^1.170.40":
+  version "1.170.40"
+  resolved "https://registry.yarnpkg.com/@tanstack/react-router/-/react-router-1.170.40.tgz#acb67f2b90b0dee7ee9cba8682a8b88bdcd3d334"
+  integrity sha512-vVr3va9Mcq05rZRrDZPGoptAClRMKHvekLbpg2GcfXvAAtOVhW6Q93tOz4dvS8j03vTVrU25VM6weP1SIHGEew==
+  dependencies:
+    "@tanstack/history" "1.162.4"
+    "@tanstack/react-store" "^0.11.0"
+    "@tanstack/router-core" "1.171.33"
     isbot "^5.1.22"
 
 "@tanstack/react-start-client@1.168.36":
@@ -1723,6 +1733,16 @@
     cookie-es "^3.0.0"
     seroval "^1.6.2"
     seroval-plugins "^1.6.2"
+
+"@tanstack/router-core@1.171.33":
+  version "1.171.33"
+  resolved "https://registry.yarnpkg.com/@tanstack/router-core/-/router-core-1.171.33.tgz#92cf4580e03f2e6936d1cfaffa2532ac6f6b806e"
+  integrity sha512-TK31LyRZuVwwmWrv3oSCBN7OuM4R1qQZePRTiexFyqQUuCo3ERHZgzArosynwZKtYlEf4qbFCvbW7UUfvGiiZw==
+  dependencies:
+    "@tanstack/history" "1.162.4"
+    cookie-es "^3.0.0"
+    seroval "^1.6.7"
+    seroval-plugins "^1.6.7"
 
 "@tanstack/router-generator@1.167.38":
   version "1.167.38"
@@ -4457,10 +4477,20 @@ seroval-plugins@^1.6.2:
   resolved "https://registry.npmjs.org/seroval-plugins/-/seroval-plugins-1.6.7.tgz#4aba839a2fdafa9c115d965a71861d4b288b90c1"
   integrity sha512-4Nk35ttD3DTDJW4hgw5StsVAPeU6qnDFnULAouw6tQ7oLTV/ICXrWpsXo2EE52eSP2joUMazbVf52mFEcADqRw==
 
+seroval-plugins@^1.6.7:
+  version "1.6.8"
+  resolved "https://registry.yarnpkg.com/seroval-plugins/-/seroval-plugins-1.6.8.tgz#3187b90331153472bdba83da5be63912e14cd2ac"
+  integrity sha512-N7mWAMydj89EnYTHtRpS3LBrAz3J9O6oVrqpuXuvlAHfAUG8WEKqtbAd7SBiJNY5NfCAFhSdyAh7wI4Shjqy4g==
+
 seroval@^1.6.2:
   version "1.6.7"
   resolved "https://registry.npmjs.org/seroval/-/seroval-1.6.7.tgz#b33953ac59aec5bde14f99e010bdaa7a507ae2db"
   integrity sha512-AeDcLh0yO2SFm9W71essgnSzLV9DI8ZH0x0knXn2DMnUZj728mpLbxjlbB6IqKCmqh8JA3cEqRyGoNkt584JcQ==
+
+seroval@^1.6.7:
+  version "1.6.8"
+  resolved "https://registry.yarnpkg.com/seroval/-/seroval-1.6.8.tgz#916c4a293cfadcd9e0efdb73a8bfbe061f81866b"
+  integrity sha512-HlSgSAkTk4EqHcje1ptJjfZi1YDv5KbhVJ/d3P7T/nAXua2VmDu+AKDX5VTdFfZf48nDkWB2TKYt0DrCSa+3wg==
 
 set-function-length@^1.2.2:
   version "1.2.2"
