@@ -19,18 +19,19 @@ image: jetbrains/qodana-js:2026.2
 
 # ── SCA: third-party license audit (Ultimate Plus) ────────────────────────────
 # Scans Yarn deps and surfaces license conflicts as problems. The project is
-# proprietary (package.json "UNLICENSED"), so Qodana's default compatibility
-# matrix already flags copyleft dependencies.
+# GPL-3.0-or-later (package.json "license", LICENSE); Qodana derives the project key from
+# that field and checks every dependency license against the ruleset kept for it.
 raiseLicenseProblems: true
 
 # `keys` is THIS project's license, `allowed` the dependency licenses accepted
-# against it. The default matrix for a proprietary project flags every copyleft
-# dep as a Critical — correct for shipped software, wrong here: this SPA is never
-# distributed as a package, it is served as a bundle from our own nginx, so the
-# GPL's distribution trigger is never pulled. Accepted by the project owner.
+# against it. Qodana's default matrix for the PROPRIETARY-LICENSE key (what this repo derived
+# while package.json said "UNLICENSED") flags every copyleft dep as a Critical — correct for
+# shipped software, wrong here: this SPA is never distributed as a package, it is served as a
+# bundle from our own nginx, so the GPL's distribution trigger is never pulled. Accepted by
+# the project owner.
 #
-# `keys` must carry the key Qodana derives, NOT the package.json string: it maps
-# "UNLICENSED" to PROPRIETARY-LICENSE, and the finding text says so verbatim —
+# `keys` must carry the key Qodana derives, NOT the package.json string: it mapped
+# "UNLICENSED" to PROPRIETARY-LICENSE, and the finding text said so verbatim —
 # "…is in the prohibited licenses list with project license 'PROPRIETARY-LICENSE'".
 # Putting "UNLICENSED" here matches no project and the rule silently does nothing.
 #
@@ -41,8 +42,8 @@ raiseLicenseProblems: true
 #
 # CC0-1.0 covers type-fest, whose package.json declares "(MIT OR CC0-1.0)" — a dual
 # license, ours to choose from. Qodana records BOTH keys and checks the CC0 one against
-# the PROPRIETARY-LICENSE ruleset, where CC0-1.0 appears neither in `allowed` nor in
-# `prohibited`: the verdict is "Uncategorized". The CLI does not count that as a problem,
+# the project's ruleset (then PROPRIETARY-LICENSE), where CC0-1.0 appears neither in
+# `allowed` nor in `prohibited`: the verdict is "Uncategorized". The CLI does not count that as a problem,
 # but Qodana Cloud counts it in the license inventory as one suspicious license — which is
 # how a terminal can report 0 while the dashboard does not. CC0-1.0 is a public-domain
 # dedication: it grants strictly more than MIT and asks nothing back.
