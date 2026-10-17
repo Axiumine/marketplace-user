@@ -32,12 +32,12 @@ import { headFor } from '@/lib/seo'
  * exactly as long as it stayed, which is the leak this route exists to close.
  */
 const head = () =>
-	headFor({
-		title: 'Set a new password',
-		description: 'Choose a new password for your account.',
-		path: '/reset-password/confirm',
-		noIndex: true
-	})
+  headFor({
+    title: 'Set a new password',
+    description: 'Choose a new password for your account.',
+    path: '/reset-password/confirm',
+    noIndex: true
+  })
 
 /**
  * ⚠️ Said as one thing that is wrong with the link, not as three. A truncated link, a fragment a client
@@ -47,26 +47,26 @@ const head = () =>
 const INCOMPLETE_LINK = 'This reset link is incomplete — the part after the # is missing.'
 
 const ResetPasswordConfirm = () => {
-	/*
-	 * ⚠️ `window.location.hash` rather than the router's `useRouterState().location.hash`: the router
-	 * percent-decodes and sanitises its copy before anything here could split it (`decodePath`,
-	 * `router-core/dist/esm/router.js:195`). This is the one place in `src/` that reads `window` — a
-	 * client-only route by the flag above, so there is no server render for it to break.
-	 */
-	const credential = readResetCredential(window.location.hash)
+  /*
+   * ⚠️ `window.location.hash` rather than the router's `useRouterState().location.hash`: the router
+   * percent-decodes and sanitises its copy before anything here could split it (`decodePath`,
+   * `router-core/dist/esm/router.js:195`). This is the one place in `src/` that reads `window` — a
+   * client-only route by the flag above, so there is no server render for it to break.
+   */
+  const credential = readResetCredential(window.location.hash)
 
-	return (
-		<AuthCard title="Set a new password" intro="Choose a new password. You will use it to sign in from now on.">
-			{credential === undefined ? (
-				<div className="flex flex-col gap-3">
-					<FormStatus tone="error" message={INCOMPLETE_LINK} />
-					<ResetLinkInvalid />
-				</div>
-			) : (
-				<ResetConfirmForm email={credential.email} hash={credential.hash} />
-			)}
-		</AuthCard>
-	)
+  return (
+    <AuthCard title="Set a new password" intro="Choose a new password. You will use it to sign in from now on.">
+      {credential === undefined ? (
+        <div className="flex flex-col gap-3">
+          <FormStatus tone="error" message={INCOMPLETE_LINK} />
+          <ResetLinkInvalid />
+        </div>
+      ) : (
+        <ResetConfirmForm email={credential.email} hash={credential.hash} />
+      )}
+    </AuthCard>
+  )
 }
 
 export const resetPasswordConfirmRouteOptions = { ssr: false as const, head, component: ResetPasswordConfirm }

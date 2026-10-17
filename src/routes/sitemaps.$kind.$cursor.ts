@@ -18,15 +18,15 @@ import { fetchShard, isSitemapKind, urlsetXml, xmlResponse } from '@/lib/sitemap
  * make a typo in the index invisible.
  */
 export const Route = createFileRoute('/sitemaps/$kind/$cursor')({
-	server: {
-		handlers: {
-			GET: async ({ params }) => {
-				if (!isSitemapKind(params.kind)) return new Response('Not found', { status: 404 })
+  server: {
+    handlers: {
+      GET: async ({ params }) => {
+        if (!isSitemapKind(params.kind)) return new Response('Not found', { status: 404 })
 
-				const shard = await fetchShard(createSsrClient(), params.kind, params.cursor)
+        const shard = await fetchShard(createSsrClient(), params.kind, params.cursor)
 
-				return xmlResponse(urlsetXml(shard.paths))
-			}
-		}
-	}
+        return xmlResponse(urlsetXml(shard.paths))
+      }
+    }
+  }
 })

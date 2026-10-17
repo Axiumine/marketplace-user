@@ -32,17 +32,17 @@ import { clearSession } from '@/auth/session'
  * page it lands on is a fresh document either way.
  */
 export const useLogout = (): (() => Promise<void>) => {
-	const client = useClient()
+  const client = useClient()
 
-	return useCallback(async () => {
-		try {
-			await client.mutation(LogoutDocument, {}, CTX_LOGOUT).toPromise()
-		} catch {
-			// Deliberately ignored — see above. The session ends locally either way.
-		}
+  return useCallback(async () => {
+    try {
+      await client.mutation(LogoutDocument, {}, CTX_LOGOUT).toPromise()
+    } catch {
+      // Deliberately ignored — see above. The session ends locally either way.
+    }
 
-		clearAccessToken()
-		clearSession()
-		window.location.assign('/')
-	}, [client])
+    clearAccessToken()
+    clearSession()
+    window.location.assign('/')
+  }, [client])
 }

@@ -18,29 +18,29 @@ import { graphql } from '@gql/publicResource'
  * lie; the page shows "1000+" instead. Do not drop the field to shorten the query.
  */
 export const CompaniesDocument = graphql(`
-	query Companies($limit: Int, $offset: Int, $city: String) {
-		companies(limit: $limit, offset: $offset, city: $city) {
-			nodes {
-				_id
-				publicName
-				slug
-				description
-				address {
-					street
-					postalCode
-					city
-					province
-					position {
-						type
-						coordinates
-					}
-				}
-			}
-			total
-			totalIsExact
-			hasMore
-		}
-	}
+  query Companies($limit: Int, $offset: Int, $city: String) {
+    companies(limit: $limit, offset: $offset, city: $city) {
+      nodes {
+        _id
+        publicName
+        slug
+        description
+        address {
+          street
+          postalCode
+          city
+          province
+          position {
+            type
+            coordinates
+          }
+        }
+      }
+      total
+      totalIsExact
+      hasMore
+    }
+  }
 `)
 
 /**
@@ -48,24 +48,24 @@ export const CompaniesDocument = graphql(`
  * into a real 404 rather than an empty page — a soft 404 is indexed, which is worse than the miss.
  */
 export const CompanyBySlugDocument = graphql(`
-	query CompanyBySlug($slug: String!) {
-		companyBySlug(slug: $slug) {
-			_id
-			publicName
-			slug
-			description
-			address {
-				street
-				postalCode
-				city
-				province
-				position {
-					type
-					coordinates
-				}
-			}
-		}
-	}
+  query CompanyBySlug($slug: String!) {
+    companyBySlug(slug: $slug) {
+      _id
+      publicName
+      slug
+      description
+      address {
+        street
+        postalCode
+        city
+        province
+        position {
+          type
+          coordinates
+        }
+      }
+    }
+  }
 `)
 
 /**
@@ -76,21 +76,21 @@ export const CompanyBySlugDocument = graphql(`
  * bbox form: `$geoWithin` computes no distance, only `$geoNear` does.
  */
 export const CompaniesNearbyDocument = graphql(`
-	query CompaniesNearby($bbox: GraphQLInputBoundingBox, $near: GraphQLInputNearPoint, $limit: Int) {
-		companiesNearby(bbox: $bbox, near: $near, limit: $limit) {
-			nodes {
-				_id
-				publicName
-				slug
-				position {
-					type
-					coordinates
-				}
-				distanceMeters
-			}
-			truncated
-		}
-	}
+  query CompaniesNearby($bbox: GraphQLInputBoundingBox, $near: GraphQLInputNearPoint, $limit: Int) {
+    companiesNearby(bbox: $bbox, near: $near, limit: $limit) {
+      nodes {
+        _id
+        publicName
+        slug
+        position {
+          type
+          coordinates
+        }
+        distanceMeters
+      }
+      truncated
+    }
+  }
 `)
 
 /**
@@ -98,37 +98,37 @@ export const CompaniesNearbyDocument = graphql(`
  * every shop (`idCategory`). The resolver takes either.
  */
 export const ItemsDocument = graphql(`
-	query Items($companySlug: String, $idCategory: ID, $limit: Int, $offset: Int) {
-		items(companySlug: $companySlug, idCategory: $idCategory, limit: $limit, offset: $offset) {
-			nodes {
-				_id
-				idCategory
-				name
-				description
-				slug
-				companySlug
-				companyPublicName
-			}
-			total
-			totalIsExact
-			hasMore
-		}
-	}
+  query Items($companySlug: String, $idCategory: ID, $limit: Int, $offset: Int) {
+    items(companySlug: $companySlug, idCategory: $idCategory, limit: $limit, offset: $offset) {
+      nodes {
+        _id
+        idCategory
+        name
+        description
+        slug
+        companySlug
+        companyPublicName
+      }
+      total
+      totalIsExact
+      hasMore
+    }
+  }
 `)
 
 /** The `/shop/:companySlug/item/:slug` page. Null on a miss, same 404 handling as `companyBySlug`. */
 export const ItemBySlugDocument = graphql(`
-	query ItemBySlug($companySlug: String!, $slug: String!) {
-		itemBySlug(companySlug: $companySlug, slug: $slug) {
-			_id
-			idCategory
-			name
-			description
-			slug
-			companySlug
-			companyPublicName
-		}
-	}
+  query ItemBySlug($companySlug: String!, $slug: String!) {
+    itemBySlug(companySlug: $companySlug, slug: $slug) {
+      _id
+      idCategory
+      name
+      description
+      slug
+      companySlug
+      companyPublicName
+    }
+  }
 `)
 
 /**
@@ -139,15 +139,15 @@ export const ItemBySlugDocument = graphql(`
  * page needs it, and one cached query beats a per-level fetch.
  */
 export const ItemCategoriesDocument = graphql(`
-	query ItemCategories {
-		itemCategories {
-			_id
-			idParent
-			name
-			slug
-			position
-		}
-	}
+  query ItemCategories {
+    itemCategories {
+      _id
+      idParent
+      name
+      slug
+      position
+    }
+  }
 `)
 
 /**
@@ -159,49 +159,49 @@ export const ItemCategoriesDocument = graphql(`
  * to render one of them. The visitor picks the kind; the loader picks the document.
  */
 export const SearchCompaniesDocument = graphql(`
-	query SearchCompanies($q: String!, $near: GraphQLInputNearPoint, $limit: Int, $offset: Int) {
-		searchCompanies(q: $q, near: $near, limit: $limit, offset: $offset) {
-			nodes {
-				_id
-				publicName
-				slug
-				description
-				address {
-					street
-					postalCode
-					city
-					province
-					position {
-						type
-						coordinates
-					}
-				}
-			}
-			total
-			totalIsExact
-			hasMore
-		}
-	}
+  query SearchCompanies($q: String!, $near: GraphQLInputNearPoint, $limit: Int, $offset: Int) {
+    searchCompanies(q: $q, near: $near, limit: $limit, offset: $offset) {
+      nodes {
+        _id
+        publicName
+        slug
+        description
+        address {
+          street
+          postalCode
+          city
+          province
+          position {
+            type
+            coordinates
+          }
+        }
+      }
+      total
+      totalIsExact
+      hasMore
+    }
+  }
 `)
 
 /** The other half of the search page. See `SearchCompaniesDocument` for why they are two documents. */
 export const SearchItemsDocument = graphql(`
-	query SearchItems($q: String!, $near: GraphQLInputNearPoint, $limit: Int, $offset: Int) {
-		searchItems(q: $q, near: $near, limit: $limit, offset: $offset) {
-			nodes {
-				_id
-				idCategory
-				name
-				description
-				slug
-				companySlug
-				companyPublicName
-			}
-			total
-			totalIsExact
-			hasMore
-		}
-	}
+  query SearchItems($q: String!, $near: GraphQLInputNearPoint, $limit: Int, $offset: Int) {
+    searchItems(q: $q, near: $near, limit: $limit, offset: $offset) {
+      nodes {
+        _id
+        idCategory
+        name
+        description
+        slug
+        companySlug
+        companyPublicName
+      }
+      total
+      totalIsExact
+      hasMore
+    }
+  }
 `)
 
 /**
@@ -212,12 +212,12 @@ export const SearchItemsDocument = graphql(`
  * page regardless of depth.
  */
 export const SitemapEntriesDocument = graphql(`
-	query SitemapEntries($kind: GraphQLSitemapKind!, $afterId: ID, $limit: Int) {
-		sitemapEntries(kind: $kind, afterId: $afterId, limit: $limit) {
-			nodes {
-				path
-			}
-			nextAfterId
-		}
-	}
+  query SitemapEntries($kind: GraphQLSitemapKind!, $afterId: ID, $limit: Int) {
+    sitemapEntries(kind: $kind, afterId: $afterId, limit: $limit) {
+      nodes {
+        path
+      }
+      nextAfterId
+    }
+  }
 `)

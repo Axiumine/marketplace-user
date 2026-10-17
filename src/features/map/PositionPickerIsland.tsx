@@ -23,17 +23,17 @@ import type { PositionPickerProps } from './PositionPicker'
 const PositionPickerLazy = lazy(async () => import('./PositionPicker'))
 
 const Placeholder = () => (
-	<div
-		style={{ height: 'var(--map-pick-height)' }}
-		className="w-full animate-pulse rounded-box border border-slate-200 bg-palette-bg1"
-		aria-hidden="true"
-	/>
+  <div
+    style={{ height: 'var(--map-pick-height)' }}
+    className="w-full animate-pulse rounded-box border border-slate-200 bg-palette-bg1"
+    aria-hidden="true"
+  />
 )
 
 export const PositionPickerIsland = (props: PositionPickerProps) => (
-	<ClientOnly fallback={<Placeholder />}>
-		<Suspense fallback={<Placeholder />}>
-			<PositionPickerLazy {...props} />
-		</Suspense>
-	</ClientOnly>
+  <ClientOnly fallback={<Placeholder />}>
+    <Suspense fallback={<Placeholder />}>
+      <PositionPickerLazy {...props} />
+    </Suspense>
+  </ClientOnly>
 )

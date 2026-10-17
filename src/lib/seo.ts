@@ -15,16 +15,16 @@ import { env } from '@/env'
  */
 
 export interface MetaTag {
-	readonly title?: string
-	readonly name?: string
-	readonly property?: string
-	readonly content?: string
+  readonly title?: string
+  readonly name?: string
+  readonly property?: string
+  readonly content?: string
 }
 
 export interface LinkTag {
-	readonly rel: string
-	readonly href: string
-	readonly hrefLang?: string
+  readonly rel: string
+  readonly href: string
+  readonly hrefLang?: string
 }
 
 /**
@@ -40,19 +40,19 @@ export interface LinkTag {
  * not mutate it.
  */
 export interface HeadContent {
-	readonly meta: MetaTag[]
-	readonly links: LinkTag[]
+  readonly meta: MetaTag[]
+  readonly links: LinkTag[]
 }
 
 export interface SeoInput {
-	readonly title: string
-	readonly description: string
-	/** Site-root-relative, always starting with `/`. Made absolute against `siteUrl` for the canonical. */
-	readonly path: string
-	/** Absolute or root-relative image for the social card. Omitted entirely when there is none. */
-	readonly image?: string
-	/** `true` on pages that must not be indexed — search results, anything behind a login. */
-	readonly noIndex?: boolean
+  readonly title: string
+  readonly description: string
+  /** Site-root-relative, always starting with `/`. Made absolute against `siteUrl` for the canonical. */
+  readonly path: string
+  /** Absolute or root-relative image for the social card. Omitted entirely when there is none. */
+  readonly image?: string
+  /** `true` on pages that must not be indexed — search results, anything behind a login. */
+  readonly noIndex?: boolean
 }
 
 /** Appended to every title. Kept short: search results truncate around 60 characters. */
@@ -66,19 +66,19 @@ export const SITE_NAME = 'Marketplace'
 export const DESCRIPTION_MAX = 155
 
 export const truncate = (text: string, max: number = DESCRIPTION_MAX): string => {
-	const collapsed = text.replace(/\s+/g, ' ').trim()
-	if (collapsed.length <= max) return collapsed
+  const collapsed = text.replace(/\s+/g, ' ').trim()
+  if (collapsed.length <= max) return collapsed
 
-	const cut = collapsed.slice(0, max - 1)
-	const lastSpace = cut.lastIndexOf(' ')
+  const cut = collapsed.slice(0, max - 1)
+  const lastSpace = cut.lastIndexOf(' ')
 
-	// A single word longer than the limit has no space to cut at. `lastIndexOf` answers -1 there, and
-	// slicing to -1 would drop the last character of an already-truncated string for no reason.
-	//
-	// Tested against -1 rather than `> 0`: `collapsed` is trimmed, so its first character is never a
-	// space and `cut` is a prefix of it — `lastSpace` can be -1 or at least 1 and nothing else, which
-	// made the two spellings indistinguishable by any input.
-	return `${lastSpace === -1 ? cut : cut.slice(0, lastSpace)}…`
+  // A single word longer than the limit has no space to cut at. `lastIndexOf` answers -1 there, and
+  // slicing to -1 would drop the last character of an already-truncated string for no reason.
+  //
+  // Tested against -1 rather than `> 0`: `collapsed` is trimmed, so its first character is never a
+  // space and `cut` is a prefix of it — `lastSpace` can be -1 or at least 1 and nothing else, which
+  // made the two spellings indistinguishable by any input.
+  return `${lastSpace === -1 ? cut : cut.slice(0, lastSpace)}…`
 }
 
 /**
@@ -115,29 +115,29 @@ export const siteRootUrl = (): string => absoluteUrl('/')
  * away the discovery for no gain.
  */
 export const headFor = ({ title, description, path, image, noIndex = false }: SeoInput): HeadContent => {
-	const url = absoluteUrl(path)
-	const fullTitle = title === SITE_NAME ? title : `${title} · ${SITE_NAME}`
-	const summary = truncate(description)
+  const url = absoluteUrl(path)
+  const fullTitle = title === SITE_NAME ? title : `${title} · ${SITE_NAME}`
+  const summary = truncate(description)
 
-	const meta: MetaTag[] = [
-		{ title: fullTitle },
-		{ name: 'description', content: summary },
-		{ property: 'og:type', content: 'website' },
-		{ property: 'og:site_name', content: SITE_NAME },
-		{ property: 'og:title', content: fullTitle },
-		{ property: 'og:description', content: summary },
-		{ property: 'og:url', content: url },
-		{ name: 'twitter:card', content: image === undefined ? 'summary' : 'summary_large_image' },
-		{ name: 'twitter:title', content: fullTitle },
-		{ name: 'twitter:description', content: summary }
-	]
+  const meta: MetaTag[] = [
+    { title: fullTitle },
+    { name: 'description', content: summary },
+    { property: 'og:type', content: 'website' },
+    { property: 'og:site_name', content: SITE_NAME },
+    { property: 'og:title', content: fullTitle },
+    { property: 'og:description', content: summary },
+    { property: 'og:url', content: url },
+    { name: 'twitter:card', content: image === undefined ? 'summary' : 'summary_large_image' },
+    { name: 'twitter:title', content: fullTitle },
+    { name: 'twitter:description', content: summary }
+  ]
 
-	if (image !== undefined) {
-		const absolute = image.startsWith('http') ? image : absoluteUrl(image)
-		meta.push({ property: 'og:image', content: absolute }, { name: 'twitter:image', content: absolute })
-	}
+  if (image !== undefined) {
+    const absolute = image.startsWith('http') ? image : absoluteUrl(image)
+    meta.push({ property: 'og:image', content: absolute }, { name: 'twitter:image', content: absolute })
+  }
 
-	if (noIndex) meta.push({ name: 'robots', content: 'noindex, follow' })
+  if (noIndex) meta.push({ name: 'robots', content: 'noindex, follow' })
 
-	return { meta, links: [{ rel: 'canonical', href: url }] }
+  return { meta, links: [{ rel: 'canonical', href: url }] }
 }

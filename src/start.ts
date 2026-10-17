@@ -40,5 +40,5 @@ export const isServerFnRequest = (ctx: { handlerType: 'serverFn' | 'router' }) =
 const csrfMiddleware = createCsrfMiddleware({ filter: isServerFnRequest })
 
 export const startInstance = createStart(() => ({
-	requestMiddleware: [csrfMiddleware]
+  requestMiddleware: [csrfMiddleware]
 }))

@@ -8,42 +8,42 @@
 # would make this file diverge from the schema codegen validates against for no gain.
 
 schema {
-	query: QueriesPublic
-	mutation: MutationsPublic
+  query: QueriesPublic
+  mutation: MutationsPublic
 }
 
 type QueriesPublic {
-	authPublicHello: Hello2Type!
+  authPublicHello: Hello2Type!
 }
 
 type Hello2Type {
-	txt: String!
+  txt: String!
 }
 
 type MutationsPublic {
-	# ⚠️ All three logins take a `turnstileToken` now, and all three are metered by `guardPublicLogin`
-	# before the database is touched — only the hourly ceilings differ (`loginAdmin` is the tightest at
-	# 10 per IP / 30 per email, `login` and `loginUser` 20 / 60). Declared here for completeness; this
-	# app must only ever send `loginUser`.
-	login(email: String!, password: String!, rememberMe: Boolean!, turnstileToken: String): LoginAppType!
-	loginAdmin(email: String!, password: String!, rememberMe: Boolean!, turnstileToken: String): LoginAppType!
+  # ⚠️ All three logins take a `turnstileToken` now, and all three are metered by `guardPublicLogin`
+  # before the database is touched — only the hourly ceilings differ (`loginAdmin` is the tightest at
+  # 10 per IP / 30 per email, `login` and `loginUser` 20 / 60). Declared here for completeness; this
+  # app must only ever send `loginUser`.
+  login(email: String!, password: String!, rememberMe: Boolean!, turnstileToken: String): LoginAppType!
+  loginAdmin(email: String!, password: String!, rememberMe: Boolean!, turnstileToken: String): LoginAppType!
 
-	"""
-	Log a customer in
-	"""
-	loginUser(email: String!, password: String!, rememberMe: Boolean!, turnstileToken: String): LoginUserType!
+  """
+  Log a customer in
+  """
+  loginUser(email: String!, password: String!, rememberMe: Boolean!, turnstileToken: String): LoginUserType!
 }
 
 # The ShopOwner/Admin answer, carrying the onboarding fields those tiers need.
 type LoginAppType {
-	accessToken: String!
-	onboardingStep: String!
-	onboardingDone: Boolean!
+  accessToken: String!
+  onboardingStep: String!
+  onboardingDone: Boolean!
 }
 
 # The customer answer is the access token and nothing else — there is no onboarding gate on this tier,
 # and no `waitApprov`: a customer self-serves. The refresh token never appears in either payload; it is
 # set as a signed httpOnly cookie by the same resolver.
 type LoginUserType {
-	accessToken: String!
+  accessToken: String!
 }

@@ -14,10 +14,10 @@ import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-
  * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
 type Documents = {
-    "\n\tmutation Logout {\n\t\tlogout\n\t}\n": typeof types.LogoutDocument,
+    "\n  mutation Logout {\n    logout\n  }\n": typeof types.LogoutDocument,
 };
 const documents: Documents = {
-    "\n\tmutation Logout {\n\t\tlogout\n\t}\n": types.LogoutDocument,
+    "\n  mutation Logout {\n    logout\n  }\n": types.LogoutDocument,
 };
 
 /**
@@ -37,7 +37,7 @@ export function graphql(source: string): unknown;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n\tmutation Logout {\n\t\tlogout\n\t}\n"): (typeof documents)["\n\tmutation Logout {\n\t\tlogout\n\t}\n"];
+export function graphql(source: "\n  mutation Logout {\n    logout\n  }\n"): (typeof documents)["\n  mutation Logout {\n    logout\n  }\n"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};

@@ -14,31 +14,31 @@
 // values unconditionally — page 1 has no `prev`, the last page has no `next`, and that is the normal
 // state rather than a reason to omit the prop.
 export interface PaginationProps {
-	readonly prev?: string | undefined
-	readonly next?: string | undefined
-	readonly page: number
+  readonly prev?: string | undefined
+  readonly next?: string | undefined
+  readonly page: number
 }
 
 export const Pagination = ({ prev, next, page }: PaginationProps) => {
-	if (prev === undefined && next === undefined) return null
+  if (prev === undefined && next === undefined) return null
 
-	return (
-		<nav aria-label="Pagination" className="mt-8 flex items-center justify-between gap-4">
-			{prev === undefined ? (
-				<span />
-			) : (
-				<a href={prev} rel="prev" className="rounded-box border border-slate-300 bg-white px-4 py-2 text-sm">
-					← Previous
-				</a>
-			)}
-			<span className="text-sm text-slate-500">Page {page}</span>
-			{next === undefined ? (
-				<span />
-			) : (
-				<a href={next} rel="next" className="rounded-box border border-slate-300 bg-white px-4 py-2 text-sm">
-					Next →
-				</a>
-			)}
-		</nav>
-	)
+  return (
+    <nav aria-label="Pagination" className="mt-8 flex items-center justify-between gap-4">
+      {prev === undefined ? (
+        <span />
+      ) : (
+        <a href={prev} rel="prev" className="rounded-box border border-slate-300 bg-white px-4 py-2 text-sm">
+          ← Previous
+        </a>
+      )}
+      <span className="text-sm text-slate-500">Page {page}</span>
+      {next === undefined ? (
+        <span />
+      ) : (
+        <a href={next} rel="next" className="rounded-box border border-slate-300 bg-white px-4 py-2 text-sm">
+          Next →
+        </a>
+      )}
+    </nav>
+  )
 }

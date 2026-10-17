@@ -17,26 +17,26 @@ import type { Crumb } from '@/lib/jsonLd'
  * An `href` built from the same string the JSON-LD carries is the honest version.
  */
 export const Breadcrumbs = ({ crumbs }: { readonly crumbs: readonly Crumb[] }) => (
-	<nav aria-label="Breadcrumb" className="mb-4 text-sm text-slate-500">
-		<ol className="flex flex-wrap items-center gap-1">
-			{crumbs.map((crumb, index) => {
-				const isLast = index === crumbs.length - 1
+  <nav aria-label="Breadcrumb" className="mb-4 text-sm text-slate-500">
+    <ol className="flex flex-wrap items-center gap-1">
+      {crumbs.map((crumb, index) => {
+        const isLast = index === crumbs.length - 1
 
-				return (
-					<li key={crumb.path} className="flex items-center gap-1">
-						{index > 0 && <span aria-hidden="true">/</span>}
-						{isLast ? (
-							<span aria-current="page" className="text-slate-700">
-								{crumb.name}
-							</span>
-						) : (
-							<a href={crumb.path} className="hover:underline">
-								{crumb.name}
-							</a>
-						)}
-					</li>
-				)
-			})}
-		</ol>
-	</nav>
+        return (
+          <li key={crumb.path} className="flex items-center gap-1">
+            {index > 0 && <span aria-hidden="true">/</span>}
+            {isLast ? (
+              <span aria-current="page" className="text-slate-700">
+                {crumb.name}
+              </span>
+            ) : (
+              <a href={crumb.path} className="hover:underline">
+                {crumb.name}
+              </a>
+            )}
+          </li>
+        )
+      })}
+    </ol>
+  </nav>
 )

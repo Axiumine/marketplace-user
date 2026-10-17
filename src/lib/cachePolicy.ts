@@ -60,13 +60,13 @@ export const PRIVATE_CACHE = 'private, no-store'
 const RESET_PREFIX = '/reset-password'
 
 const hasSessionCookie = (request: Request): boolean => {
-	const header = request.headers.get('cookie')
-	if (header === null) return false
+  const header = request.headers.get('cookie')
+  if (header === null) return false
 
-	// Matched on the cookie *name* at a boundary, not with `includes`. A bare substring test would also
-	// match a cookie called `not_refresh_token`, and — more to the point — any cookie whose *value*
-	// happened to contain the string.
-	return header.split(';').some((cookie) => cookie.trimStart().startsWith(`${SESSION_COOKIE}=`))
+  // Matched on the cookie *name* at a boundary, not with `includes`. A bare substring test would also
+  // match a cookie called `not_refresh_token`, and — more to the point — any cookie whose *value*
+  // happened to contain the string.
+  return header.split(';').some((cookie) => cookie.trimStart().startsWith(`${SESSION_COOKIE}=`))
 }
 
 /**
@@ -75,9 +75,9 @@ const hasSessionCookie = (request: Request): boolean => {
  * itself and anything below it, and nothing else.
  */
 const isResetPath = (request: Request): boolean => {
-	const { pathname } = new URL(request.url)
+  const { pathname } = new URL(request.url)
 
-	return pathname === RESET_PREFIX || pathname.startsWith(`${RESET_PREFIX}/`)
+  return pathname === RESET_PREFIX || pathname.startsWith(`${RESET_PREFIX}/`)
 }
 
 /**
@@ -88,11 +88,11 @@ const isResetPath = (request: Request): boolean => {
  * caching a 500 turns one bad upstream moment into ten minutes of a broken site.
  */
 const isCacheableHtml = (response: Response): boolean =>
-	// `?.startsWith(…) ?? false` and not `(… ?? '').startsWith(…)`: an empty-string default is an
-	// unkillable mutant — every replacement Stryker writes into it also fails to start with `text/html`,
-	// so the two behave identically and no test can tell them apart. The optional call has no such hole:
-	// a missing header takes the `false`, and a mutant that flips it says a headerless response is HTML.
-	response.status === 200 && (response.headers.get('content-type')?.startsWith('text/html') ?? false)
+  // `?.startsWith(…) ?? false` and not `(… ?? '').startsWith(…)`: an empty-string default is an
+  // unkillable mutant — every replacement Stryker writes into it also fails to start with `text/html`,
+  // so the two behave identically and no test can tell them apart. The optional call has no such hole:
+  // a missing header takes the `false`, and a mutant that flips it says a headerless response is HTML.
+  response.status === 200 && (response.headers.get('content-type')?.startsWith('text/html') ?? false)
 
 /**
  * The `Cache-Control` this response should carry, or `undefined` to leave the framework's own alone.
@@ -102,8 +102,8 @@ const isCacheableHtml = (response: Response): boolean =>
  * the status of a response is a weaker signal than who asked for it.
  */
 export const cacheControlFor = (request: Request, response: Response): string | undefined => {
-	if (hasSessionCookie(request) || isResetPath(request)) return PRIVATE_CACHE
-	if (isCacheableHtml(response)) return ANONYMOUS_CACHE
+  if (hasSessionCookie(request) || isResetPath(request)) return PRIVATE_CACHE
+  if (isCacheableHtml(response)) return ANONYMOUS_CACHE
 
-	return undefined
+  return undefined
 }

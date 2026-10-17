@@ -13,11 +13,11 @@ import { Link } from '@tanstack/react-router'
  * `FormStatus`). This is only the explanation and the link out.
  */
 export const ResetLinkInvalid = () => (
-	<p className="text-sm text-slate-600">
-		A reset link stops working 60 minutes after it is sent, and again once it has been used.{' '}
-		<Link to="/reset-password" className="underline">
-			Ask for a new one
-		</Link>
-		.
-	</p>
+  <p className="text-sm text-slate-600">
+    A reset link stops working 60 minutes after it is sent, and again once it has been used.{' '}
+    <Link to="/reset-password" className="underline">
+      Ask for a new one
+    </Link>
+    .
+  </p>
 )

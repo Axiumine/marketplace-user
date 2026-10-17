@@ -21,8 +21,8 @@ import { Protocol } from 'pmtiles'
 let protocolRegistered = false
 
 export const registerPmtilesProtocol = () => {
-	if (protocolRegistered) return
+  if (protocolRegistered) return
 
-	maplibregl.addProtocol('pmtiles', new Protocol().tile)
-	protocolRegistered = true
+  maplibregl.addProtocol('pmtiles', new Protocol().tile)
+  protocolRegistered = true
 }

@@ -15,14 +15,14 @@ import type { CombinedError } from '@urql/core'
  * proxy has rewritten the status but the body survived intact.
  */
 export const HTTP = {
-	badRequest: 400,
-	unauthorized: 401,
-	forbidden: 403,
-	preconditionFailed: 412,
-	/** Access token expired or deleted from Redis. The one status that means "refresh and retry". */
-	invalidToken: 498,
-	tokenRequired: 499,
-	internal: 500
+  badRequest: 400,
+  unauthorized: 401,
+  forbidden: 403,
+  preconditionFailed: 412,
+  /** Access token expired or deleted from Redis. The one status that means "refresh and retry". */
+  invalidToken: 498,
+  tokenRequired: 499,
+  internal: 500
 } as const
 
 /**
@@ -49,19 +49,19 @@ const prop = (value: unknown, key: string): unknown => (value as Record<string, 
  * (DNS, offline, aborted request).
  */
 export const statusOf = (error: CombinedError | undefined): number | undefined => {
-	if (error === undefined) return undefined
+  if (error === undefined) return undefined
 
-	const responseStatus = prop(error.response, 'status')
-	if (typeof responseStatus === 'number') return responseStatus
+  const responseStatus = prop(error.response, 'status')
+  if (typeof responseStatus === 'number') return responseStatus
 
-	const extensionHttp = prop(prop(error.graphQLErrors[0]?.extensions, 'http'), 'status')
-	return typeof extensionHttp === 'number' ? extensionHttp : undefined
+  const extensionHttp = prop(prop(error.graphQLErrors[0]?.extensions, 'http'), 'status')
+  return typeof extensionHttp === 'number' ? extensionHttp : undefined
 }
 
 /** `extensions.description` — the long form the backend writes for the visitor, when it wrote one. */
 export const descriptionOf = (error: CombinedError | undefined): string | undefined => {
-	const description = prop(error?.graphQLErrors[0]?.extensions, 'description')
-	return typeof description === 'string' && description !== '' ? description : undefined
+  const description = prop(error?.graphQLErrors[0]?.extensions, 'description')
+  return typeof description === 'string' && description !== '' ? description : undefined
 }
 
 export const isAuthExpired = (error: CombinedError | undefined): boolean => statusOf(error) === HTTP.invalidToken
@@ -75,7 +75,7 @@ export const isSessionGone = (error: CombinedError | undefined): boolean => SESS
  * failed", since `statusOf(undefined)` is also `undefined`.
  */
 export const isTransportFailure = (error: CombinedError | undefined): boolean =>
-	error !== undefined && statusOf(error) === undefined
+  error !== undefined && statusOf(error) === undefined
 
 /**
  * The refresh the backend answered with "another request of yours just rotated this token, send it again"
@@ -93,7 +93,7 @@ export const isTransportFailure = (error: CombinedError | undefined): boolean =>
 export const REFRESH_RACE_RETRY_CODE = 'REFRESH_RACE_RETRY'
 
 export const isRefreshRaceRetry = (error: CombinedError | undefined): boolean =>
-	prop(error?.graphQLErrors[0]?.extensions, 'code') === REFRESH_RACE_RETRY_CODE
+  prop(error?.graphQLErrors[0]?.extensions, 'code') === REFRESH_RACE_RETRY_CODE
 
 /**
  * What to put in front of the visitor.
@@ -104,15 +104,15 @@ export const isRefreshRaceRetry = (error: CombinedError | undefined): boolean =>
  * split on whether any GraphQL error came back.
  */
 export const messageOf = (error: CombinedError | undefined): string => {
-	if (error === undefined) return ''
+  if (error === undefined) return ''
 
-	const description = descriptionOf(error)
-	if (description !== undefined) return description
+  const description = descriptionOf(error)
+  if (description !== undefined) return description
 
-	const first = error.graphQLErrors[0]
-	if (first !== undefined && first.message !== '') return first.message
+  const first = error.graphQLErrors[0]
+  if (first !== undefined && first.message !== '') return first.message
 
-	return GENERIC
+  return GENERIC
 }
 
 const GENERIC = 'Error while communicating with the server'
@@ -134,7 +134,7 @@ const GENERIC = 'Error while communicating with the server'
  * TypeScript rejects `=== null` on it as a comparison that can never be true. On the wire it can.
  */
 export const dataOf = <T>(result: MutationResult<T>): T | undefined =>
-	result.error !== undefined || (result.data as T | null) === null ? undefined : result.data
+  result.error !== undefined || (result.data as T | null) === null ? undefined : result.data
 
 /**
  * What `dataOf` reads off a urql result — a structural slice of `OperationResult`, so nothing here has to
@@ -146,8 +146,8 @@ export const dataOf = <T>(result: MutationResult<T>): T | undefined =>
  * was is not this form's business.
  */
 export interface MutationResult<T> {
-	readonly error?: CombinedError | undefined
-	readonly data?: T | undefined
+  readonly error?: CombinedError | undefined
+  readonly data?: T | undefined
 }
 
 /**
@@ -164,6 +164,6 @@ export interface MutationResult<T> {
  * carries the internal address of the resource service (`ECONNREFUSED 127.0.0.1:4027`).
  */
 export const visitorMessageOf = (error: unknown): string => {
-	const combined = error as Partial<CombinedError> | undefined
-	return Array.isArray(combined?.graphQLErrors) ? messageOf(error as CombinedError) : GENERIC
+  const combined = error as Partial<CombinedError> | undefined
+  return Array.isArray(combined?.graphQLErrors) ? messageOf(error as CombinedError) : GENERIC
 }

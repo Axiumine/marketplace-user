@@ -10,24 +10,24 @@
  * countdown keyframes (this app reports form outcomes inline — see `FormStatus.tsx`).
  */
 @theme {
-	--color-primary: #ffd615;
-	--color-secondary: #fcd48e;
-	--color-third: #ba5c16;
-	--color-tomato: #fe2616;
+  --color-primary: #ffd615;
+  --color-secondary: #fcd48e;
+  --color-third: #ba5c16;
+  --color-tomato: #fe2616;
 
-	--color-palette-white: #fdffff;
-	--color-palette-bg: #0e0e13;
-	--color-palette-bg1: #f5f5f5;
-	--color-palette-bg2: #eae8ff;
-	--color-palette-bg3: #333333;
+  --color-palette-white: #fdffff;
+  --color-palette-bg: #0e0e13;
+  --color-palette-bg1: #f5f5f5;
+  --color-palette-bg2: #eae8ff;
+  --color-palette-bg3: #333333;
 
-	--color-app-ok: #008a19;
-	--color-app-warning: #ffdd00;
-	--color-app-error: #d90d0d;
+  --color-app-ok: #008a19;
+  --color-app-warning: #ffdd00;
+  --color-app-error: #d90d0d;
 
-	--color-tip: #888888;
+  --color-tip: #888888;
 
-	--radius-box: 10px;
+  --radius-box: 10px;
 }
 
 /*
@@ -40,37 +40,37 @@
  * and the map fills it in later, shifting nothing.
  */
 :root {
-	--map-height: 420px;
+  --map-height: 420px;
 
-	/*
-	 * The address pin map inside the account form, which is a shorter box on purpose: it sits between the
-	 * address fields and the save button, and a map as tall as the catalogue's would push the button that
-	 * finishes the form off the bottom of a phone screen.
-	 */
-	--map-pick-height: 260px;
+  /*
+   * The address pin map inside the account form, which is a shorter box on purpose: it sits between the
+   * address fields and the save button, and a map as tall as the catalogue's would push the button that
+   * finishes the form off the bottom of a phone screen.
+   */
+  --map-pick-height: 260px;
 }
 
 @media (min-width: 768px) {
-	:root {
-		--map-height: 560px;
-		--map-pick-height: 320px;
-	}
+  :root {
+    --map-height: 560px;
+    --map-pick-height: 320px;
+  }
 }
 
 html,
 body {
-	height: 100%;
+  height: 100%;
 }
 
 body {
-	background-color: var(--color-palette-bg1);
-	color: var(--color-palette-bg);
-	font-family:
-		system-ui,
-		-apple-system,
-		'Segoe UI',
-		Roboto,
-		sans-serif;
+  background-color: var(--color-palette-bg1);
+  color: var(--color-palette-bg);
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
 }
 
 /*
@@ -82,15 +82,15 @@ body {
  * purpose, hence the off-screen position.
  */
 .skip-link {
-	position: absolute;
-	left: -9999px;
-	top: 0;
-	z-index: 100;
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
 }
 
 .skip-link:focus {
-	left: 0;
-	padding: 0.5rem 1rem;
-	background-color: var(--color-palette-bg);
-	color: var(--color-palette-white);
+  left: 0;
+  padding: 0.5rem 1rem;
+  background-color: var(--color-palette-bg);
+  color: var(--color-palette-white);
 }

@@ -12,51 +12,51 @@ import { renderWithRouter } from '../../helpers/render'
 installOnlineListenerGuard()
 
 const HOME: GraphQLReplies = {
-	Companies: { data: { companies: { nodes: [], total: 0 } } },
-	ItemCategories: { data: { itemCategories: [] } }
+  Companies: { data: { companies: { nodes: [], total: 0 } } },
+  ItemCategories: { data: { itemCategories: [] } }
 }
 
 const itemOf = (n: number): ItemCardItem => ({
-	_id: `66c00000000000000000010${String(n)}`,
-	name: `Satchel ${String(n)}`,
-	description: 'Stitched by hand.',
-	slug: `satchel-${String(n)}`,
-	companySlug: 'rivers-boutique',
-	companyPublicName: 'Rivers Boutique'
+  _id: `66c00000000000000000010${String(n)}`,
+  name: `Satchel ${String(n)}`,
+  description: 'Stitched by hand.',
+  slug: `satchel-${String(n)}`,
+  companySlug: 'rivers-boutique',
+  companyPublicName: 'Rivers Boutique'
 })
 
 const mount = async (items: readonly ItemCardItem[]) => {
-	stubGraphQL(HOME)
+  stubGraphQL(HOME)
 
-	return renderWithRouter(<ItemGrid items={items} />)
+  return renderWithRouter(<ItemGrid items={items} />)
 }
 
 describe('ItemGrid', () => {
-	it('is a list, with one item per catalogue entry', async () => {
-		await mount([itemOf(1), itemOf(2), itemOf(3)])
+  it('is a list, with one item per catalogue entry', async () => {
+    await mount([itemOf(1), itemOf(2), itemOf(3)])
 
-		expect(screen.getByRole('list')).toBeInTheDocument()
-		expect(screen.getAllByRole('listitem')).toHaveLength(3)
-	})
+    expect(screen.getByRole('list')).toBeInTheDocument()
+    expect(screen.getAllByRole('listitem')).toHaveLength(3)
+  })
 
-	it('renders a card for each entry', async () => {
-		await mount([itemOf(1), itemOf(2)])
+  it('renders a card for each entry', async () => {
+    await mount([itemOf(1), itemOf(2)])
 
-		expect(screen.getByRole('heading', { name: 'Satchel 1' })).toBeInTheDocument()
-		expect(screen.getByRole('heading', { name: 'Satchel 2' })).toBeInTheDocument()
-	})
+    expect(screen.getByRole('heading', { name: 'Satchel 1' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Satchel 2' })).toBeInTheDocument()
+  })
 
-	// Same division of labour as `ShopGrid`: the shop page, the category pages and the search results each
-	// have their own wording for an empty result, so the grid renders nothing rather than guessing.
-	it('renders an empty list rather than a message of its own', async () => {
-		await mount([])
+  // Same division of labour as `ShopGrid`: the shop page, the category pages and the search results each
+  // have their own wording for an empty result, so the grid renders nothing rather than guessing.
+  it('renders an empty list rather than a message of its own', async () => {
+    await mount([])
 
-		expect(screen.getByRole('list')).toBeEmptyDOMElement()
-	})
+    expect(screen.getByRole('list')).toBeEmptyDOMElement()
+  })
 
-	it('matches the snapshot', async () => {
-		const { container } = await mount([itemOf(1), itemOf(2)])
+  it('matches the snapshot', async () => {
+    const { container } = await mount([itemOf(1), itemOf(2)])
 
-		expect(container.firstChild).toMatchSnapshot()
-	})
+    expect(container.firstChild).toMatchSnapshot()
+  })
 })

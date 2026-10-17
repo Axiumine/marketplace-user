@@ -32,32 +32,32 @@ const PII_MESSAGE = 'the blanket Sentry PII flag is absent by decision, not set 
 const HOOKS_MESSAGE = '`beforeSend` and `beforeSendTransaction` are wired together or not at all.'
 
 const lintFixture = async (name: string) => {
-	const code = await readFile(join(FIXTURES, `${name}.ts.fixture`), 'utf8')
-	const [result] = await new ESLint().lintText(code, { filePath: 'src/restrictedSyntaxFixture.ts' })
+  const code = await readFile(join(FIXTURES, `${name}.ts.fixture`), 'utf8')
+  const [result] = await new ESLint().lintText(code, { filePath: 'src/restrictedSyntaxFixture.ts' })
 
-	return (result?.messages ?? []).filter((message) => message.ruleId === 'no-restricted-syntax')
+  return (result?.messages ?? []).filter((message) => message.ruleId === 'no-restricted-syntax')
 }
 
 describe('the no-restricted-syntax block fires on every shape it names', () => {
-	it.each([
-		['assignment-reject-unauthorized', TLS_MESSAGE],
-		['property-reject-unauthorized', TLS_MESSAGE],
-		['computed-property-reject-unauthorized', TLS_MESSAGE],
-		['send-default-pii', PII_MESSAGE],
-		['member-node-tls-reject-unauthorized', TLS_MESSAGE],
-		['literal-node-tls-reject-unauthorized', TLS_MESSAGE],
-		['before-send-without-transaction', HOOKS_MESSAGE]
-	])('reports %s exactly once', async (fixture, expected) => {
-		const messages = await lintFixture(fixture)
+  it.each([
+    ['assignment-reject-unauthorized', TLS_MESSAGE],
+    ['property-reject-unauthorized', TLS_MESSAGE],
+    ['computed-property-reject-unauthorized', TLS_MESSAGE],
+    ['send-default-pii', PII_MESSAGE],
+    ['member-node-tls-reject-unauthorized', TLS_MESSAGE],
+    ['literal-node-tls-reject-unauthorized', TLS_MESSAGE],
+    ['before-send-without-transaction', HOOKS_MESSAGE]
+  ])('reports %s exactly once', async (fixture, expected) => {
+    const messages = await lintFixture(fixture)
 
-		expect(messages).toHaveLength(1)
-		expect(messages[0]?.message).toContain(expected)
-		expect(messages[0]?.severity).toBe(2)
-	})
+    expect(messages).toHaveLength(1)
+    expect(messages[0]?.message).toContain(expected)
+    expect(messages[0]?.severity).toBe(2)
+  })
 })
 
 describe('the block stays silent on the shape this app carries', () => {
-	it('reports nothing on the compliant init options', async () => {
-		expect(await lintFixture('compliant')).toStrictEqual([])
-	})
+  it('reports nothing on the compliant init options', async () => {
+    expect(await lintFixture('compliant')).toStrictEqual([])
+  })
 })

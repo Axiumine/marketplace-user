@@ -23,43 +23,43 @@ import * as userQueries from '@/api/operations/userResource/queries'
  * behind it yet, so it is the one export whose codegen entry nothing else would notice going stale.
  */
 const MODULES: ReadonlyArray<readonly [string, Record<string, unknown>]> = [
-	['logout', logout],
-	['publicAuthorization', loginUser],
-	['publicResource/mutations', publicMutations],
-	['publicResource/queries', publicQueries],
-	['userAuthorization', refresh],
-	['userResource/mutations', userMutations],
-	['userResource/queries', userQueries]
+  ['logout', logout],
+  ['publicAuthorization', loginUser],
+  ['publicResource/mutations', publicMutations],
+  ['publicResource/queries', publicQueries],
+  ['userAuthorization', refresh],
+  ['userResource/mutations', userMutations],
+  ['userResource/queries', userQueries]
 ]
 
 const isDocument = (value: unknown): value is DocumentNode =>
-	typeof value === 'object' && value !== null && (value as DocumentNode).kind === 'Document'
+  typeof value === 'object' && value !== null && (value as DocumentNode).kind === 'Document'
 
 /** Every export of those modules is a document; the name is the operation name plus `Document`. */
 const entries = MODULES.flatMap(([module, exports]) =>
-	Object.entries(exports).map(([name, value]) => ({ id: `${module} · ${name}`, name, value }))
+  Object.entries(exports).map(([name, value]) => ({ id: `${module} · ${name}`, name, value }))
 )
 
 describe('the GraphQL operations', () => {
-	it('exports at least one document per module', () => {
-		expect(MODULES.every(([, exports]) => Object.keys(exports).length > 0)).toBe(true)
-	})
+  it('exports at least one document per module', () => {
+    expect(MODULES.every(([, exports]) => Object.keys(exports).length > 0)).toBe(true)
+  })
 
-	it.each(entries)('resolves $id to a parsed document', ({ value }) => {
-		expect(isDocument(value)).toBe(true)
-	})
+  it.each(entries)('resolves $id to a parsed document', ({ value }) => {
+    expect(isDocument(value)).toBe(true)
+  })
 
-	/*
-	 * The operation name is what the stub in `helpers/graphql.ts` keys replies on, what a server log shows
-	 * and what a persisted-query allowlist would hash — so a document whose name drifted from its export
-	 * name is a rename that silently misses every one of those.
-	 */
-	it.each(entries)('names the operation in $id after the export', ({ name, value }) => {
-		expect(isDocument(value)).toBe(true)
+  /*
+   * The operation name is what the stub in `helpers/graphql.ts` keys replies on, what a server log shows
+   * and what a persisted-query allowlist would hash — so a document whose name drifted from its export
+   * name is a rename that silently misses every one of those.
+   */
+  it.each(entries)('names the operation in $id after the export', ({ name, value }) => {
+    expect(isDocument(value)).toBe(true)
 
-		const [definition] = (value as DocumentNode).definitions
+    const [definition] = (value as DocumentNode).definitions
 
-		expect(definition?.kind).toBe('OperationDefinition')
-		expect(definition?.kind === 'OperationDefinition' ? definition.name?.value : undefined).toBe(name.replace(/Document$/, ''))
-	})
+    expect(definition?.kind).toBe('OperationDefinition')
+    expect(definition?.kind === 'OperationDefinition' ? definition.name?.value : undefined).toBe(name.replace(/Document$/, ''))
+  })
 })

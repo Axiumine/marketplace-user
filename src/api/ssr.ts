@@ -37,16 +37,16 @@ import { Client, fetchExchange } from '@urql/core'
  * service exports from its `src/index.mts`. Both have to agree with this string.
  */
 export const ssrEndpoint = (source: NodeJS.ProcessEnv = process.env): string => {
-	const configured = source.PUBLIC_RESOURCE_URL
-	return configured === undefined || configured === '' ? 'http://127.0.0.1:4027/public-resource' : configured
+  const configured = source.PUBLIC_RESOURCE_URL
+  return configured === undefined || configured === '' ? 'http://127.0.0.1:4027/public-resource' : configured
 }
 
 /** A single-use client for one server-rendered request. */
 export const createSsrClient = (url: string = ssrEndpoint()): Client =>
-	new Client({
-		url,
-		// POST for queries, for the same reason as the browser client: every service sets
-		// `csrfPrevention: true` and rejects a GET that carries none of Apollo's preflight headers.
-		preferGetMethod: false,
-		exchanges: [fetchExchange]
-	})
+  new Client({
+    url,
+    // POST for queries, for the same reason as the browser client: every service sets
+    // `csrfPrevention: true` and rejects a GET that carries none of Apollo's preflight headers.
+    preferGetMethod: false,
+    exchanges: [fetchExchange]
+  })

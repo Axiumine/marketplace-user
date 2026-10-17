@@ -26,9 +26,9 @@ import { graphql } from '@gql/publicAuthorization'
  * a deployment that has one; it can only fail to satisfy it.
  */
 export const LoginUserDocument = graphql(`
-	mutation LoginUser($email: String!, $password: String!, $rememberMe: Boolean!, $turnstileToken: String) {
-		loginUser(email: $email, password: $password, rememberMe: $rememberMe, turnstileToken: $turnstileToken) {
-			accessToken
-		}
-	}
+  mutation LoginUser($email: String!, $password: String!, $rememberMe: Boolean!, $turnstileToken: String) {
+    loginUser(email: $email, password: $password, rememberMe: $rememberMe, turnstileToken: $turnstileToken) {
+      accessToken
+    }
+  }
 `)

@@ -46,65 +46,65 @@ const MeContext = createContext<Me | null>(null)
  * where the cause is no longer visible.
  */
 export const useMe = (): Me => {
-	const me = use(MeContext)
-	if (me === null) throw new Error('useMe was called outside AccountGate')
+  const me = use(MeContext)
+  if (me === null) throw new Error('useMe was called outside AccountGate')
 
-	return me
+  return me
 }
 
 const Centered = ({ children }: { readonly children: ReactNode }) => (
-	<div className="mx-auto max-w-3xl px-4 py-10">{children}</div>
+  <div className="mx-auto max-w-3xl px-4 py-10">{children}</div>
 )
 
 export const AccountGate = ({ children }: { readonly children: ReactNode }) => {
-	const navigate = useNavigate()
-	const [result] = useQuery({ query: MeDocument, context: CTX_USER_RESOURCE })
-	const gone = isSessionGone(result.error)
+  const navigate = useNavigate()
+  const [result] = useQuery({ query: MeDocument, context: CTX_USER_RESOURCE })
+  const gone = isSessionGone(result.error)
 
-	useEffect(() => {
-		if (!gone) return
+  useEffect(() => {
+    if (!gone) return
 
-		// `replace` so the back button does not walk into the page we were just thrown out of, which would
-		// fire the same query, fail the same way and bounce back here — a loop the customer cannot escape.
-		void navigate({ to: '/login', replace: true })
-	}, [gone, navigate])
+    // `replace` so the back button does not walk into the page we were just thrown out of, which would
+    // fire the same query, fail the same way and bounce back here — a loop the customer cannot escape.
+    void navigate({ to: '/login', replace: true })
+  }, [gone, navigate])
 
-	/*
-	 * ⚠️ Read through `?.`, because a failed query answers with `data: null` and not with no `data` at
-	 * all. GraphQL says so: an error that propagates to a non-nullable root field nulls the whole
-	 * `data`, so `{"data": null, "errors": [...]}` is the ordinary shape of a 500 here — while a body
-	 * that is not a GraphQL envelope leaves `data` undefined. Testing only for `undefined` reads the
-	 * first case as success and crashes on the field access below.
-	 */
-	const me = result.data?.me
+  /*
+   * ⚠️ Read through `?.`, because a failed query answers with `data: null` and not with no `data` at
+   * all. GraphQL says so: an error that propagates to a non-nullable root field nulls the whole
+   * `data`, so `{"data": null, "errors": [...]}` is the ordinary shape of a 500 here — while a body
+   * that is not a GraphQL envelope leaves `data` undefined. Testing only for `undefined` reads the
+   * first case as success and crashes on the field access below.
+   */
+  const me = result.data?.me
 
-	// The redirect is already queued; rendering an error about an expired session would flash for one
-	// frame and say nothing the login page will not.
-	if (gone) return null
+  // The redirect is already queued; rendering an error about an expired session would flash for one
+  // frame and say nothing the login page will not.
+  if (gone) return null
 
-	/*
-	 * ⚠️ An account in hand wins over everything below it, and that ordering is the whole of what keeps a
-	 * background revalidation from blanking the private area. Every write here invalidates the account
-	 * query — `CTX_ACCOUNT_WRITE` names `GraphQLUserMe` — so a second `Me` goes out each time the customer
-	 * saves a form, and a gate that asked "is a request in flight?" first would answer "Loading your
-	 * account…" on every save, discarding the scroll position and moving focus off the button just used.
-	 *
-	 * urql happens to make that hard to notice: its document cache re-executes an invalidated query with
-	 * the previous data still attached and marks the result `stale`, leaving `fetching` false throughout —
-	 * so a `fetching` check reads as correct while never being exercised. The order above does not depend
-	 * on that. It is the presence of the data that decides, whichever flag urql sets while fetching more.
-	 */
-	if (me !== undefined) return <MeContext value={me}>{children}</MeContext>
+  /*
+   * ⚠️ An account in hand wins over everything below it, and that ordering is the whole of what keeps a
+   * background revalidation from blanking the private area. Every write here invalidates the account
+   * query — `CTX_ACCOUNT_WRITE` names `GraphQLUserMe` — so a second `Me` goes out each time the customer
+   * saves a form, and a gate that asked "is a request in flight?" first would answer "Loading your
+   * account…" on every save, discarding the scroll position and moving focus off the button just used.
+   *
+   * urql happens to make that hard to notice: its document cache re-executes an invalidated query with
+   * the previous data still attached and marks the result `stale`, leaving `fetching` false throughout —
+   * so a `fetching` check reads as correct while never being exercised. The order above does not depend
+   * on that. It is the presence of the data that decides, whichever flag urql sets while fetching more.
+   */
+  if (me !== undefined) return <MeContext value={me}>{children}</MeContext>
 
-	return (
-		<Centered>
-			{result.fetching ? (
-				<p className="text-sm text-slate-600" role="status">
-					Loading your account…
-				</p>
-			) : (
-				<FormStatus tone="error" message={messageOf(result.error)} />
-			)}
-		</Centered>
-	)
+  return (
+    <Centered>
+      {result.fetching ? (
+        <p className="text-sm text-slate-600" role="status">
+          Loading your account…
+        </p>
+      ) : (
+        <FormStatus tone="error" message={messageOf(result.error)} />
+      )}
+    </Centered>
+  )
 }

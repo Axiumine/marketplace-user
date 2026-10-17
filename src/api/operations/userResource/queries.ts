@@ -16,36 +16,36 @@ import { graphql } from '@gql/userResource'
  * rather than merely forbidden; see README §4.1.
  */
 export const MeDocument = graphql(`
-	query Me {
-		me {
-			_id
-			email
-			registeredAt
-			defaultAddress
-			personalData {
-				firstName
-				lastName
-				birth {
-					date
-				}
-				contacts {
-					mobile
-					landline
-					email
-				}
-			}
-			addresses {
-				_id
-				label
-				street
-				postalCode
-				city
-				province
-				position {
-					type
-					coordinates
-				}
-			}
-		}
-	}
+  query Me {
+    me {
+      _id
+      email
+      registeredAt
+      defaultAddress
+      personalData {
+        firstName
+        lastName
+        birth {
+          date
+        }
+        contacts {
+          mobile
+          landline
+          email
+        }
+      }
+      addresses {
+        _id
+        label
+        street
+        postalCode
+        city
+        province
+        position {
+          type
+          coordinates
+        }
+      }
+    }
+  }
 `)

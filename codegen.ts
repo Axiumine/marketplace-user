@@ -39,56 +39,56 @@ const presetConfig = { fragmentMasking: false }
  * The three public/authorization slices mount no custom scalar, and the entry costs nothing there.
  */
 const config = {
-	enumsAsTypes: true,
-	skipTypename: true,
-	useTypeImports: true,
-	scalars: { DateTime: 'string', Date: 'string' }
+  enumsAsTypes: true,
+  skipTypename: true,
+  useTypeImports: true,
+  scalars: { DateTime: 'string', Date: 'string' }
 }
 
 const codegenConfig: CodegenConfig = {
-	// Tabs, to match every other file in this repo and the eslint `indent` rule the generated output is
-	// exempt from but the config file is not.
-	config: { useTypeImports: true },
-	ignoreNoDocuments: true,
-	generates: {
-		// The public catalogue — the only endpoint the SSR loaders touch, and the only one with no auth
-		// middleware at all. Everything indexable comes from here.
-		'src/gql/publicResource/': {
-			schema: 'schema/public-resource.graphql',
-			documents: 'src/api/operations/publicResource/**/*.ts',
-			preset,
-			presetConfig,
-			config
-		},
-		'src/gql/publicAuthorization/': {
-			schema: 'schema/public-authorization.graphql',
-			documents: 'src/api/operations/publicAuthorization/**/*.ts',
-			preset,
-			presetConfig,
-			config
-		},
-		'src/gql/userAuthorization/': {
-			schema: 'schema/user-authenticated-authorization.graphql',
-			documents: 'src/api/operations/userAuthorization/**/*.ts',
-			preset,
-			presetConfig,
-			config
-		},
-		'src/gql/logout/': {
-			schema: 'schema/logout.graphql',
-			documents: 'src/api/operations/logout/**/*.ts',
-			preset,
-			presetConfig,
-			config
-		},
-		'src/gql/userResource/': {
-			schema: 'schema/user-authenticated-resource.graphql',
-			documents: 'src/api/operations/userResource/**/*.ts',
-			preset,
-			presetConfig,
-			config
-		}
-	}
+  // Tabs, to match every other file in this repo and the eslint `indent` rule the generated output is
+  // exempt from but the config file is not.
+  config: { useTypeImports: true },
+  ignoreNoDocuments: true,
+  generates: {
+    // The public catalogue — the only endpoint the SSR loaders touch, and the only one with no auth
+    // middleware at all. Everything indexable comes from here.
+    'src/gql/publicResource/': {
+      schema: 'schema/public-resource.graphql',
+      documents: 'src/api/operations/publicResource/**/*.ts',
+      preset,
+      presetConfig,
+      config
+    },
+    'src/gql/publicAuthorization/': {
+      schema: 'schema/public-authorization.graphql',
+      documents: 'src/api/operations/publicAuthorization/**/*.ts',
+      preset,
+      presetConfig,
+      config
+    },
+    'src/gql/userAuthorization/': {
+      schema: 'schema/user-authenticated-authorization.graphql',
+      documents: 'src/api/operations/userAuthorization/**/*.ts',
+      preset,
+      presetConfig,
+      config
+    },
+    'src/gql/logout/': {
+      schema: 'schema/logout.graphql',
+      documents: 'src/api/operations/logout/**/*.ts',
+      preset,
+      presetConfig,
+      config
+    },
+    'src/gql/userResource/': {
+      schema: 'schema/user-authenticated-resource.graphql',
+      documents: 'src/api/operations/userResource/**/*.ts',
+      preset,
+      presetConfig,
+      config
+    }
+  }
 }
 
 export default codegenConfig

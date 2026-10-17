@@ -18,27 +18,27 @@
  * fails closed with a 403 rather than quietly succeeding.
  */
 export interface AppEnv {
-	readonly publicResource: string
-	readonly publicAuthorization: string
-	readonly userAuthorization: string
-	readonly userResource: string
-	readonly logout: string
-	/**
-	 * Absolute origin this site is served from, e.g. `https://www.example.it`. Canonical links, `og:url`
-	 * and the sitemap need an absolute URL — a crawler treats a relative canonical as no canonical at
-	 * all, and two hostnames serving the same page then compete with each other in the index.
-	 */
-	readonly siteUrl: string
-	/** Public half of the Turnstile key pair. Empty disables the widget, which is what a dev box wants. */
-	readonly turnstileSiteKey: string
-	/** MapLibre style JSON. Points at the self-hosted Protomaps basemap; see the parent workspace's `marketplace-nginx/`. */
-	readonly mapStyleUrl: string
-	/** The PMTiles archive the style's source resolves through `pmtiles://`. */
-	readonly pmtilesUrl: string
-	/** On-premises Nominatim, for address autocomplete in the account area. See docs/nominatim. */
-	readonly nominatimUrl: string
-	readonly sentryDsn: string
-	readonly sentryEnvironment: string
+  readonly publicResource: string
+  readonly publicAuthorization: string
+  readonly userAuthorization: string
+  readonly userResource: string
+  readonly logout: string
+  /**
+   * Absolute origin this site is served from, e.g. `https://www.example.it`. Canonical links, `og:url`
+   * and the sitemap need an absolute URL — a crawler treats a relative canonical as no canonical at
+   * all, and two hostnames serving the same page then compete with each other in the index.
+   */
+  readonly siteUrl: string
+  /** Public half of the Turnstile key pair. Empty disables the widget, which is what a dev box wants. */
+  readonly turnstileSiteKey: string
+  /** MapLibre style JSON. Points at the self-hosted Protomaps basemap; see the parent workspace's `marketplace-nginx/`. */
+  readonly mapStyleUrl: string
+  /** The PMTiles archive the style's source resolves through `pmtiles://`. */
+  readonly pmtilesUrl: string
+  /** On-premises Nominatim, for address autocomplete in the account area. See docs/nominatim. */
+  readonly nominatimUrl: string
+  readonly sentryDsn: string
+  readonly sentryEnvironment: string
 }
 
 /**
@@ -48,11 +48,11 @@ export interface AppEnv {
  * comment in vite.config.ts for why the refresh cookie makes that mandatory rather than convenient).
  */
 export const DEFAULT_ENDPOINTS = {
-	publicResource: '/public-resource',
-	publicAuthorization: '/public-authorization',
-	userAuthorization: '/user-authenticated-authorization',
-	userResource: '/user-authenticated-resource',
-	logout: '/logout'
+  publicResource: '/public-resource',
+  publicAuthorization: '/public-authorization',
+  userAuthorization: '/user-authenticated-authorization',
+  userResource: '/user-authenticated-resource',
+  logout: '/logout'
 } as const
 
 /** An empty string is treated as absent — dotenv writes `KEY=` for "unset", and so does the template. */
@@ -62,18 +62,18 @@ const value = (raw: string | undefined, fallback: string): string => (raw === un
 const origin = (raw: string | undefined, fallback: string): string => value(raw, fallback).replace(/\/+$/, '')
 
 export const readEnv = (source: ImportMetaEnv): AppEnv => ({
-	publicResource: value(source.VITE_GRAPHQL_ENDPOINT_PUBLIC_RESOURCE, DEFAULT_ENDPOINTS.publicResource),
-	publicAuthorization: value(source.VITE_GRAPHQL_ENDPOINT_PUBLIC_AUTHORIZATION, DEFAULT_ENDPOINTS.publicAuthorization),
-	userAuthorization: value(source.VITE_GRAPHQL_ENDPOINT_USER_AUTHENTICATED_AUTHORIZATION, DEFAULT_ENDPOINTS.userAuthorization),
-	userResource: value(source.VITE_GRAPHQL_ENDPOINT_USER_AUTHENTICATED_RESOURCE, DEFAULT_ENDPOINTS.userResource),
-	logout: value(source.VITE_GRAPHQL_ENDPOINT_LOGOUT, DEFAULT_ENDPOINTS.logout),
-	siteUrl: origin(source.VITE_SITE_URL, 'http://127.0.0.1:3045'),
-	turnstileSiteKey: value(source.VITE_TURNSTILE_SITE_KEY, ''),
-	mapStyleUrl: value(source.VITE_MAP_STYLE_URL, '/map/style.json'),
-	pmtilesUrl: value(source.VITE_PMTILES_URL, '/map/basemap.pmtiles'),
-	nominatimUrl: origin(source.VITE_NOMINATIM_URL, '/nominatim'),
-	sentryDsn: value(source.VITE_SENTRY_DSN, ''),
-	sentryEnvironment: value(source.VITE_SENTRY_ENVIRONMENT, 'development')
+  publicResource: value(source.VITE_GRAPHQL_ENDPOINT_PUBLIC_RESOURCE, DEFAULT_ENDPOINTS.publicResource),
+  publicAuthorization: value(source.VITE_GRAPHQL_ENDPOINT_PUBLIC_AUTHORIZATION, DEFAULT_ENDPOINTS.publicAuthorization),
+  userAuthorization: value(source.VITE_GRAPHQL_ENDPOINT_USER_AUTHENTICATED_AUTHORIZATION, DEFAULT_ENDPOINTS.userAuthorization),
+  userResource: value(source.VITE_GRAPHQL_ENDPOINT_USER_AUTHENTICATED_RESOURCE, DEFAULT_ENDPOINTS.userResource),
+  logout: value(source.VITE_GRAPHQL_ENDPOINT_LOGOUT, DEFAULT_ENDPOINTS.logout),
+  siteUrl: origin(source.VITE_SITE_URL, 'http://127.0.0.1:3045'),
+  turnstileSiteKey: value(source.VITE_TURNSTILE_SITE_KEY, ''),
+  mapStyleUrl: value(source.VITE_MAP_STYLE_URL, '/map/style.json'),
+  pmtilesUrl: value(source.VITE_PMTILES_URL, '/map/basemap.pmtiles'),
+  nominatimUrl: origin(source.VITE_NOMINATIM_URL, '/nominatim'),
+  sentryDsn: value(source.VITE_SENTRY_DSN, ''),
+  sentryEnvironment: value(source.VITE_SENTRY_ENVIRONMENT, 'development')
 })
 
 export const env: AppEnv = readEnv(import.meta.env)

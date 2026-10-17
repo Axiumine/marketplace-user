@@ -22,55 +22,55 @@ import { DEFAULT_SEARCH_KIND } from '@/lib/search'
  * it and gets the default.
  */
 export const SearchBox = ({
-	initialQuery = '',
-	kind = DEFAULT_SEARCH_KIND
+  initialQuery = '',
+  kind = DEFAULT_SEARCH_KIND
 }: {
-	readonly initialQuery?: string
-	readonly kind?: SearchKind
+  readonly initialQuery?: string
+  readonly kind?: SearchKind
 }) => {
-	const navigate = useNavigate()
+  const navigate = useNavigate()
 
-	// ⚠️ The kind is only written out when it is *not* the default, on both paths — the hidden input the
-	// browser submits and the `search` object the router navigates with. Emitting `kind=items` would give
-	// the default tab a second address, which is the one thing `DEFAULT_SEARCH_KIND` exists to prevent.
-	const carried = kind === DEFAULT_SEARCH_KIND ? {} : { kind }
+  // ⚠️ The kind is only written out when it is *not* the default, on both paths — the hidden input the
+  // browser submits and the `search` object the router navigates with. Emitting `kind=items` would give
+  // the default tab a second address, which is the one thing `DEFAULT_SEARCH_KIND` exists to prevent.
+  const carried = kind === DEFAULT_SEARCH_KIND ? {} : { kind }
 
-	// React's `SubmitEvent`, not the DOM global of the same name and not `FormEvent`: `@types/react` 19
-	// deprecated `FormEvent` ("doesn't actually exist") and types `onSubmit` as `SubmitEventHandler`.
-	const onSubmit = (event: SubmitEvent<HTMLFormElement>) => {
-		event.preventDefault()
+  // React's `SubmitEvent`, not the DOM global of the same name and not `FormEvent`: `@types/react` 19
+  // deprecated `FormEvent` ("doesn't actually exist") and types `onSubmit` as `SubmitEventHandler`.
+  const onSubmit = (event: SubmitEvent<HTMLFormElement>) => {
+    event.preventDefault()
 
-		const query = new FormData(event.currentTarget).get('q')
-		const text = typeof query === 'string' ? query.trim() : ''
+    const query = new FormData(event.currentTarget).get('q')
+    const text = typeof query === 'string' ? query.trim() : ''
 
-		// An empty search is not sent. `/search?q=` renders an empty state that looks like "nothing
-		// matched", which is a different and wrong answer to "the visitor pressed Enter on a blank field".
-		if (text === '') return
+    // An empty search is not sent. `/search?q=` renders an empty state that looks like "nothing
+    // matched", which is a different and wrong answer to "the visitor pressed Enter on a blank field".
+    if (text === '') return
 
-		void navigate({ to: '/search', search: { q: text, ...carried } })
-	}
+    void navigate({ to: '/search', search: { q: text, ...carried } })
+  }
 
-	return (
-		<form method="get" action="/search" onSubmit={onSubmit} role="search" className="flex w-full max-w-xl items-center gap-2">
-			{kind === DEFAULT_SEARCH_KIND ? null : <input type="hidden" name="kind" value={kind} />}
-			<label htmlFor="site-search" className="sr-only">
-				Search shops and items
-			</label>
-			<input
-				id="site-search"
-				name="q"
-				type="search"
-				defaultValue={initialQuery}
-				placeholder="Search shops and items"
-				autoComplete="off"
-				className="w-full rounded-box border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-slate-500"
-			/>
-			<button
-				type="submit"
-				className="rounded-box bg-palette-bg px-4 py-2 text-sm font-medium text-palette-white hover:bg-palette-bg3"
-			>
-				Search
-			</button>
-		</form>
-	)
+  return (
+    <form method="get" action="/search" onSubmit={onSubmit} role="search" className="flex w-full max-w-xl items-center gap-2">
+      {kind === DEFAULT_SEARCH_KIND ? null : <input type="hidden" name="kind" value={kind} />}
+      <label htmlFor="site-search" className="sr-only">
+        Search shops and items
+      </label>
+      <input
+        id="site-search"
+        name="q"
+        type="search"
+        defaultValue={initialQuery}
+        placeholder="Search shops and items"
+        autoComplete="off"
+        className="w-full rounded-box border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-slate-500"
+      />
+      <button
+        type="submit"
+        className="rounded-box bg-palette-bg px-4 py-2 text-sm font-medium text-palette-white hover:bg-palette-bg3"
+      >
+        Search
+      </button>
+    </form>
+  )
 }

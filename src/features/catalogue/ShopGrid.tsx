@@ -13,11 +13,11 @@ import { ShopCard } from './ShopCard'
  * empty list rather than guessing, and each route pairs it with its own `EmptyState`.
  */
 export const ShopGrid = ({ companies }: { readonly companies: readonly ShopCardCompany[] }) => (
-	<ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-		{companies.map((company) => (
-			<li key={company._id}>
-				<ShopCard company={company} />
-			</li>
-		))}
-	</ul>
+  <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+    {companies.map((company) => (
+      <li key={company._id}>
+        <ShopCard company={company} />
+      </li>
+    ))}
+  </ul>
 )

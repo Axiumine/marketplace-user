@@ -12,29 +12,29 @@ import { headFor } from '@/lib/seo'
  * sessions, on different devices as often as not, and share no state whatsoever.
  */
 const head = () =>
-	headFor({
-		title: 'Reset your password',
-		description: 'Ask for a link to set a new password.',
-		path: '/reset-password',
-		noIndex: true
-	})
+  headFor({
+    title: 'Reset your password',
+    description: 'Ask for a link to set a new password.',
+    path: '/reset-password',
+    noIndex: true
+  })
 
 const ResetPassword = () => (
-	<AuthCard
-		title="Reset your password"
-		intro="Enter the address you registered with and we will send you a link to set a new password."
-		footer={
-			<>
-				Remembered it?{' '}
-				<Link to="/login" className="underline">
-					Sign in
-				</Link>
-				.
-			</>
-		}
-	>
-		<ResetRequestForm />
-	</AuthCard>
+  <AuthCard
+    title="Reset your password"
+    intro="Enter the address you registered with and we will send you a link to set a new password."
+    footer={
+      <>
+        Remembered it?{' '}
+        <Link to="/login" className="underline">
+          Sign in
+        </Link>
+        .
+      </>
+    }
+  >
+    <ResetRequestForm />
+  </AuthCard>
 )
 
 export const resetPasswordRouteOptions = { head, component: ResetPassword }

@@ -47,22 +47,22 @@ const CITY_KEYS = ['city', 'town', 'village'] as const
  * zod objects strip by default, and Nominatim sends a dozen this form has no use for.
  */
 const addressSchema = z.object({
-	road: z.string().default(''),
-	house_number: z.string().default(''),
-	postcode: z.string().default(''),
-	city: z.string().default(''),
-	town: z.string().default(''),
-	village: z.string().default(''),
-	[ISO_PROVINCE]: z.string().default('')
+  road: z.string().default(''),
+  house_number: z.string().default(''),
+  postcode: z.string().default(''),
+  city: z.string().default(''),
+  town: z.string().default(''),
+  village: z.string().default(''),
+  [ISO_PROVINCE]: z.string().default('')
 })
 
 /** `lat` and `lon` arrive as strings — `"42.3601035"` — which is why they are coerced and not declared numeric. */
 const resultSchema = z.object({
-	place_id: z.coerce.string(),
-	display_name: z.string(),
-	lat: z.coerce.number(),
-	lon: z.coerce.number(),
-	address: addressSchema.optional()
+  place_id: z.coerce.string(),
+  display_name: z.string(),
+  lat: z.coerce.number(),
+  lon: z.coerce.number(),
+  address: addressSchema.optional()
 })
 
 const responseSchema = z.array(resultSchema)
@@ -72,18 +72,18 @@ const EMPTY_ADDRESS = addressSchema.parse({})
 
 /** One geocoded address, flattened into the fields `GraphQLInputUserAddress` carries. */
 export interface FoundAddress {
-	/** Nominatim's own id for the place — a stable React key, and nothing else. */
-	readonly id: string
-	/** The full one-line address, as OSM writes it. What the suggestion list shows. */
-	readonly label: string
-	/** House number and street, in reading order: `1 Main Street`. */
-	readonly street: string
-	readonly postalCode: string
-	readonly city: string
-	/** The two-letter province code, upper-case: `MA`. Empty when OSM has no province for the point. */
-	readonly province: string
-	readonly lat: number
-	readonly lon: number
+  /** Nominatim's own id for the place — a stable React key, and nothing else. */
+  readonly id: string
+  /** The full one-line address, as OSM writes it. What the suggestion list shows. */
+  readonly label: string
+  /** House number and street, in reading order: `1 Main Street`. */
+  readonly street: string
+  readonly postalCode: string
+  readonly city: string
+  /** The two-letter province code, upper-case: `MA`. Empty when OSM has no province for the point. */
+  readonly province: string
+  readonly lat: number
+  readonly lon: number
 }
 
 type AddressOsm = z.infer<typeof addressSchema>
@@ -91,21 +91,21 @@ type AddressOsm = z.infer<typeof addressSchema>
 const cityOf = (address: AddressOsm): string => CITY_KEYS.map((key) => address[key]).find((value) => value !== '') ?? ''
 
 const map = (result: z.infer<typeof resultSchema>): FoundAddress => {
-	const address = result.address ?? EMPTY_ADDRESS
+  const address = result.address ?? EMPTY_ADDRESS
 
-	return {
-		id: result.place_id,
-		label: result.display_name,
-		// Filtered before joining: a road with no house number must not come back with a trailing space,
-		// and a point with neither must be the empty string the form treats as "nothing found".
-		street: [address.house_number, address.road].filter((part) => part !== '').join(' '),
-		postalCode: address.postcode,
-		city: cityOf(address),
-		// `US-MA` → `MA`. An absent code is the empty string, and `''.slice(-2)` is `''`.
-		province: address[ISO_PROVINCE].slice(-2),
-		lat: result.lat,
-		lon: result.lon
-	}
+  return {
+    id: result.place_id,
+    label: result.display_name,
+    // Filtered before joining: a road with no house number must not come back with a trailing space,
+    // and a point with neither must be the empty string the form treats as "nothing found".
+    street: [address.house_number, address.road].filter((part) => part !== '').join(' '),
+    postalCode: address.postcode,
+    city: cityOf(address),
+    // `US-MA` → `MA`. An absent code is the empty string, and `''.slice(-2)` is `''`.
+    province: address[ISO_PROVINCE].slice(-2),
+    lat: result.lat,
+    lon: result.lon
+  }
 }
 
 /**
@@ -122,17 +122,17 @@ const map = (result: z.infer<typeof resultSchema>): FoundAddress => {
  * as "this address does not exist".
  */
 export const searchAddresses = async (query: string, signal: AbortSignal): Promise<FoundAddress[]> => {
-	const params = new URLSearchParams({
-		q: query,
-		format: 'jsonv2',
-		addressdetails: '1',
-		limit: String(MAX_RESULTS),
-		countrycodes: 'us',
-		'accept-language': 'en'
-	})
+  const params = new URLSearchParams({
+    q: query,
+    format: 'jsonv2',
+    addressdetails: '1',
+    limit: String(MAX_RESULTS),
+    countrycodes: 'us',
+    'accept-language': 'en'
+  })
 
-	const response = await fetch(`${env.nominatimUrl}/search?${params.toString()}`, { signal })
-	if (!response.ok) throw new Error(`Geocoder answered ${String(response.status)}`)
+  const response = await fetch(`${env.nominatimUrl}/search?${params.toString()}`, { signal })
+  if (!response.ok) throw new Error(`Geocoder answered ${String(response.status)}`)
 
-	return responseSchema.parse(await response.json()).map(map)
+  return responseSchema.parse(await response.json()).map(map)
 }

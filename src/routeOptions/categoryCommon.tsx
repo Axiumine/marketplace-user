@@ -28,19 +28,19 @@ import type { RouterContext } from '@/router'
 
 /** A category with no items yet is a real page, not a 404 — the admin created it on purpose. */
 export interface CategoryLoaderResult {
-	readonly category: FlatCategory
-	/**
-	 * Absent on a top-level category. `| undefined` spelled out because the loader always sets the key —
-	 * it destructures `findCategory`'s result, which answers `undefined` for a top-level hit — and
-	 * `exactOptionalPropertyTypes: true` rejects an explicit `undefined` against a bare `?:`.
-	 */
-	readonly parent?: FlatCategory | undefined
-	/** Direct subcategories, ordered. Always empty on a subcategory: the tree is capped at two levels. */
-	readonly children: readonly FlatCategory[]
-	readonly crumbs: readonly Crumb[]
-	readonly items: Awaited<ReturnType<typeof loadItems>>
-	readonly page: number
-	readonly basePath: string
+  readonly category: FlatCategory
+  /**
+   * Absent on a top-level category. `| undefined` spelled out because the loader always sets the key —
+   * it destructures `findCategory`'s result, which answers `undefined` for a top-level hit — and
+   * `exactOptionalPropertyTypes: true` rejects an explicit `undefined` against a bare `?:`.
+   */
+  readonly parent?: FlatCategory | undefined
+  /** Direct subcategories, ordered. Always empty on a subcategory: the tree is capped at two levels. */
+  readonly children: readonly FlatCategory[]
+  readonly crumbs: readonly Crumb[]
+  readonly items: Awaited<ReturnType<typeof loadItems>>
+  readonly page: number
+  readonly basePath: string
 }
 
 /**
@@ -52,13 +52,13 @@ export interface CategoryLoaderResult {
 const MAX_PAGE = maxPageFor(2_000)
 
 const loadItems = async (context: RouterContext, idCategory: string, page: number) => {
-	const data = await runQuery(context.gql, ItemsDocument, {
-		idCategory,
-		limit: PAGE_SIZE,
-		offset: offsetOf(page)
-	})
+  const data = await runQuery(context.gql, ItemsDocument, {
+    idCategory,
+    limit: PAGE_SIZE,
+    offset: offsetOf(page)
+  })
 
-	return data.items
+  return data.items
 }
 
 /**
@@ -74,42 +74,42 @@ const loadItems = async (context: RouterContext, idCategory: string, page: numbe
  * type free of the "or nothing" case.
  */
 export const loadCategory = async ({
-	context,
-	slug,
-	page: rawPage
+  context,
+  slug,
+  page: rawPage
 }: {
-	context: RouterContext
-	slug: string
-	page: number
+  context: RouterContext
+  slug: string
+  page: number
 }): Promise<CategoryLoaderResult | undefined> => {
-	const page = pageNumber(rawPage)
+  const page = pageNumber(rawPage)
 
-	// ⚠️ Ahead of the tree fetch, and for the same reason `notFound()` is thrown for an unknown slug: a
-	// page this deep can never be answered for *any* category, so nothing below is worth asking for. Left
-	// unchecked, `offsetOf(page)` would reach the cross-shop items query past its own cap and the backend
-	// throws — see `MAX_PAGE`.
-	if (page > MAX_PAGE) return undefined
+  // ⚠️ Ahead of the tree fetch, and for the same reason `notFound()` is thrown for an unknown slug: a
+  // page this deep can never be answered for *any* category, so nothing below is worth asking for. Left
+  // unchecked, `offsetOf(page)` would reach the cross-shop items query past its own cap and the backend
+  // throws — see `MAX_PAGE`.
+  if (page > MAX_PAGE) return undefined
 
-	const tree = await runQuery(context.gql, ItemCategoriesDocument, {})
-	const found = findCategory(tree.itemCategories, slug)
-	if (found === undefined) return undefined
+  const tree = await runQuery(context.gql, ItemCategoriesDocument, {})
+  const found = findCategory(tree.itemCategories, slug)
+  if (found === undefined) return undefined
 
-	const { category, parent } = found
-	const basePath = categoryPath(category.slug, parent?.slug)
+  const { category, parent } = found
+  const basePath = categoryPath(category.slug, parent?.slug)
 
-	const crumbs: Crumb[] = [
-		{ name: 'Home', path: '/' },
-		...(parent === undefined ? [] : [{ name: parent.name, path: categoryPath(parent.slug) }]),
-		{ name: category.name, path: basePath }
-	]
+  const crumbs: Crumb[] = [
+    { name: 'Home', path: '/' },
+    ...(parent === undefined ? [] : [{ name: parent.name, path: categoryPath(parent.slug) }]),
+    { name: category.name, path: basePath }
+  ]
 
-	// Sorted here rather than by the resolver: `position` is the admin's ordering and ties are broken
-	// by name with the same `en-GB` collator `nestCategories` uses, so both navigations agree.
-	const children = tree.itemCategories
-		.filter((candidate) => candidate.idParent === category._id)
-		.toSorted((a, b) => a.position - b.position || a.name.localeCompare(b.name, 'en-GB'))
+  // Sorted here rather than by the resolver: `position` is the admin's ordering and ties are broken
+  // by name with the same `en-GB` collator `nestCategories` uses, so both navigations agree.
+  const children = tree.itemCategories
+    .filter((candidate) => candidate.idParent === category._id)
+    .toSorted((a, b) => a.position - b.position || a.name.localeCompare(b.name, 'en-GB'))
 
-	return { category, parent, children, crumbs, items: await loadItems(context, category._id, page), page, basePath }
+  return { category, parent, children, crumbs, items: await loadItems(context, category._id, page), page, basePath }
 }
 
 /**
@@ -126,73 +126,73 @@ export const loadCategory = async ({
  * `throw` statement that stays and the option that goes.
  */
 export const assertCanonicalCategoryUrl = (result: CategoryLoaderResult, currentPath: string) => {
-	if (result.basePath === currentPath) return
+  if (result.basePath === currentPath) return
 
-	if (result.parent === undefined) {
-		throw redirect({ to: '/category/$slug', params: { slug: result.category.slug }, statusCode: 301 })
-	}
+  if (result.parent === undefined) {
+    throw redirect({ to: '/category/$slug', params: { slug: result.category.slug }, statusCode: 301 })
+  }
 
-	throw redirect({
-		to: '/category/$slug/$childSlug',
-		params: { slug: result.parent.slug, childSlug: result.category.slug },
-		statusCode: 301
-	})
+  throw redirect({
+    to: '/category/$slug/$childSlug',
+    params: { slug: result.parent.slug, childSlug: result.category.slug },
+    statusCode: 301
+  })
 }
 
 export const categoryHead = (result: CategoryLoaderResult | undefined) => {
-	if (result === undefined) return headFor({ title: 'Category', description: '', path: '/shops' })
+  if (result === undefined) return headFor({ title: 'Category', description: '', path: '/shops' })
 
-	const { category, crumbs, items, page, basePath } = result
-	const path = page === 1 ? basePath : `${basePath}?page=${String(page)}`
+  const { category, crumbs, items, page, basePath } = result
+  const path = page === 1 ? basePath : `${basePath}?page=${String(page)}`
 
-	const seo = headFor({
-		title: page === 1 ? category.name : `${category.name} — page ${String(page)}`,
-		description: truncate(`Every item published under ${category.name}, from every shop on the platform.`),
-		path,
-		noIndex: page > 1
-	})
+  const seo = headFor({
+    title: page === 1 ? category.name : `${category.name} — page ${String(page)}`,
+    description: truncate(`Every item published under ${category.name}, from every shop on the platform.`),
+    path,
+    noIndex: page > 1
+  })
 
-	const { prev, next } = pageLinks(basePath, page, items.hasMore)
+  const { prev, next } = pageLinks(basePath, page, items.hasMore)
 
-	return {
-		...seo,
-		links: [
-			...seo.links,
-			...(prev === undefined ? [] : [{ rel: 'prev', href: absoluteUrl(prev) }]),
-			...(next === undefined ? [] : [{ rel: 'next', href: absoluteUrl(next) }])
-		],
-		scripts: jsonLdScripts(
-			breadcrumbJsonLd(crumbs),
-			itemListJsonLd(
-				items.nodes.map((item) => `/shop/${item.companySlug}/item/${item.slug}`),
-				offsetOf(page)
-			)
-		)
-	}
+  return {
+    ...seo,
+    links: [
+      ...seo.links,
+      ...(prev === undefined ? [] : [{ rel: 'prev', href: absoluteUrl(prev) }]),
+      ...(next === undefined ? [] : [{ rel: 'next', href: absoluteUrl(next) }])
+    ],
+    scripts: jsonLdScripts(
+      breadcrumbJsonLd(crumbs),
+      itemListJsonLd(
+        items.nodes.map((item) => `/shop/${item.companySlug}/item/${item.slug}`),
+        offsetOf(page)
+      )
+    )
+  }
 }
 
 /** The rendered page, identical for both routes. */
 export const CategoryView = ({ result, children }: { readonly result: CategoryLoaderResult; readonly children?: ReactNode }) => {
-	const { category, crumbs, items, page, basePath } = result
-	const { prev, next } = pageLinks(basePath, page, items.hasMore)
+  const { category, crumbs, items, page, basePath } = result
+  const { prev, next } = pageLinks(basePath, page, items.hasMore)
 
-	return (
-		<div className="mx-auto max-w-6xl px-4 py-8">
-			<Breadcrumbs crumbs={crumbs} />
+  return (
+    <div className="mx-auto max-w-6xl px-4 py-8">
+      <Breadcrumbs crumbs={crumbs} />
 
-			<h1 className="mt-4 text-3xl font-semibold text-palette-bg">{category.name}</h1>
+      <h1 className="mt-4 text-3xl font-semibold text-palette-bg">{category.name}</h1>
 
-			{children}
+      {children}
 
-			<div className="mt-6">
-				{items.nodes.length === 0 ? (
-					<EmptyState title="Nothing published under this category yet" hint="Try another one." />
-				) : (
-					<ItemGrid items={items.nodes} />
-				)}
-			</div>
+      <div className="mt-6">
+        {items.nodes.length === 0 ? (
+          <EmptyState title="Nothing published under this category yet" hint="Try another one." />
+        ) : (
+          <ItemGrid items={items.nodes} />
+        )}
+      </div>
 
-			<Pagination prev={prev} next={next} page={page} />
-		</div>
-	)
+      <Pagination prev={prev} next={next} page={page} />
+    </div>
+  )
 }

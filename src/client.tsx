@@ -24,10 +24,10 @@ import { hydrateRoot } from 'react-dom/client'
  * from the client entry alone would leave the first paint unstyled.
  */
 startTransition(() => {
-	hydrateRoot(
-		document,
-		<StrictMode>
-			<StartClient />
-		</StrictMode>
-	)
+  hydrateRoot(
+    document,
+    <StrictMode>
+      <StartClient />
+    </StrictMode>
+  )
 })

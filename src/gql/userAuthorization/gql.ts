@@ -14,10 +14,10 @@ import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-
  * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
 type Documents = {
-    "\n\tmutation Refresh {\n\t\trefresh {\n\t\t\tstatus\n\t\t\taccessToken\n\t\t}\n\t}\n": typeof types.RefreshDocument,
+    "\n  mutation Refresh {\n    refresh {\n      status\n      accessToken\n    }\n  }\n": typeof types.RefreshDocument,
 };
 const documents: Documents = {
-    "\n\tmutation Refresh {\n\t\trefresh {\n\t\t\tstatus\n\t\t\taccessToken\n\t\t}\n\t}\n": types.RefreshDocument,
+    "\n  mutation Refresh {\n    refresh {\n      status\n      accessToken\n    }\n  }\n": types.RefreshDocument,
 };
 
 /**
@@ -37,7 +37,7 @@ export function graphql(source: string): unknown;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n\tmutation Refresh {\n\t\trefresh {\n\t\t\tstatus\n\t\t\taccessToken\n\t\t}\n\t}\n"): (typeof documents)["\n\tmutation Refresh {\n\t\trefresh {\n\t\t\tstatus\n\t\t\taccessToken\n\t\t}\n\t}\n"];
+export function graphql(source: "\n  mutation Refresh {\n    refresh {\n      status\n      accessToken\n    }\n  }\n"): (typeof documents)["\n  mutation Refresh {\n    refresh {\n      status\n      accessToken\n    }\n  }\n"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};

@@ -44,27 +44,27 @@ const PHONE_MAX = 12
  * react-hook-form hands the resolver's output to the submit handler, not the raw input.
  */
 const required = (label: string) =>
-	z
-		.string()
-		.trim()
-		.min(1, `${label} is required.`)
-		.max(NAME_MAX, `${label} must be at most ${String(NAME_MAX)} characters.`)
+  z
+    .string()
+    .trim()
+    .min(1, `${label} is required.`)
+    .max(NAME_MAX, `${label} must be at most ${String(NAME_MAX)} characters.`)
 
 const optionalPhone = z
-	.string()
-	.trim()
-	.max(PHONE_MAX, `Use at most ${String(PHONE_MAX)} characters.`)
+  .string()
+  .trim()
+  .max(PHONE_MAX, `Use at most ${String(PHONE_MAX)} characters.`)
 
 const schema = z.object({
-	firstName: required('First name'),
-	lastName: required('Last name'),
-	// A plain string, not `z.iso.date()`: `<input type="date">` already refuses to emit anything but
-	// `YYYY-MM-DD` or the empty string, and layering a format error on top of a control that cannot
-	// produce a bad format only fires on browsers where the picker fell back to a text box.
-	birthDate: z.string(),
-	mobile: optionalPhone,
-	landline: optionalPhone,
-	contactEmail: z.union([z.literal(''), z.email('Enter a valid email address.')])
+  firstName: required('First name'),
+  lastName: required('Last name'),
+  // A plain string, not `z.iso.date()`: `<input type="date">` already refuses to emit anything but
+  // `YYYY-MM-DD` or the empty string, and layering a format error on top of a control that cannot
+  // produce a bad format only fires on browsers where the picker fell back to a text box.
+  birthDate: z.string(),
+  mobile: optionalPhone,
+  landline: optionalPhone,
+  contactEmail: z.union([z.literal(''), z.email('Enter a valid email address.')])
 })
 
 type Values = z.infer<typeof schema>
@@ -79,113 +79,113 @@ const dateInputValue = (value: string | null | undefined): string => blank(value
 const orUndefined = (value: string): string | undefined => (value === '' ? undefined : value)
 
 export const PersonalDataForm = () => {
-	const me = useMe()
-	const [status, setStatus] = useState<{ readonly tone: 'ok' | 'error'; readonly message: string } | undefined>(undefined)
-	const [, submit] = useMutation(UserPersonalDataUpdateDocument)
+  const me = useMe()
+  const [status, setStatus] = useState<{ readonly tone: 'ok' | 'error'; readonly message: string } | undefined>(undefined)
+  const [, submit] = useMutation(UserPersonalDataUpdateDocument)
 
-	const {
-		register,
-		handleSubmit,
-		formState: { errors, isSubmitting }
-	} = useForm<Values>({
-		resolver: zodResolver(schema),
-		defaultValues: {
-			firstName: blank(me.personalData?.firstName),
-			lastName: blank(me.personalData?.lastName),
-			birthDate: dateInputValue(me.personalData?.birth?.date),
-			mobile: blank(me.personalData?.contacts?.mobile),
-			landline: blank(me.personalData?.contacts?.landline),
-			contactEmail: blank(me.personalData?.contacts?.email)
-		}
-	})
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting }
+  } = useForm<Values>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      firstName: blank(me.personalData?.firstName),
+      lastName: blank(me.personalData?.lastName),
+      birthDate: dateInputValue(me.personalData?.birth?.date),
+      mobile: blank(me.personalData?.contacts?.mobile),
+      landline: blank(me.personalData?.contacts?.landline),
+      contactEmail: blank(me.personalData?.contacts?.email)
+    }
+  })
 
-	const onSubmit = handleSubmit(async (values) => {
-		setStatus(undefined)
+  const onSubmit = handleSubmit(async (values) => {
+    setStatus(undefined)
 
-		const mobile = orUndefined(values.mobile)
-		const landline = orUndefined(values.landline)
-		const email = orUndefined(values.contactEmail)
-		const empty = mobile === undefined && landline === undefined && email === undefined
+    const mobile = orUndefined(values.mobile)
+    const landline = orUndefined(values.landline)
+    const email = orUndefined(values.contactEmail)
+    const empty = mobile === undefined && landline === undefined && email === undefined
 
-		const result = await submit(
-			{
-				personalData: {
-					firstName: values.firstName,
-					lastName: values.lastName,
-					birth: values.birthDate === '' ? undefined : { date: values.birthDate },
-					// All three blank means no contacts at all, not a contacts object with three holes in
-					// it — the difference is whether the stored document grows an empty subdocument.
-					contacts: empty ? undefined : { mobile, landline, email }
-				}
-			},
-			CTX_ACCOUNT_WRITE
-		)
+    const result = await submit(
+      {
+        personalData: {
+          firstName: values.firstName,
+          lastName: values.lastName,
+          birth: values.birthDate === '' ? undefined : { date: values.birthDate },
+          // All three blank means no contacts at all, not a contacts object with three holes in
+          // it — the difference is whether the stored document grows an empty subdocument.
+          contacts: empty ? undefined : { mobile, landline, email }
+        }
+      },
+      CTX_ACCOUNT_WRITE
+    )
 
-		// `dataOf` and not a bare `result.error` test: a `{"data": null}` envelope carries no error at all, and
-		// reading that as a save tells the customer their details are stored when nothing reached the database.
-		setStatus(
-			dataOf(result) === undefined
-				? { tone: 'error', message: messageOf(result.error) }
-				: { tone: 'ok', message: 'Your details have been saved.' }
-		)
-	})
+    // `dataOf` and not a bare `result.error` test: a `{"data": null}` envelope carries no error at all, and
+    // reading that as a save tells the customer their details are stored when nothing reached the database.
+    setStatus(
+      dataOf(result) === undefined
+        ? { tone: 'error', message: messageOf(result.error) }
+        : { tone: 'ok', message: 'Your details have been saved.' }
+    )
+  })
 
-	return (
-		<form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
-			<p className="text-sm text-slate-600">
-				You sign in with <strong>{me.email}</strong>. That address is not changed here.
-			</p>
+  return (
+    <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
+      <p className="text-sm text-slate-600">
+        You sign in with <strong>{me.email}</strong>. That address is not changed here.
+      </p>
 
-			<div className="grid gap-4 sm:grid-cols-2">
-				<TextField {...register('firstName')} label="First name" autoComplete="given-name" error={errors.firstName?.message} />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <TextField {...register('firstName')} label="First name" autoComplete="given-name" error={errors.firstName?.message} />
 
-				<TextField {...register('lastName')} label="Last name" autoComplete="family-name" error={errors.lastName?.message} />
-			</div>
+        <TextField {...register('lastName')} label="Last name" autoComplete="family-name" error={errors.lastName?.message} />
+      </div>
 
-			<TextField
-				{...register('birthDate')}
-				label="Date of birth"
-				type="date"
-				autoComplete="bday"
-				error={errors.birthDate?.message}
-			/>
+      <TextField
+        {...register('birthDate')}
+        label="Date of birth"
+        type="date"
+        autoComplete="bday"
+        error={errors.birthDate?.message}
+      />
 
-			<div className="grid gap-4 sm:grid-cols-2">
-				<TextField {...register('mobile')} label="Mobile" type="tel" autoComplete="tel" error={errors.mobile?.message} />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <TextField {...register('mobile')} label="Mobile" type="tel" autoComplete="tel" error={errors.mobile?.message} />
 
-				<TextField
-					{...register('landline')}
-					label="Landline"
-					type="tel"
-					autoComplete="tel-national"
-					error={errors.landline?.message}
-				/>
-			</div>
+        <TextField
+          {...register('landline')}
+          label="Landline"
+          type="tel"
+          autoComplete="tel-national"
+          error={errors.landline?.message}
+        />
+      </div>
 
-			<TextField
-				{...register('contactEmail')}
-				label="Contact email"
-				type="email"
-				// `email` and not `username`: `username` is what the login field carries, and offering the
-				// password manager a second "username" on this page is how it ends up saving the wrong one.
-				autoComplete="email"
-				hint="Where we write about your orders. Leave it empty to use your sign-in address."
-				error={errors.contactEmail?.message}
-			/>
+      <TextField
+        {...register('contactEmail')}
+        label="Contact email"
+        type="email"
+        // `email` and not `username`: `username` is what the login field carries, and offering the
+        // password manager a second "username" on this page is how it ends up saving the wrong one.
+        autoComplete="email"
+        hint="Where we write about your orders. Leave it empty to use your sign-in address."
+        error={errors.contactEmail?.message}
+      />
 
-			{/*
-			 * ⚠️ Rendered only once there is a status, rather than always with an invented fallback tone. The
-			 * tone of a status that does not exist is not a thing — a `?? 'error'` here reads as "failures by
-			 * default", which is both wrong and unobservable, since `FormStatus` renders nothing without a
-			 * message anyway. The live region it needs is the `<form>` around it, which never unmounts.
-			 */}
-			{status !== undefined && <FormStatus tone={status.tone} message={status.message} />}
+      {/*
+       * ⚠️ Rendered only once there is a status, rather than always with an invented fallback tone. The
+       * tone of a status that does not exist is not a thing — a `?? 'error'` here reads as "failures by
+       * default", which is both wrong and unobservable, since `FormStatus` renders nothing without a
+       * message anyway. The live region it needs is the `<form>` around it, which never unmounts.
+       */}
+      {status !== undefined && <FormStatus tone={status.tone} message={status.message} />}
 
-			<div>
-				<SubmitButton busy={isSubmitting} busyLabel="Saving…">
-					Save details
-				</SubmitButton>
-			</div>
-		</form>
-	)
+      <div>
+        <SubmitButton busy={isSubmitting} busyLabel="Saving…">
+          Save details
+        </SubmitButton>
+      </div>
+    </form>
+  )
 }

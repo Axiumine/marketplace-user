@@ -59,12 +59,12 @@ export const isSitemapKind = (value: string): value is GraphQlSitemapKind => KIN
  * crawler that reads it — they stop at the parse error rather than skipping the bad entry.
  */
 export const escapeXml = (value: string): string =>
-	value
-		.replaceAll('&', '&amp;')
-		.replaceAll('<', '&lt;')
-		.replaceAll('>', '&gt;')
-		.replaceAll('"', '&quot;')
-		.replaceAll("'", '&apos;')
+  value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&apos;')
 
 /**
  * A `<urlset>` document.
@@ -76,36 +76,36 @@ export const escapeXml = (value: string): string =>
  * have stated outright that they ignore.
  */
 export const urlsetXml = (paths: readonly string[]): string =>
-	[
-		'<?xml version="1.0" encoding="UTF-8"?>',
-		'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-		...paths.map((path) => `\t<url><loc>${escapeXml(absoluteUrl(path))}</loc></url>`),
-		'</urlset>',
-		''
-	].join('\n')
+  [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    ...paths.map((path) => `\t<url><loc>${escapeXml(absoluteUrl(path))}</loc></url>`),
+    '</urlset>',
+    ''
+  ].join('\n')
 
 /** A `<sitemapindex>` document, listing shard URLs. */
 export const sitemapIndexXml = (paths: readonly string[]): string =>
-	[
-		'<?xml version="1.0" encoding="UTF-8"?>',
-		'<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-		...paths.map((path) => `\t<sitemap><loc>${escapeXml(absoluteUrl(path))}</loc></sitemap>`),
-		'</sitemapindex>',
-		''
-	].join('\n')
+  [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    ...paths.map((path) => `\t<sitemap><loc>${escapeXml(absoluteUrl(path))}</loc></sitemap>`),
+    '</sitemapindex>',
+    ''
+  ].join('\n')
 
 export const shardPath = (kind: GraphQlSitemapKind, cursor: string): string => `/sitemaps/${kind}/${cursor}`
 
 interface Shard {
-	readonly paths: readonly string[]
-	/**
-	 * The cursor the next shard starts at, or `undefined` when this was the last one.
-	 *
-	 * `| undefined` is written out because `exactOptionalPropertyTypes: true` would otherwise reject
-	 * `{ paths, nextCursor: afterId }` where `afterId` is `string | undefined` — the shape the loop below
-	 * naturally produces.
-	 */
-	readonly nextCursor?: string | undefined
+  readonly paths: readonly string[]
+  /**
+   * The cursor the next shard starts at, or `undefined` when this was the last one.
+   *
+   * `| undefined` is written out because `exactOptionalPropertyTypes: true` would otherwise reject
+   * `{ paths, nextCursor: afterId }` where `afterId` is `string | undefined` — the shape the loop below
+   * naturally produces.
+   */
+  readonly nextCursor?: string | undefined
 }
 
 /**
@@ -116,22 +116,22 @@ interface Shard {
  * three round trips at a fixed cost beats one round trip whose cost grows with how deep it reaches.
  */
 export const fetchShard = async (client: Client, kind: GraphQlSitemapKind, cursor: string): Promise<Shard> => {
-	const paths: string[] = []
-	let afterId: string | undefined = cursor === START_CURSOR ? undefined : cursor
+  const paths: string[] = []
+  let afterId: string | undefined = cursor === START_CURSOR ? undefined : cursor
 
-	while (paths.length < SHARD_SIZE) {
-		const data = await runQuery(client, SitemapEntriesDocument, { kind, afterId, limit: FETCH_LIMIT })
-		const page = data.sitemapEntries
+  while (paths.length < SHARD_SIZE) {
+    const data = await runQuery(client, SitemapEntriesDocument, { kind, afterId, limit: FETCH_LIMIT })
+    const page = data.sitemapEntries
 
-		paths.push(...page.nodes.map((node) => node.path))
+    paths.push(...page.nodes.map((node) => node.path))
 
-		// A null `nextAfterId` is the end of the collection, not the end of this shard.
-		if (page.nextAfterId === null || page.nextAfterId === undefined) return { paths }
+    // A null `nextAfterId` is the end of the collection, not the end of this shard.
+    if (page.nextAfterId === null || page.nextAfterId === undefined) return { paths }
 
-		afterId = page.nextAfterId
-	}
+    afterId = page.nextAfterId
+  }
 
-	return { paths, nextCursor: afterId }
+  return { paths, nextCursor: afterId }
 }
 
 /**
@@ -142,36 +142,36 @@ export const fetchShard = async (client: Client, kind: GraphQlSitemapKind, curso
  * bare; a missing shard tells it nothing, and it has no reason to come back and check.
  */
 export const collectShardCursors = async (
-	client: Client,
-	kind: GraphQlSitemapKind,
-	maxShards: number = MAX_SHARDS
+  client: Client,
+  kind: GraphQlSitemapKind,
+  maxShards: number = MAX_SHARDS
 ): Promise<readonly string[]> => {
-	const cursors: string[] = [START_CURSOR]
-	let cursor: string | undefined = START_CURSOR
+  const cursors: string[] = [START_CURSOR]
+  let cursor: string | undefined = START_CURSOR
 
-	while (cursors.length < maxShards) {
-		const shard: Shard = await fetchShard(client, kind, cursor)
-		if (shard.nextCursor === undefined) return cursors
+  while (cursors.length < maxShards) {
+    const shard: Shard = await fetchShard(client, kind, cursor)
+    if (shard.nextCursor === undefined) return cursors
 
-		cursor = shard.nextCursor
-		cursors.push(cursor)
-	}
+    cursor = shard.nextCursor
+    cursors.push(cursor)
+  }
 
-	return cursors
+  return cursors
 }
 
 /** Every shard URL across every kind, in the order the index lists them. */
 export const collectIndexPaths = async (client: Client): Promise<readonly string[]> => {
-	const paths: string[] = []
+  const paths: string[] = []
 
-	// Sequential on purpose: three concurrent full-collection walks would put three long-running cursors
-	// on the database at once, and this response is cached for an hour. Latency here costs nobody.
-	for (const kind of KINDS) {
-		const cursors = await collectShardCursors(client, kind)
-		paths.push(...cursors.map((cursor) => shardPath(kind, cursor)))
-	}
+  // Sequential on purpose: three concurrent full-collection walks would put three long-running cursors
+  // on the database at once, and this response is cached for an hour. Latency here costs nobody.
+  for (const kind of KINDS) {
+    const cursors = await collectShardCursors(client, kind)
+    paths.push(...cursors.map((cursor) => shardPath(kind, cursor)))
+  }
 
-	return paths
+  return paths
 }
 
 /**
@@ -184,9 +184,9 @@ export const collectIndexPaths = async (client: Client): Promise<readonly string
 export const SITEMAP_CACHE_CONTROL = 'public, max-age=0, s-maxage=3600, stale-while-revalidate=86400'
 
 export const xmlResponse = (body: string): Response =>
-	new Response(body, {
-		headers: {
-			'content-type': 'application/xml; charset=utf-8',
-			'cache-control': SITEMAP_CACHE_CONTROL
-		}
-	})
+  new Response(body, {
+    headers: {
+      'content-type': 'application/xml; charset=utf-8',
+      'cache-control': SITEMAP_CACHE_CONTROL
+    }
+  })

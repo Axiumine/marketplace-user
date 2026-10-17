@@ -25,9 +25,9 @@ const byteLength = (value: string): number => new TextEncoder().encode(value).le
 export const PASSWORD_HINT = `At least ${String(MIN_PWD_LENGTH)} characters. Length beats symbols: a phrase you can remember is stronger than a short password full of punctuation.`
 
 export const passwordSchema = z
-	.string()
-	.min(MIN_PWD_LENGTH, `Use at least ${String(MIN_PWD_LENGTH)} characters.`)
-	.refine((value) => byteLength(value) <= MAX_PWD_BYTES, 'That password is too long. Try a shorter phrase.')
+  .string()
+  .min(MIN_PWD_LENGTH, `Use at least ${String(MIN_PWD_LENGTH)} characters.`)
+  .refine((value) => byteLength(value) <= MAX_PWD_BYTES, 'That password is too long. Try a shorter phrase.')
 
 /**
  * Adds the "the two fields match" check to a schema that already has both.
@@ -37,10 +37,10 @@ export const passwordSchema = z
  * refuses to submit with nothing on screen explaining why.
  */
 export const matchingPasswords = <T extends { password: string; repeatPassword: string }>(
-	value: T,
-	ctx: z.RefinementCtx
+  value: T,
+  ctx: z.RefinementCtx
 ): void => {
-	if (value.password === value.repeatPassword) return
+  if (value.password === value.repeatPassword) return
 
-	ctx.addIssue({ code: 'custom', path: ['repeatPassword'], message: 'The two passwords do not match.' })
+  ctx.addIssue({ code: 'custom', path: ['repeatPassword'], message: 'The two passwords do not match.' })
 }

@@ -29,7 +29,7 @@ import type { RouterContext } from '@/router'
 const route = getRouteApi('/shops/$city')
 
 const searchSchema = z.object({
-	page: z.coerce.number().int().min(1).catch(1).optional()
+  page: z.coerce.number().int().min(1).catch(1).optional()
 })
 
 export type ShopsCitySearch = z.infer<typeof searchSchema>
@@ -46,9 +46,9 @@ const cityPath = (city: string) => `/shops/${encodeURIComponent(city)}`
  * to have two lists. Duplicating them is how a route tells a crawler one path and a visitor another.
  */
 const crumbsFor = (city: string) => [
-	{ name: 'Home', path: '/' },
-	{ name: 'Shops', path: '/shops' },
-	{ name: city, path: cityPath(city) }
+  { name: 'Home', path: '/' },
+  { name: 'Shops', path: '/shops' },
+  { name: city, path: cityPath(city) }
 ]
 
 /**
@@ -59,102 +59,102 @@ const crumbsFor = (city: string) => [
 const MAX_PAGE = maxPageFor(10_000)
 
 const loader = async ({
-	context,
-	params,
-	deps
+  context,
+  params,
+  deps
 }: {
-	context: RouterContext
-	params: { city: string }
-	deps: { page: number }
+  context: RouterContext
+  params: { city: string }
+  deps: { page: number }
 }) => {
-	const page = pageNumber(deps.page)
-	const city = params.city.trim()
+  const page = pageNumber(deps.page)
+  const city = params.city.trim()
 
-	// ⚠️ A different failure from the one the comment below explains: a real city's page 9 empties on
-	// purpose, because the backend can still answer it. A page past `MAX_PAGE` is one the backend cannot
-	// answer for *any* city — it throws on the offset alone — so this checks before the query runs rather
-	// than after.
-	if (page > MAX_PAGE) throw notFound()
+  // ⚠️ A different failure from the one the comment below explains: a real city's page 9 empties on
+  // purpose, because the backend can still answer it. A page past `MAX_PAGE` is one the backend cannot
+  // answer for *any* city — it throws on the offset alone — so this checks before the query runs rather
+  // than after.
+  if (page > MAX_PAGE) throw notFound()
 
-	const data = await runQuery(context.gql, CompaniesDocument, {
-		limit: PAGE_SIZE,
-		offset: offsetOf(page),
-		city
-	})
+  const data = await runQuery(context.gql, CompaniesDocument, {
+    limit: PAGE_SIZE,
+    offset: offsetOf(page),
+    city
+  })
 
-	// ⚠️ 404 on an empty first page, rather than an empty listing. A city with no published shops is not
-	// a page that should exist: left as a 200 it is an indexable, contentless URL, and anyone can mint
-	// an unlimited number of them by typing nonsense into the segment. Later pages are exempt — an
-	// out-of-range `?page=` on a real city is a bad parameter, not a missing city, and the page below
-	// says so.
-	if (data.companies.nodes.length === 0 && page === 1) throw notFound()
+  // ⚠️ 404 on an empty first page, rather than an empty listing. A city with no published shops is not
+  // a page that should exist: left as a 200 it is an indexable, contentless URL, and anyone can mint
+  // an unlimited number of them by typing nonsense into the segment. Later pages are exempt — an
+  // out-of-range `?page=` on a real city is a bad parameter, not a missing city, and the page below
+  // says so.
+  if (data.companies.nodes.length === 0 && page === 1) throw notFound()
 
-	return { companies: data.companies, city, page }
+  return { companies: data.companies, city, page }
 }
 
 type LoaderData = Awaited<ReturnType<typeof loader>>
 
 const head = ({ loaderData }: { loaderData?: LoaderData }) => {
-	const city = loaderData?.city ?? ''
-	const page = loaderData?.page ?? 1
-	const nodes = loaderData?.companies.nodes ?? []
-	const basePath = cityPath(city)
-	const path = page === 1 ? basePath : `${basePath}?page=${String(page)}`
+  const city = loaderData?.city ?? ''
+  const page = loaderData?.page ?? 1
+  const nodes = loaderData?.companies.nodes ?? []
+  const basePath = cityPath(city)
+  const path = page === 1 ? basePath : `${basePath}?page=${String(page)}`
 
-	const seo = headFor({
-		title: page === 1 ? `Shops in ${city}` : `Shops in ${city} — page ${String(page)}`,
-		description: `Every shop published in ${city}, with what they sell and where to find them.`,
-		path,
-		noIndex: page > 1
-	})
+  const seo = headFor({
+    title: page === 1 ? `Shops in ${city}` : `Shops in ${city} — page ${String(page)}`,
+    description: `Every shop published in ${city}, with what they sell and where to find them.`,
+    path,
+    noIndex: page > 1
+  })
 
-	const { prev, next } = pageLinks(basePath, page, loaderData?.companies.hasMore ?? false)
+  const { prev, next } = pageLinks(basePath, page, loaderData?.companies.hasMore ?? false)
 
-	return {
-		...seo,
-		links: [
-			...seo.links,
-			...(prev === undefined ? [] : [{ rel: 'prev', href: absoluteUrl(prev) }]),
-			...(next === undefined ? [] : [{ rel: 'next', href: absoluteUrl(next) }])
-		],
-		scripts: jsonLdScripts(
-			breadcrumbJsonLd(crumbsFor(city)),
-			itemListJsonLd(
-				nodes.map((company) => `/shop/${company.slug}`),
-				offsetOf(page)
-			)
-		)
-	}
+  return {
+    ...seo,
+    links: [
+      ...seo.links,
+      ...(prev === undefined ? [] : [{ rel: 'prev', href: absoluteUrl(prev) }]),
+      ...(next === undefined ? [] : [{ rel: 'next', href: absoluteUrl(next) }])
+    ],
+    scripts: jsonLdScripts(
+      breadcrumbJsonLd(crumbsFor(city)),
+      itemListJsonLd(
+        nodes.map((company) => `/shop/${company.slug}`),
+        offsetOf(page)
+      )
+    )
+  }
 }
 
 const ShopsCity = () => {
-	const { companies, city, page } = route.useLoaderData()
-	const { prev, next } = pageLinks(cityPath(city), page, companies.hasMore)
+  const { companies, city, page } = route.useLoaderData()
+  const { prev, next } = pageLinks(cityPath(city), page, companies.hasMore)
 
-	return (
-		<div className="mx-auto max-w-6xl px-4 py-8">
-			<Breadcrumbs crumbs={crumbsFor(city)} />
+  return (
+    <div className="mx-auto max-w-6xl px-4 py-8">
+      <Breadcrumbs crumbs={crumbsFor(city)} />
 
-			<h1 className="mt-4 text-3xl font-semibold text-palette-bg">Shops in {city}</h1>
-			<p className="mt-2 text-slate-600">{formatTotal(companies.total, companies.totalIsExact)} shops here.</p>
+      <h1 className="mt-4 text-3xl font-semibold text-palette-bg">Shops in {city}</h1>
+      <p className="mt-2 text-slate-600">{formatTotal(companies.total, companies.totalIsExact)} shops here.</p>
 
-			<div className="mt-6">
-				{companies.nodes.length === 0 ? (
-					<EmptyState title="No shops on this page" hint="Try the first page." />
-				) : (
-					<ShopGrid companies={companies.nodes} />
-				)}
-			</div>
+      <div className="mt-6">
+        {companies.nodes.length === 0 ? (
+          <EmptyState title="No shops on this page" hint="Try the first page." />
+        ) : (
+          <ShopGrid companies={companies.nodes} />
+        )}
+      </div>
 
-			<Pagination prev={prev} next={next} page={page} />
-		</div>
-	)
+      <Pagination prev={prev} next={next} page={page} />
+    </div>
+  )
 }
 
 export const shopsCityRouteOptions = {
-	validateSearch: searchSchema,
-	loaderDeps: ({ search }: { search: ShopsCitySearch }) => ({ page: pageNumber(search.page) }),
-	loader,
-	head,
-	component: ShopsCity
+  validateSearch: searchSchema,
+  loaderDeps: ({ search }: { search: ShopsCitySearch }) => ({ page: pageNumber(search.page) }),
+  loader,
+  head,
+  component: ShopsCity
 }

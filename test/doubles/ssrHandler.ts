@@ -12,7 +12,7 @@
  * its own making.
  */
 const handler = {
-	fetch: (request: Request): Response => new Response(`stub answered ${request.url}`)
+  fetch: (request: Request): Response => new Response(`stub answered ${request.url}`)
 }
 
 export default handler

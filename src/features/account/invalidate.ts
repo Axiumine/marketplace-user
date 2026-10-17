@@ -21,6 +21,6 @@ import { ENDPOINT } from '@/api/endpoints'
  * exception to remember.
  */
 export const CTX_ACCOUNT_WRITE: Partial<OperationContext> = Object.freeze({
-	url: ENDPOINT.userResource,
-	additionalTypenames: ['GraphQLUserMe']
+  url: ENDPOINT.userResource,
+  additionalTypenames: ['GraphQLUserMe']
 })

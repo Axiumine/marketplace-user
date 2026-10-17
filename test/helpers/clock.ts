@@ -3,6 +3,6 @@
  * racing the real one.
  */
 export const clock = (start = 0): { now: () => number; advance: (ms: number) => number } => {
-	let current = start
-	return { now: () => current, advance: (ms: number) => (current += ms) }
+  let current = start
+  return { now: () => current, advance: (ms: number) => (current += ms) }
 }

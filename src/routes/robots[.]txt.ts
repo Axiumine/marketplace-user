@@ -17,26 +17,26 @@ import { absoluteUrl } from '@/lib/seo'
  * followed.
  */
 const BODY = [
-	'User-agent: *',
-	'Disallow: /account',
-	'Disallow: /login',
-	'Disallow: /register',
-	'Disallow: /reset-password',
-	'',
-	`Sitemap: ${absoluteUrl('/sitemap.xml')}`,
-	''
+  'User-agent: *',
+  'Disallow: /account',
+  'Disallow: /login',
+  'Disallow: /register',
+  'Disallow: /reset-password',
+  '',
+  `Sitemap: ${absoluteUrl('/sitemap.xml')}`,
+  ''
 ].join('\n')
 
 export const Route = createFileRoute('/robots.txt')({
-	server: {
-		handlers: {
-			GET: () =>
-				new Response(BODY, {
-					headers: {
-						'content-type': 'text/plain; charset=utf-8',
-						'cache-control': 'public, max-age=0, s-maxage=3600, stale-while-revalidate=86400'
-					}
-				})
-		}
-	}
+  server: {
+    handlers: {
+      GET: () =>
+        new Response(BODY, {
+          headers: {
+            'content-type': 'text/plain; charset=utf-8',
+            'cache-control': 'public, max-age=0, s-maxage=3600, stale-while-revalidate=86400'
+          }
+        })
+    }
+  }
 })

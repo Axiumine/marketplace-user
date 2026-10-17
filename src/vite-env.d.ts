@@ -11,20 +11,20 @@
  * `process.env` in src/api/ssr.ts and never appears here.
  */
 interface ImportMetaEnv {
-	readonly VITE_GRAPHQL_ENDPOINT_PUBLIC_RESOURCE?: string
-	readonly VITE_GRAPHQL_ENDPOINT_PUBLIC_AUTHORIZATION?: string
-	readonly VITE_GRAPHQL_ENDPOINT_USER_AUTHENTICATED_AUTHORIZATION?: string
-	readonly VITE_GRAPHQL_ENDPOINT_USER_AUTHENTICATED_RESOURCE?: string
-	readonly VITE_GRAPHQL_ENDPOINT_LOGOUT?: string
-	readonly VITE_SITE_URL?: string
-	readonly VITE_TURNSTILE_SITE_KEY?: string
-	readonly VITE_MAP_STYLE_URL?: string
-	readonly VITE_PMTILES_URL?: string
-	readonly VITE_NOMINATIM_URL?: string
-	readonly VITE_SENTRY_DSN?: string
-	readonly VITE_SENTRY_ENVIRONMENT?: string
+  readonly VITE_GRAPHQL_ENDPOINT_PUBLIC_RESOURCE?: string
+  readonly VITE_GRAPHQL_ENDPOINT_PUBLIC_AUTHORIZATION?: string
+  readonly VITE_GRAPHQL_ENDPOINT_USER_AUTHENTICATED_AUTHORIZATION?: string
+  readonly VITE_GRAPHQL_ENDPOINT_USER_AUTHENTICATED_RESOURCE?: string
+  readonly VITE_GRAPHQL_ENDPOINT_LOGOUT?: string
+  readonly VITE_SITE_URL?: string
+  readonly VITE_TURNSTILE_SITE_KEY?: string
+  readonly VITE_MAP_STYLE_URL?: string
+  readonly VITE_PMTILES_URL?: string
+  readonly VITE_NOMINATIM_URL?: string
+  readonly VITE_SENTRY_DSN?: string
+  readonly VITE_SENTRY_ENVIRONMENT?: string
 }
 
 interface ImportMeta {
-	readonly env: ImportMetaEnv
+  readonly env: ImportMetaEnv
 }

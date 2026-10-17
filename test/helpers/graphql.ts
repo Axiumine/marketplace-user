@@ -12,43 +12,43 @@ import { vi } from 'vitest'
  * succeeds, the retry succeeds" and get exactly that sequence.
  */
 export interface GraphQLReply {
-	/** The `data` field of the response body. */
-	data?: unknown
-	/**
-	 * The `errors` field. Present means urql builds a `CombinedError`; the `status` below is what
-	 * `statusOf` reads off `error.response`, which is how the platform transports its 4xx vocabulary.
-	 */
-	errors?: readonly unknown[]
-	/** HTTP status. Defaults to 200. */
-	status?: number
-	/**
-	 * A raw response body, for the answer that is not a well-formed GraphQL envelope. Wins over `data`
-	 * and `errors`.
-	 *
-	 * `data` above cannot express "no `data` key at all": `JSON.stringify` writes `"data":null` for it,
-	 * and urql reports that as a `data` of `null` rather than of `undefined`. The two are different
-	 * failures — `null` is a resolver answering nothing, `undefined` is a body that is not a GraphQL
-	 * response — and `runQuery` has a branch for the second.
-	 */
-	body?: string
-	/** Never settles, pinning the operation at `fetching: true`. */
-	pending?: boolean
-	/** Rejects the request the way an offline browser does — no response, no status. */
-	networkError?: string
+  /** The `data` field of the response body. */
+  data?: unknown
+  /**
+   * The `errors` field. Present means urql builds a `CombinedError`; the `status` below is what
+   * `statusOf` reads off `error.response`, which is how the platform transports its 4xx vocabulary.
+   */
+  errors?: readonly unknown[]
+  /** HTTP status. Defaults to 200. */
+  status?: number
+  /**
+   * A raw response body, for the answer that is not a well-formed GraphQL envelope. Wins over `data`
+   * and `errors`.
+   *
+   * `data` above cannot express "no `data` key at all": `JSON.stringify` writes `"data":null` for it,
+   * and urql reports that as a `data` of `null` rather than of `undefined`. The two are different
+   * failures — `null` is a resolver answering nothing, `undefined` is a body that is not a GraphQL
+   * response — and `runQuery` has a branch for the second.
+   */
+  body?: string
+  /** Never settles, pinning the operation at `fetching: true`. */
+  pending?: boolean
+  /** Rejects the request the way an offline browser does — no response, no status. */
+  networkError?: string
 }
 
 export interface GraphQLCall {
-	readonly operationName: string
-	readonly variables: Record<string, unknown>
-	readonly url: string
-	readonly method: string
-	readonly authorization: string | null
-	readonly credentials: RequestCredentials | undefined
+  readonly operationName: string
+  readonly variables: Record<string, unknown>
+  readonly url: string
+  readonly method: string
+  readonly authorization: string | null
+  readonly credentials: RequestCredentials | undefined
 }
 
 export interface GraphQLStub {
-	/** Every request the code under test sent, in order. */
-	readonly calls: GraphQLCall[]
+  /** Every request the code under test sent, in order. */
+  readonly calls: GraphQLCall[]
 }
 
 /** A queue per operation name. A single reply is shorthand for a queue of one that repeats. */
@@ -69,69 +69,69 @@ export type GraphQLReplies = Record<string, GraphQLReply | readonly GraphQLReply
 export type RestHandler = (url: string, init: RequestInit | undefined) => Response | Promise<Response> | undefined
 
 const NEVER = new Promise<Response>(() => {
-	/* deliberately never settles */
+  /* deliberately never settles */
 })
 
 const headerOf = (init: RequestInit | undefined, name: string): string | null => {
-	const headers = init?.headers
-	if (headers === undefined) return null
-	if (headers instanceof Headers) return headers.get(name)
+  const headers = init?.headers
+  if (headers === undefined) return null
+  if (headers instanceof Headers) return headers.get(name)
 
-	const entries = Array.isArray(headers) ? headers : Object.entries(headers as Record<string, string>)
-	const found = entries.find(([key]) => key.toLowerCase() === name.toLowerCase())
-	return found?.[1] ?? null
+  const entries = Array.isArray(headers) ? headers : Object.entries(headers as Record<string, string>)
+  const found = entries.find(([key]) => key.toLowerCase() === name.toLowerCase())
+  return found?.[1] ?? null
 }
 
 const jsonResponse = (reply: GraphQLReply): Response =>
-	new Response(reply.body ?? JSON.stringify({ data: reply.data ?? null, errors: reply.errors }), {
-		status: reply.status ?? 200,
-		headers: { 'content-type': 'application/json' }
-	})
+  new Response(reply.body ?? JSON.stringify({ data: reply.data ?? null, errors: reply.errors }), {
+    status: reply.status ?? 200,
+    headers: { 'content-type': 'application/json' }
+  })
 
 /**
  * Replaces `globalThis.fetch` for the duration of the test. `unstubGlobals` in vitest.config.ts puts
  * the original back afterwards, so nothing has to be undone by hand.
  */
 export const stubGraphQL = (replies: GraphQLReplies, rest?: RestHandler): GraphQLStub => {
-	const queues = new Map<string, GraphQLReply[]>(
-		Object.entries(replies).map(([name, reply]) => [name, Array.isArray(reply) ? [...reply] : [reply as GraphQLReply]])
-	)
+  const queues = new Map<string, GraphQLReply[]>(
+    Object.entries(replies).map(([name, reply]) => [name, Array.isArray(reply) ? [...reply] : [reply as GraphQLReply]])
+  )
 
-	const calls: GraphQLCall[] = []
+  const calls: GraphQLCall[] = []
 
-	vi.stubGlobal('fetch', (input: RequestInfo | URL, init?: RequestInit) => {
-		const handled = rest?.(String(input), init)
-		if (handled !== undefined) return Promise.resolve(handled)
+  vi.stubGlobal('fetch', (input: RequestInfo | URL, init?: RequestInit) => {
+    const handled = rest?.(String(input), init)
+    if (handled !== undefined) return Promise.resolve(handled)
 
-		const body = JSON.parse(String(init?.body ?? '{}')) as { operationName?: string; variables?: Record<string, unknown> }
-		const operationName = body.operationName ?? '(anonymous)'
+    const body = JSON.parse(String(init?.body ?? '{}')) as { operationName?: string; variables?: Record<string, unknown> }
+    const operationName = body.operationName ?? '(anonymous)'
 
-		calls.push({
-			operationName,
-			variables: body.variables ?? {},
-			url: String(input),
-			method: init?.method ?? 'GET',
-			authorization: headerOf(init, 'authorization'),
-			credentials: init?.credentials
-		})
+    calls.push({
+      operationName,
+      variables: body.variables ?? {},
+      url: String(input),
+      method: init?.method ?? 'GET',
+      authorization: headerOf(init, 'authorization'),
+      credentials: init?.credentials
+    })
 
-		const queue = queues.get(operationName)
+    const queue = queues.get(operationName)
 
-		// A loud failure, not a default reply: an operation nobody expected is the interesting half of a
-		// regression, and answering it with an empty result hides it behind a rendering assertion.
-		if (queue === undefined) throw new Error(`No reply configured for operation «${operationName}»`)
+    // A loud failure, not a default reply: an operation nobody expected is the interesting half of a
+    // regression, and answering it with an empty result hides it behind a rendering assertion.
+    if (queue === undefined) throw new Error(`No reply configured for operation «${operationName}»`)
 
-		// The last reply in a queue repeats, so a test that does not care how many times a component
-		// refetches does not have to count.
-		const reply = queue.length > 1 ? (queue.shift() as GraphQLReply) : (queue[0] as GraphQLReply)
+    // The last reply in a queue repeats, so a test that does not care how many times a component
+    // refetches does not have to count.
+    const reply = queue.length > 1 ? (queue.shift() as GraphQLReply) : (queue[0] as GraphQLReply)
 
-		if (reply.pending === true) return NEVER
-		if (reply.networkError !== undefined) return Promise.reject(new Error(reply.networkError))
+    if (reply.pending === true) return NEVER
+    if (reply.networkError !== undefined) return Promise.reject(new Error(reply.networkError))
 
-		return Promise.resolve(jsonResponse(reply))
-	})
+    return Promise.resolve(jsonResponse(reply))
+  })
 
-	return { calls }
+  return { calls }
 }
 
 /**
@@ -141,10 +141,10 @@ export const stubGraphQL = (replies: GraphQLReplies, rest?: RestHandler): GraphQ
  * race, which `throwRefreshRaceRetry` raises directly rather than through `throwGraphQLError`.
  */
 export const graphQLError = (title: string, description?: string, status = 400, code?: string) => ({
-	message: title,
-	extensions: {
-		http: { status },
-		...(description === undefined ? {} : { description }),
-		...(code === undefined ? {} : { code })
-	}
+  message: title,
+  extensions: {
+    http: { status },
+    ...(description === undefined ? {} : { description }),
+    ...(code === undefined ? {} : { code })
+  }
 })

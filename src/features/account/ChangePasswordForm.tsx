@@ -34,84 +34,84 @@ import { CTX_ACCOUNT_WRITE } from './invalidate'
  * only a signed-in customer can reach — there is no account to enumerate, they already have one.
  */
 const schema = z
-	.object({
-		passwordOld: z.string().min(1, 'Enter your current password.'),
-		password: passwordSchema,
-		repeatPassword: z.string()
-	})
-	.superRefine(matchingPasswords)
+  .object({
+    passwordOld: z.string().min(1, 'Enter your current password.'),
+    password: passwordSchema,
+    repeatPassword: z.string()
+  })
+  .superRefine(matchingPasswords)
 
 type Values = z.infer<typeof schema>
 
 export const ChangePasswordForm = () => {
-	const [status, setStatus] = useState<{ readonly tone: 'ok' | 'error'; readonly message: string } | undefined>(undefined)
-	const [, submit] = useMutation(UserUpdatePwdDocument)
+  const [status, setStatus] = useState<{ readonly tone: 'ok' | 'error'; readonly message: string } | undefined>(undefined)
+  const [, submit] = useMutation(UserUpdatePwdDocument)
 
-	const {
-		register,
-		handleSubmit,
-		reset,
-		formState: { errors, isSubmitting }
-	} = useForm<Values>({ resolver: zodResolver(schema) })
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting }
+  } = useForm<Values>({ resolver: zodResolver(schema) })
 
-	const onSubmit = handleSubmit(async (values) => {
-		setStatus(undefined)
+  const onSubmit = handleSubmit(async (values) => {
+    setStatus(undefined)
 
-		const result = await submit({ passwordOld: values.passwordOld, passwordNew: values.password }, CTX_ACCOUNT_WRITE)
+    const result = await submit({ passwordOld: values.passwordOld, passwordNew: values.password }, CTX_ACCOUNT_WRITE)
 
-		// `dataOf` and not a bare `result.error` test: a `{"data": null}` envelope carries no error at all, and
-		// reporting a password change that never happened clears the three fields that prove what was typed.
-		if (dataOf(result) === undefined) {
-			setStatus({ tone: 'error', message: messageOf(result.error) })
-			return
-		}
+    // `dataOf` and not a bare `result.error` test: a `{"data": null}` envelope carries no error at all, and
+    // reporting a password change that never happened clears the three fields that prove what was typed.
+    if (dataOf(result) === undefined) {
+      setStatus({ tone: 'error', message: messageOf(result.error) })
+      return
+    }
 
-		// Cleared on success only. After a failure the fields keep what was typed, because the likeliest
-		// cause is a mistyped *old* password and retyping all three to fix one of them is punishment.
-		reset({ passwordOld: '', password: '', repeatPassword: '' })
-		setStatus({ tone: 'ok', message: 'Your password has been changed.' })
-	})
+    // Cleared on success only. After a failure the fields keep what was typed, because the likeliest
+    // cause is a mistyped *old* password and retyping all three to fix one of them is punishment.
+    reset({ passwordOld: '', password: '', repeatPassword: '' })
+    setStatus({ tone: 'ok', message: 'Your password has been changed.' })
+  })
 
-	return (
-		<form onSubmit={onSubmit} noValidate className="flex max-w-md flex-col gap-4">
-			<TextField
-				{...register('passwordOld')}
-				label="Current password"
-				type="password"
-				autoComplete="current-password"
-				error={errors.passwordOld?.message}
-			/>
+  return (
+    <form onSubmit={onSubmit} noValidate className="flex max-w-md flex-col gap-4">
+      <TextField
+        {...register('passwordOld')}
+        label="Current password"
+        type="password"
+        autoComplete="current-password"
+        error={errors.passwordOld?.message}
+      />
 
-			<TextField
-				{...register('password')}
-				label="New password"
-				type="password"
-				autoComplete="new-password"
-				hint={PASSWORD_HINT}
-				error={errors.password?.message}
-			/>
+      <TextField
+        {...register('password')}
+        label="New password"
+        type="password"
+        autoComplete="new-password"
+        hint={PASSWORD_HINT}
+        error={errors.password?.message}
+      />
 
-			<TextField
-				{...register('repeatPassword')}
-				label="Repeat new password"
-				type="password"
-				autoComplete="new-password"
-				error={errors.repeatPassword?.message}
-			/>
+      <TextField
+        {...register('repeatPassword')}
+        label="Repeat new password"
+        type="password"
+        autoComplete="new-password"
+        error={errors.repeatPassword?.message}
+      />
 
-			{/*
-			 * ⚠️ Rendered only once there is a status, rather than always with an invented fallback tone. The
-			 * tone of a status that does not exist is not a thing — a `?? 'error'` here reads as "failures by
-			 * default", which is both wrong and unobservable, since `FormStatus` renders nothing without a
-			 * message anyway. The live region it needs is the `<form>` around it, which never unmounts.
-			 */}
-			{status !== undefined && <FormStatus tone={status.tone} message={status.message} />}
+      {/*
+       * ⚠️ Rendered only once there is a status, rather than always with an invented fallback tone. The
+       * tone of a status that does not exist is not a thing — a `?? 'error'` here reads as "failures by
+       * default", which is both wrong and unobservable, since `FormStatus` renders nothing without a
+       * message anyway. The live region it needs is the `<form>` around it, which never unmounts.
+       */}
+      {status !== undefined && <FormStatus tone={status.tone} message={status.message} />}
 
-			<div>
-				<SubmitButton busy={isSubmitting} busyLabel="Saving…">
-					Change password
-				</SubmitButton>
-			</div>
-		</form>
-	)
+      <div>
+        <SubmitButton busy={isSubmitting} busyLabel="Saving…">
+          Change password
+        </SubmitButton>
+      </div>
+    </form>
+  )
 }

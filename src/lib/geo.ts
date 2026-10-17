@@ -20,19 +20,19 @@ import { isFiniteNumber } from '@/lib/number'
  * with a map of the wrong place.
  */
 export const toLngLat = (coordinates: readonly number[] | null | undefined): readonly [number, number] | undefined => {
-	if (coordinates === null || coordinates === undefined) return undefined
+  if (coordinates === null || coordinates === undefined) return undefined
 
-	const [lng, lat] = coordinates
+  const [lng, lat] = coordinates
 
-	// One check, not two. This used to be a `typeof lng !== 'number'` pair followed by a
-	// `Number.isFinite` pair, and the first pair was unreachable in the only sense that matters:
-	// `Number.isFinite` does not coerce, so every value the `typeof` test rejected was rejected a line
-	// later anyway. It existed to narrow `number | undefined` for the compiler, which `isFiniteNumber`
-	// now does — see src/lib/number.ts. A branch no input can distinguish is a branch no test can cover
-	// and no mutant can be killed on.
-	if (!isFiniteNumber(lng) || !isFiniteNumber(lat)) return undefined
+  // One check, not two. This used to be a `typeof lng !== 'number'` pair followed by a
+  // `Number.isFinite` pair, and the first pair was unreachable in the only sense that matters:
+  // `Number.isFinite` does not coerce, so every value the `typeof` test rejected was rejected a line
+  // later anyway. It existed to narrow `number | undefined` for the compiler, which `isFiniteNumber`
+  // now does — see src/lib/number.ts. A branch no input can distinguish is a branch no test can cover
+  // and no mutant can be killed on.
+  if (!isFiniteNumber(lng) || !isFiniteNumber(lat)) return undefined
 
-	return [lng, lat]
+  return [lng, lat]
 }
 
 /**

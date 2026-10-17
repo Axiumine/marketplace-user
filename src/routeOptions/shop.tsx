@@ -35,7 +35,7 @@ const SHOP_ZOOM = 15
 const MAX_PAGE = maxPageFor(10_000)
 
 const searchSchema = z.object({
-	page: z.coerce.number().int().min(1).catch(1).optional()
+  page: z.coerce.number().int().min(1).catch(1).optional()
 })
 
 export type ShopSearch = z.infer<typeof searchSchema>
@@ -46,151 +46,151 @@ export type ShopSearch = z.infer<typeof searchSchema>
  * have two lists. Duplicating them is how a route ends up telling a crawler one path and a visitor another.
  */
 const crumbsFor = (company: { readonly publicName: string; readonly slug: string }) => [
-	{ name: 'Home', path: '/' },
-	{ name: 'Shops', path: '/shops' },
-	{ name: company.publicName, path: `/shop/${company.slug}` }
+  { name: 'Home', path: '/' },
+  { name: 'Shops', path: '/shops' },
+  { name: company.publicName, path: `/shop/${company.slug}` }
 ]
 
 const loader = async ({
-	context,
-	params,
-	deps
+  context,
+  params,
+  deps
 }: {
-	context: RouterContext
-	params: { slug: string }
-	deps: { page: number }
+  context: RouterContext
+  params: { slug: string }
+  deps: { page: number }
 }) => {
-	const page = pageNumber(deps.page)
+  const page = pageNumber(deps.page)
 
-	// ⚠️ Ahead of the shop lookup, and cheaper for it: a page this deep can never be answered no matter
-	// which shop it names, so there is nothing the company query could still be worth here. Left unchecked,
-	// `offsetOf(page)` would reach `items(companySlug:)` past its own cap and the backend throws — see
-	// `MAX_PAGE`.
-	if (page > MAX_PAGE) throw notFound()
+  // ⚠️ Ahead of the shop lookup, and cheaper for it: a page this deep can never be answered no matter
+  // which shop it names, so there is nothing the company query could still be worth here. Left unchecked,
+  // `offsetOf(page)` would reach `items(companySlug:)` past its own cap and the backend throws — see
+  // `MAX_PAGE`.
+  if (page > MAX_PAGE) throw notFound()
 
-	// Sequential on purpose, unlike the home page's pair: the item query is pointless if the shop does
-	// not exist, and firing both would spend a text-index walk on a 404 that a crawler can request as
-	// often as it likes.
-	const shop = await runQuery(context.gql, CompanyBySlugDocument, { slug: params.slug })
-	const company = shop.companyBySlug
-	if (company === null || company === undefined) throw notFound()
+  // Sequential on purpose, unlike the home page's pair: the item query is pointless if the shop does
+  // not exist, and firing both would spend a text-index walk on a 404 that a crawler can request as
+  // often as it likes.
+  const shop = await runQuery(context.gql, CompanyBySlugDocument, { slug: params.slug })
+  const company = shop.companyBySlug
+  if (company === null || company === undefined) throw notFound()
 
-	const items = await runQuery(context.gql, ItemsDocument, {
-		companySlug: company.slug,
-		limit: PAGE_SIZE,
-		offset: offsetOf(page)
-	})
+  const items = await runQuery(context.gql, ItemsDocument, {
+    companySlug: company.slug,
+    limit: PAGE_SIZE,
+    offset: offsetOf(page)
+  })
 
-	return { company, items: items.items, page }
+  return { company, items: items.items, page }
 }
 
 type LoaderData = Awaited<ReturnType<typeof loader>>
 
 const head = ({ loaderData }: { loaderData?: LoaderData }) => {
-	// The whole object is the guard, not `loaderData?.company`: the loader throws `notFound()` on a missing
-	// shop, so a `loaderData` that exists always carries one and the per-field fallbacks below would be
-	// branches no request can take.
-	if (loaderData === undefined) return headFor({ title: 'Shop', description: '', path: '/shops' })
+  // The whole object is the guard, not `loaderData?.company`: the loader throws `notFound()` on a missing
+  // shop, so a `loaderData` that exists always carries one and the per-field fallbacks below would be
+  // branches no request can take.
+  if (loaderData === undefined) return headFor({ title: 'Shop', description: '', path: '/shops' })
 
-	const { company, page } = loaderData
-	const basePath = `/shop/${company.slug}`
-	const path = page === 1 ? basePath : `${basePath}?page=${String(page)}`
-	const where = `${company.address.street}, ${company.address.postalCode} ${company.address.city}`
+  const { company, page } = loaderData
+  const basePath = `/shop/${company.slug}`
+  const path = page === 1 ? basePath : `${basePath}?page=${String(page)}`
+  const where = `${company.address.street}, ${company.address.postalCode} ${company.address.city}`
 
-	const seo = headFor({
-		title: page === 1 ? company.publicName : `${company.publicName} — page ${String(page)}`,
-		// The address is in the description because that is the part of the snippet a person scans for
-		// when the query was local. The shop's own description follows it when there is one.
-		description: truncate(company.description ? `${where}. ${company.description}` : where),
-		path,
-		noIndex: page > 1
-	})
+  const seo = headFor({
+    title: page === 1 ? company.publicName : `${company.publicName} — page ${String(page)}`,
+    // The address is in the description because that is the part of the snippet a person scans for
+    // when the query was local. The shop's own description follows it when there is one.
+    description: truncate(company.description ? `${where}. ${company.description}` : where),
+    path,
+    noIndex: page > 1
+  })
 
-	const { prev, next } = pageLinks(basePath, page, loaderData.items.hasMore)
+  const { prev, next } = pageLinks(basePath, page, loaderData.items.hasMore)
 
-	return {
-		...seo,
-		links: [
-			...seo.links,
-			...(prev === undefined ? [] : [{ rel: 'prev', href: absoluteUrl(prev) }]),
-			...(next === undefined ? [] : [{ rel: 'next', href: absoluteUrl(next) }])
-		],
-		scripts: jsonLdScripts(
-			storeJsonLd(company),
-			breadcrumbJsonLd(crumbsFor(company)),
-			itemListJsonLd(
-				loaderData.items.nodes.map((item) => `/shop/${company.slug}/item/${item.slug}`),
-				offsetOf(page)
-			)
-		)
-	}
+  return {
+    ...seo,
+    links: [
+      ...seo.links,
+      ...(prev === undefined ? [] : [{ rel: 'prev', href: absoluteUrl(prev) }]),
+      ...(next === undefined ? [] : [{ rel: 'next', href: absoluteUrl(next) }])
+    ],
+    scripts: jsonLdScripts(
+      storeJsonLd(company),
+      breadcrumbJsonLd(crumbsFor(company)),
+      itemListJsonLd(
+        loaderData.items.nodes.map((item) => `/shop/${company.slug}/item/${item.slug}`),
+        offsetOf(page)
+      )
+    )
+  }
 }
 
 const Shop = () => {
-	const { company, items, page } = route.useLoaderData()
-	const { prev, next } = pageLinks(`/shop/${company.slug}`, page, items.hasMore)
+  const { company, items, page } = route.useLoaderData()
+  const { prev, next } = pageLinks(`/shop/${company.slug}`, page, items.hasMore)
 
-	// `undefined` covers both "the company has no position" and "it has one that is not a plottable pair".
-	// Both render the page without a map, which is the right outcome for each.
-	const center = toLngLat(company.address.position?.coordinates)
-	const description = company.description ?? ''
+  // `undefined` covers both "the company has no position" and "it has one that is not a plottable pair".
+  // Both render the page without a map, which is the right outcome for each.
+  const center = toLngLat(company.address.position?.coordinates)
+  const description = company.description ?? ''
 
-	return (
-		<div className="mx-auto max-w-6xl px-4 py-8">
-			<Breadcrumbs crumbs={crumbsFor(company)} />
+  return (
+    <div className="mx-auto max-w-6xl px-4 py-8">
+      <Breadcrumbs crumbs={crumbsFor(company)} />
 
-			<h1 className="mt-4 text-3xl font-semibold text-palette-bg">{company.publicName}</h1>
+      <h1 className="mt-4 text-3xl font-semibold text-palette-bg">{company.publicName}</h1>
 
-			<address className="mt-2 not-italic text-slate-600">
-				{company.address.street}
-				<br />
-				{company.address.postalCode} {company.address.city} ({company.address.province})
-			</address>
+      <address className="mt-2 not-italic text-slate-600">
+        {company.address.street}
+        <br />
+        {company.address.postalCode} {company.address.city} ({company.address.province})
+      </address>
 
-			{/* Coalesced to a string first: `description` is nullable on the wire *and* optional in the type, so
-			    testing it three ways spells out two branches that no request can tell apart. One comparison. */}
-			{description !== '' && <p className="mt-4 max-w-3xl text-slate-700">{description}</p>}
+      {/* Coalesced to a string first: `description` is nullable on the wire *and* optional in the type, so
+          testing it three ways spells out two branches that no request can tell apart. One comparison. */}
+      {description !== '' && <p className="mt-4 max-w-3xl text-slate-700">{description}</p>}
 
-			{center !== undefined && (
-				<div className="mt-6">
-					<MapIsland
-						center={center}
-						zoom={SHOP_ZOOM}
-						initialPins={[
-							{
-								_id: company._id,
-								publicName: company.publicName,
-								slug: company.slug,
-								coordinates: center
-							}
-						]}
-					/>
-				</div>
-			)}
+      {center !== undefined && (
+        <div className="mt-6">
+          <MapIsland
+            center={center}
+            zoom={SHOP_ZOOM}
+            initialPins={[
+              {
+                _id: company._id,
+                publicName: company.publicName,
+                slug: company.slug,
+                coordinates: center
+              }
+            ]}
+          />
+        </div>
+      )}
 
-			<section aria-label="Items" className="mt-8">
-				<h2 className="text-xl font-semibold text-palette-bg">
-					Items <span className="text-slate-500">({formatTotal(items.total, items.totalIsExact)})</span>
-				</h2>
+      <section aria-label="Items" className="mt-8">
+        <h2 className="text-xl font-semibold text-palette-bg">
+          Items <span className="text-slate-500">({formatTotal(items.total, items.totalIsExact)})</span>
+        </h2>
 
-				<div className="mt-4">
-					{items.nodes.length === 0 ? (
-						<EmptyState title="This shop has not published any item yet" />
-					) : (
-						<ItemGrid items={items.nodes} />
-					)}
-				</div>
+        <div className="mt-4">
+          {items.nodes.length === 0 ? (
+            <EmptyState title="This shop has not published any item yet" />
+          ) : (
+            <ItemGrid items={items.nodes} />
+          )}
+        </div>
 
-				<Pagination prev={prev} next={next} page={page} />
-			</section>
-		</div>
-	)
+        <Pagination prev={prev} next={next} page={page} />
+      </section>
+    </div>
+  )
 }
 
 export const shopRouteOptions = {
-	validateSearch: searchSchema,
-	loaderDeps: ({ search }: { search: ShopSearch }) => ({ page: pageNumber(search.page) }),
-	loader,
-	head,
-	component: Shop
+  validateSearch: searchSchema,
+  loaderDeps: ({ search }: { search: ShopSearch }) => ({ page: pageNumber(search.page) }),
+  loader,
+  head,
+  component: Shop
 }

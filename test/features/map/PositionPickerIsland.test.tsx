@@ -16,31 +16,31 @@ import type { PositionPickerProps } from '@/features/map/PositionPicker'
  * does not exist yet at the moment the factory runs.
  */
 vi.mock('@/features/map/PositionPicker', async () => {
-	const { createElement } = await import('react')
+  const { createElement } = await import('react')
 
-	return {
-		default: (props: PositionPickerProps) =>
-			createElement(
-				'button',
-				{
-					'data-testid': 'position-picker',
-					type: 'button',
-					onClick: () => {
-						props.onPick([-71.09, 42.34])
-					}
-				},
-				props.position === undefined ? 'nowhere' : `${String(props.position[0])},${String(props.position[1])}`
-			)
-	}
+  return {
+    default: (props: PositionPickerProps) =>
+      createElement(
+        'button',
+        {
+          'data-testid': 'position-picker',
+          type: 'button',
+          onClick: () => {
+            props.onPick([-71.09, 42.34])
+          }
+        },
+        props.position === undefined ? 'nowhere' : `${String(props.position[0])},${String(props.position[1])}`
+      )
+  }
 })
 
 const AT: readonly [number, number] = [-71.0589, 42.3601]
 
 const placeholderOf = (container: HTMLElement): HTMLElement => {
-	const placeholder = container.querySelector('[aria-hidden="true"]')
-	if (placeholder === null) throw new Error('No placeholder rendered')
+  const placeholder = container.querySelector('[aria-hidden="true"]')
+  if (placeholder === null) throw new Error('No placeholder rendered')
 
-	return placeholder as HTMLElement
+  return placeholder as HTMLElement
 }
 
 /**
@@ -51,7 +51,7 @@ const placeholderOf = (container: HTMLElement): HTMLElement => {
  * teaches people to ignore warnings.
  */
 const flush = async (): Promise<void> => {
-	await act(async () => {})
+  await act(async () => {})
 }
 
 let PositionPickerIsland: typeof import('@/features/map/PositionPickerIsland').PositionPickerIsland
@@ -62,92 +62,92 @@ let PositionPickerIsland: typeof import('@/features/map/PositionPickerIsland').P
  * Every placeholder assertion after the first would then pass or fail on test order.
  */
 beforeEach(async () => {
-	vi.resetModules()
-	;({ PositionPickerIsland } = await import('@/features/map/PositionPickerIsland'))
+  vi.resetModules()
+  ;({ PositionPickerIsland } = await import('@/features/map/PositionPickerIsland'))
 })
 
 describe('PositionPickerIsland', () => {
-	/*
-	 * ⚠️ The assertion this component exists for. A fallback of `null` collapses to zero height, and the map
-	 * shoving the fields and the save button down the page at hydration is exactly what Cumulative Layout
-	 * Shift measures.
-	 */
-	it('holds the map’s final height open before the map is there', async () => {
-		const { container } = render(<PositionPickerIsland onPick={vi.fn()} />)
+  /*
+   * ⚠️ The assertion this component exists for. A fallback of `null` collapses to zero height, and the map
+   * shoving the fields and the save button down the page at hydration is exactly what Cumulative Layout
+   * Shift measures.
+   */
+  it('holds the map’s final height open before the map is there', async () => {
+    const { container } = render(<PositionPickerIsland onPick={vi.fn()} />)
 
-		expect(placeholderOf(container)).toHaveStyle({ height: 'var(--map-pick-height)' })
+    expect(placeholderOf(container)).toHaveStyle({ height: 'var(--map-pick-height)' })
 
-		await flush()
-	})
+    await flush()
+  })
 
-	it('renders the placeholder as a full-width box rather than as nothing', async () => {
-		const { container } = render(<PositionPickerIsland onPick={vi.fn()} />)
+  it('renders the placeholder as a full-width box rather than as nothing', async () => {
+    const { container } = render(<PositionPickerIsland onPick={vi.fn()} />)
 
-		expect(placeholderOf(container)).toHaveClass('w-full')
+    expect(placeholderOf(container)).toHaveClass('w-full')
 
-		await flush()
-	})
+    await flush()
+  })
 
-	// The placeholder is furniture: it says nothing, does nothing and is not the map. Announcing it would
-	// have a screen reader stop at a decorative box in the middle of a form.
-	it('hides the placeholder from assistive technology', async () => {
-		const { container } = render(<PositionPickerIsland onPick={vi.fn()} />)
+  // The placeholder is furniture: it says nothing, does nothing and is not the map. Announcing it would
+  // have a screen reader stop at a decorative box in the middle of a form.
+  it('hides the placeholder from assistive technology', async () => {
+    const { container } = render(<PositionPickerIsland onPick={vi.fn()} />)
 
-		expect(placeholderOf(container)).toBeEmptyDOMElement()
+    expect(placeholderOf(container)).toBeEmptyDOMElement()
 
-		await flush()
-	})
+    await flush()
+  })
 
-	it('swaps the map in once its chunk has arrived', async () => {
-		render(<PositionPickerIsland onPick={vi.fn()} />)
+  it('swaps the map in once its chunk has arrived', async () => {
+    render(<PositionPickerIsland onPick={vi.fn()} />)
 
-		expect(await screen.findByTestId('position-picker')).toBeInTheDocument()
-	})
+    expect(await screen.findByTestId('position-picker')).toBeInTheDocument()
+  })
 
-	it('takes the placeholder away once the map is mounted', async () => {
-		const { container } = render(<PositionPickerIsland onPick={vi.fn()} />)
+  it('takes the placeholder away once the map is mounted', async () => {
+    const { container } = render(<PositionPickerIsland onPick={vi.fn()} />)
 
-		await screen.findByTestId('position-picker')
+    await screen.findByTestId('position-picker')
 
-		expect(container.querySelector('[aria-hidden="true"]')).toBeNull()
-	})
+    expect(container.querySelector('[aria-hidden="true"]')).toBeNull()
+  })
 
-	it('hands the map the position it was given', async () => {
-		render(<PositionPickerIsland position={AT} onPick={vi.fn()} />)
+  it('hands the map the position it was given', async () => {
+    render(<PositionPickerIsland position={AT} onPick={vi.fn()} />)
 
-		expect(await screen.findByTestId('position-picker')).toHaveTextContent('-71.0589,42.3601')
-	})
+    expect(await screen.findByTestId('position-picker')).toHaveTextContent('-71.0589,42.3601')
+  })
 
-	it('hands the map nothing when the address has no position', async () => {
-		render(<PositionPickerIsland onPick={vi.fn()} />)
+  it('hands the map nothing when the address has no position', async () => {
+    render(<PositionPickerIsland onPick={vi.fn()} />)
 
-		expect(await screen.findByTestId('position-picker')).toHaveTextContent('nowhere')
-	})
+    expect(await screen.findByTestId('position-picker')).toHaveTextContent('nowhere')
+  })
 
-	// The island is a pass-through in both directions: the point the map produces has to reach the form, or
-	// nothing a customer does on the map is ever saved.
-	it('hands what the map picked back to the form', async () => {
-		const onPick = vi.fn()
-		render(<PositionPickerIsland onPick={onPick} />)
+  // The island is a pass-through in both directions: the point the map produces has to reach the form, or
+  // nothing a customer does on the map is ever saved.
+  it('hands what the map picked back to the form', async () => {
+    const onPick = vi.fn()
+    render(<PositionPickerIsland onPick={onPick} />)
 
-		await userEvent.click(await screen.findByTestId('position-picker'))
+    await userEvent.click(await screen.findByTestId('position-picker'))
 
-		expect(onPick).toHaveBeenCalledWith([-71.09, 42.34])
-	})
+    expect(onPick).toHaveBeenCalledWith([-71.09, 42.34])
+  })
 
-	it('matches the snapshot before the map has arrived', async () => {
-		const { container } = render(<PositionPickerIsland position={AT} onPick={vi.fn()} />)
+  it('matches the snapshot before the map has arrived', async () => {
+    const { container } = render(<PositionPickerIsland position={AT} onPick={vi.fn()} />)
 
-		expect(container.firstChild).toMatchSnapshot()
+    expect(container.firstChild).toMatchSnapshot()
 
-		await flush()
-	})
+    await flush()
+  })
 
-	it('matches the snapshot once the map has swapped in', async () => {
-		const { container } = render(<PositionPickerIsland position={AT} onPick={vi.fn()} />)
+  it('matches the snapshot once the map has swapped in', async () => {
+    const { container } = render(<PositionPickerIsland position={AT} onPick={vi.fn()} />)
 
-		await screen.findByTestId('position-picker')
+    await screen.findByTestId('position-picker')
 
-		expect(container.firstChild).toMatchSnapshot()
-	})
+    expect(container.firstChild).toMatchSnapshot()
+  })
 })

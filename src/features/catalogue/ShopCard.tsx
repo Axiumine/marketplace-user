@@ -4,18 +4,18 @@ import { formatDistance } from '@/lib/format'
 import { truncate } from '@/lib/seo'
 
 export interface ShopCardAddress {
-	readonly street: string
-	readonly postalCode: string
-	readonly city: string
-	readonly province: string
+  readonly street: string
+  readonly postalCode: string
+  readonly city: string
+  readonly province: string
 }
 
 export interface ShopCardCompany {
-	readonly _id: string
-	readonly publicName: string
-	readonly slug: string
-	readonly description?: string | null
-	readonly address: ShopCardAddress
+  readonly _id: string
+  readonly publicName: string
+  readonly slug: string
+  readonly description?: string | null
+  readonly address: ShopCardAddress
 }
 
 /**
@@ -31,30 +31,30 @@ export interface ShopCardCompany {
  * ends up with three `<h1>`s.
  */
 export const ShopCard = ({
-	company,
-	distanceMeters
+  company,
+  distanceMeters
 }: {
-	readonly company: ShopCardCompany
-	readonly distanceMeters?: number | null
+  readonly company: ShopCardCompany
+  readonly distanceMeters?: number | null
 }) => {
-	const distance = formatDistance(distanceMeters)
+  const distance = formatDistance(distanceMeters)
 
-	return (
-		<article className="h-full">
-			<Link
-				to="/shop/$slug"
-				params={{ slug: company.slug }}
-				className="flex h-full flex-col gap-2 rounded-box border border-slate-200 bg-white p-4 hover:border-slate-400"
-			>
-				<h2 className="text-base font-semibold text-palette-bg">{company.publicName}</h2>
-				<p className="text-sm text-slate-500">
-					{company.address.street}, {company.address.postalCode} {company.address.city} ({company.address.province})
-				</p>
-				{company.description !== undefined && company.description !== null && company.description !== '' && (
-					<p className="text-sm text-slate-600">{truncate(company.description, 120)}</p>
-				)}
-				{distance !== null && <p className="mt-auto text-sm font-medium text-third">{distance} away</p>}
-			</Link>
-		</article>
-	)
+  return (
+    <article className="h-full">
+      <Link
+        to="/shop/$slug"
+        params={{ slug: company.slug }}
+        className="flex h-full flex-col gap-2 rounded-box border border-slate-200 bg-white p-4 hover:border-slate-400"
+      >
+        <h2 className="text-base font-semibold text-palette-bg">{company.publicName}</h2>
+        <p className="text-sm text-slate-500">
+          {company.address.street}, {company.address.postalCode} {company.address.city} ({company.address.province})
+        </p>
+        {company.description !== undefined && company.description !== null && company.description !== '' && (
+          <p className="text-sm text-slate-600">{truncate(company.description, 120)}</p>
+        )}
+        {distance !== null && <p className="mt-auto text-sm font-medium text-third">{distance} away</p>}
+      </Link>
+    </article>
+  )
 }

@@ -11,64 +11,64 @@ import { CUSTOMER_EMAIL } from './render'
  * branches the account screens spend most of their code on.
  */
 export interface AddressFixture {
-	_id: string
-	label: string | null
-	street: string
-	postalCode: string
-	city: string
-	province: string
-	/**
-	 * `coordinates` is a plain array and not a `[number, number]` tuple, matching the schema rather than the
-	 * intent: `[Float!]!` is what the resolver declares, so a one-entry position is a shape the wire can
-	 * carry and the screens have to survive. A tuple here would make that fixture unwritable.
-	 */
-	position: { type: 'Point'; coordinates: number[] } | null
+  _id: string
+  label: string | null
+  street: string
+  postalCode: string
+  city: string
+  province: string
+  /**
+   * `coordinates` is a plain array and not a `[number, number]` tuple, matching the schema rather than the
+   * intent: `[Float!]!` is what the resolver declares, so a one-entry position is a shape the wire can
+   * carry and the screens have to survive. A tuple here would make that fixture unwritable.
+   */
+  position: { type: 'Point'; coordinates: number[] } | null
 }
 
 /** ⚠️ `[longitude, latitude]` — GeoJSON order, the reverse of how a map UI and every human says it. */
 export const HOME_ADDRESS: AddressFixture = {
-	_id: '66b0000000000000000000a1',
-	label: 'Home',
-	street: '1 Main Street',
-	postalCode: '02108',
-	city: 'Boston',
-	province: 'MA',
-	position: { type: 'Point', coordinates: [-71.0589, 42.3601] }
+  _id: '66b0000000000000000000a1',
+  label: 'Home',
+  street: '1 Main Street',
+  postalCode: '02108',
+  city: 'Boston',
+  province: 'MA',
+  position: { type: 'Point', coordinates: [-71.0589, 42.3601] }
 }
 
 /** Hand-typed: no geocoder match, so no position. It is still a saved address. */
 export const WORK_ADDRESS: AddressFixture = {
-	_id: '66b0000000000000000000a2',
-	label: null,
-	street: '5 Oak Street',
-	postalCode: '02115',
-	city: 'Boston',
-	province: 'MA',
-	position: null
+  _id: '66b0000000000000000000a2',
+  label: null,
+  street: '5 Oak Street',
+  postalCode: '02115',
+  city: 'Boston',
+  province: 'MA',
+  position: null
 }
 
 export interface MeFixture {
-	_id: string
-	email: string
-	registeredAt: string
-	defaultAddress: string | null
-	personalData: {
-		firstName: string
-		lastName: string
-		birth: { date: string } | null
-		contacts: { mobile: string | null; landline: string | null; email: string | null } | null
-	} | null
-	addresses: AddressFixture[]
+  _id: string
+  email: string
+  registeredAt: string
+  defaultAddress: string | null
+  personalData: {
+    firstName: string
+    lastName: string
+    birth: { date: string } | null
+    contacts: { mobile: string | null; landline: string | null; email: string | null } | null
+  } | null
+  addresses: AddressFixture[]
 }
 
 /** A fresh account: confirmed email, nothing else filled in yet. */
 export const FRESH_ME: MeFixture = {
-	_id: '66b0000000000000000000c1',
-	email: CUSTOMER_EMAIL,
-	registeredAt: '2026-08-05T09:00:00.000Z',
-	defaultAddress: null,
-	personalData: null,
-	addresses: []
+  _id: '66b0000000000000000000c1',
+  email: CUSTOMER_EMAIL,
+  registeredAt: '2026-08-05T09:00:00.000Z',
+  defaultAddress: null,
+  personalData: null,
+  addresses: []
 }
 
 /**
@@ -80,21 +80,21 @@ export const FRESH_ME: MeFixture = {
  * that optional-chains only the first hop throws on this account while working perfectly on both others.
  */
 export const NAMED_ONLY_ME: MeFixture = {
-	...FRESH_ME,
-	personalData: { firstName: 'Julia', lastName: 'Rivers', birth: null, contacts: null }
+  ...FRESH_ME,
+  personalData: { firstName: 'Julia', lastName: 'Rivers', birth: null, contacts: null }
 }
 
 /** An account in use: details filled in, two addresses, the first of them the default. */
 export const FULL_ME: MeFixture = {
-	...FRESH_ME,
-	defaultAddress: HOME_ADDRESS._id,
-	personalData: {
-		firstName: 'Julia',
-		lastName: 'Rivers',
-		birth: { date: '1990-04-17T00:00:00.000Z' },
-		contacts: { mobile: '3331234567', landline: null, email: 'orders@marketplace.it' }
-	},
-	addresses: [HOME_ADDRESS, WORK_ADDRESS]
+  ...FRESH_ME,
+  defaultAddress: HOME_ADDRESS._id,
+  personalData: {
+    firstName: 'Julia',
+    lastName: 'Rivers',
+    birth: { date: '1990-04-17T00:00:00.000Z' },
+    contacts: { mobile: '3331234567', landline: null, email: 'orders@marketplace.it' }
+  },
+  addresses: [HOME_ADDRESS, WORK_ADDRESS]
 }
 
 /**
@@ -105,16 +105,16 @@ export const FULL_ME: MeFixture = {
  * about the cap; the four filler addresses exist only to reach it.
  */
 export const CAPPED_ME: MeFixture = {
-	...FULL_ME,
-	addresses: [
-		HOME_ADDRESS,
-		WORK_ADDRESS,
-		...Array.from({ length: 4 }, (_, index) => ({
-			...WORK_ADDRESS,
-			_id: `66b0000000000000000000b${index + 1}`,
-			street: `${index + 1} Elm Street`
-		}))
-	]
+  ...FULL_ME,
+  addresses: [
+    HOME_ADDRESS,
+    WORK_ADDRESS,
+    ...Array.from({ length: 4 }, (_, index) => ({
+      ...WORK_ADDRESS,
+      _id: `66b0000000000000000000b${index + 1}`,
+      street: `${index + 1} Elm Street`
+    }))
+  ]
 }
 
 export const meReply = (me: MeFixture = FULL_ME): GraphQLReplies => ({ Me: { data: { me } } })

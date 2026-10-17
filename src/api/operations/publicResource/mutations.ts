@@ -23,9 +23,9 @@ import { graphql } from '@gql/publicResource'
  * has a secret key of its own.
  */
 export const UserRegisterDocument = graphql(`
-	mutation UserRegister($email: String!, $password: String!, $repeatPassword: String!, $turnstileToken: String) {
-		userRegister(email: $email, password: $password, repeatPassword: $repeatPassword, turnstileToken: $turnstileToken)
-	}
+  mutation UserRegister($email: String!, $password: String!, $repeatPassword: String!, $turnstileToken: String) {
+    userRegister(email: $email, password: $password, repeatPassword: $repeatPassword, turnstileToken: $turnstileToken)
+  }
 `)
 
 /**
@@ -45,16 +45,16 @@ export const UserRegisterDocument = graphql(`
  * panel for them.
  */
 export const ShopOwnerRegisterDocument = graphql(`
-	mutation ShopOwnerRegister($email: String!, $password: String!, $repeatPassword: String!, $turnstileToken: String) {
-		shopOwnerRegister(email: $email, password: $password, repeatPassword: $repeatPassword, turnstileToken: $turnstileToken)
-	}
+  mutation ShopOwnerRegister($email: String!, $password: String!, $repeatPassword: String!, $turnstileToken: String) {
+    shopOwnerRegister(email: $email, password: $password, repeatPassword: $repeatPassword, turnstileToken: $turnstileToken)
+  }
 `)
 
 /** Re-sends the activation link. Offered on the "check your inbox" screen and on a failed login. */
 export const UserVerifyEmailResendDocument = graphql(`
-	mutation UserVerifyEmailResend($email: String!, $turnstileToken: String) {
-		userVerifyEmailResend(email: $email, turnstileToken: $turnstileToken)
-	}
+  mutation UserVerifyEmailResend($email: String!, $turnstileToken: String) {
+    userVerifyEmailResend(email: $email, turnstileToken: $turnstileToken)
+  }
 `)
 
 /**
@@ -71,9 +71,9 @@ export const UserVerifyEmailResendDocument = graphql(`
  * behind that one process are indistinguishable — which is why the choice is a field name.
  */
 export const UserResetPwdDocument = graphql(`
-	mutation UserResetPwd($email: String!, $turnstileToken: String) {
-		userResetPwd(email: $email, turnstileToken: $turnstileToken)
-	}
+  mutation UserResetPwd($email: String!, $turnstileToken: String) {
+    userResetPwd(email: $email, turnstileToken: $turnstileToken)
+  }
 `)
 
 /**
@@ -83,7 +83,7 @@ export const UserResetPwdDocument = graphql(`
  * say so, because the failure is a flat 403 that reads identically to a wrong hash.
  */
 export const UserUpdatePwdDocument = graphql(`
-	mutation UserUpdatePwd($email: String!, $hash: String!, $password: String!, $turnstileToken: String) {
-		userUpdatePwd(email: $email, hash: $hash, password: $password, turnstileToken: $turnstileToken)
-	}
+  mutation UserUpdatePwd($email: String!, $hash: String!, $password: String!, $turnstileToken: String) {
+    userUpdatePwd(email: $email, hash: $hash, password: $password, turnstileToken: $turnstileToken)
+  }
 `)

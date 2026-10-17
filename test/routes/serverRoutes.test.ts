@@ -20,36 +20,36 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
  */
 
 const mocks = vi.hoisted(() => ({
-	createFileRoute: vi.fn((id: string) => (options: unknown) => ({ id, options })),
-	createSsrClient: vi.fn(() => ({ marker: 'ssr-client' })),
-	collectIndexPaths: vi.fn(async () => ['/sitemaps/companies/start']),
-	fetchShard: vi.fn(async () => ({ paths: ['/shop/one', '/shop/two'] })),
-	isSitemapKind: vi.fn((value: string) => value === 'companies'),
-	sitemapIndexXml: vi.fn((paths: readonly string[]) => `<index>${paths.join('|')}</index>`),
-	urlsetXml: vi.fn((paths: readonly string[]) => `<urlset>${paths.join('|')}</urlset>`),
-	xmlResponse: vi.fn((body: string) => new Response(body, { headers: { 'x-from': 'xmlResponse' } }))
+  createFileRoute: vi.fn((id: string) => (options: unknown) => ({ id, options })),
+  createSsrClient: vi.fn(() => ({ marker: 'ssr-client' })),
+  collectIndexPaths: vi.fn(async () => ['/sitemaps/companies/start']),
+  fetchShard: vi.fn(async () => ({ paths: ['/shop/one', '/shop/two'] })),
+  isSitemapKind: vi.fn((value: string) => value === 'companies'),
+  sitemapIndexXml: vi.fn((paths: readonly string[]) => `<index>${paths.join('|')}</index>`),
+  urlsetXml: vi.fn((paths: readonly string[]) => `<urlset>${paths.join('|')}</urlset>`),
+  xmlResponse: vi.fn((body: string) => new Response(body, { headers: { 'x-from': 'xmlResponse' } }))
 }))
 
 vi.mock('@tanstack/react-router', () => ({ createFileRoute: mocks.createFileRoute }))
 vi.mock('@/api/ssr', () => ({ createSsrClient: mocks.createSsrClient }))
 vi.mock('@/lib/sitemap', () => ({
-	collectIndexPaths: mocks.collectIndexPaths,
-	fetchShard: mocks.fetchShard,
-	isSitemapKind: mocks.isSitemapKind,
-	sitemapIndexXml: mocks.sitemapIndexXml,
-	urlsetXml: mocks.urlsetXml,
-	xmlResponse: mocks.xmlResponse
+  collectIndexPaths: mocks.collectIndexPaths,
+  fetchShard: mocks.fetchShard,
+  isSitemapKind: mocks.isSitemapKind,
+  sitemapIndexXml: mocks.sitemapIndexXml,
+  urlsetXml: mocks.urlsetXml,
+  xmlResponse: mocks.xmlResponse
 }))
 
 interface FakeRoute {
-	readonly id: string
-	readonly options: {
-		readonly server: {
-			readonly handlers: {
-				readonly GET: (ctx: { params: { kind: string; cursor: string } }) => Response | Promise<Response>
-			}
-		}
-	}
+  readonly id: string
+  readonly options: {
+    readonly server: {
+      readonly handlers: {
+        readonly GET: (ctx: { params: { kind: string; cursor: string } }) => Response | Promise<Response>
+      }
+    }
+  }
 }
 
 /**
@@ -63,111 +63,111 @@ interface FakeRoute {
  * were green. Measured, not guessed.
  */
 const loadRobots = async (): Promise<FakeRoute> =>
-	((await import('../../src/routes/robots[.]txt')) as { Route: unknown }).Route as FakeRoute
+  ((await import('../../src/routes/robots[.]txt')) as { Route: unknown }).Route as FakeRoute
 
 const loadSitemapIndex = async (): Promise<FakeRoute> =>
-	((await import('../../src/routes/sitemap[.]xml')) as { Route: unknown }).Route as FakeRoute
+  ((await import('../../src/routes/sitemap[.]xml')) as { Route: unknown }).Route as FakeRoute
 
 const loadSitemapShard = async (): Promise<FakeRoute> =>
-	((await import('../../src/routes/sitemaps.$kind.$cursor')) as { Route: unknown }).Route as FakeRoute
+  ((await import('../../src/routes/sitemaps.$kind.$cursor')) as { Route: unknown }).Route as FakeRoute
 
 beforeEach(() => {
-	vi.resetModules()
-	// `restoreMocks` in vitest.config.ts only reaches spies created by `vi.spyOn`; these are plain
-	// `vi.fn`s built in a `vi.hoisted` block, so their call history is ours to clear.
-	vi.clearAllMocks()
+  vi.resetModules()
+  // `restoreMocks` in vitest.config.ts only reaches spies created by `vi.spyOn`; these are plain
+  // `vi.fn`s built in a `vi.hoisted` block, so their call history is ours to clear.
+  vi.clearAllMocks()
 })
 
 describe('/robots.txt', () => {
-	it('registers the literal path, not a nested segment', async () => {
-		const route = await loadRobots()
+  it('registers the literal path, not a nested segment', async () => {
+    const route = await loadRobots()
 
-		expect(route.id).toBe('/robots.txt')
-	})
+    expect(route.id).toBe('/robots.txt')
+  })
 
-	it('serves the five disallow lines and the sitemap pointer, in order', async () => {
-		const route = await loadRobots()
+  it('serves the five disallow lines and the sitemap pointer, in order', async () => {
+    const route = await loadRobots()
 
-		const body = await (await route.options.server.handlers.GET({ params: { kind: '', cursor: '' } })).text()
+    const body = await (await route.options.server.handlers.GET({ params: { kind: '', cursor: '' } })).text()
 
-		expect(body).toBe(
-			[
-				'User-agent: *',
-				'Disallow: /account',
-				'Disallow: /login',
-				'Disallow: /register',
-				'Disallow: /reset-password',
-				'',
-				'Sitemap: http://127.0.0.1:3045/sitemap.xml',
-				''
-			].join('\n')
-		)
-	})
+    expect(body).toBe(
+      [
+        'User-agent: *',
+        'Disallow: /account',
+        'Disallow: /login',
+        'Disallow: /register',
+        'Disallow: /reset-password',
+        '',
+        'Sitemap: http://127.0.0.1:3045/sitemap.xml',
+        ''
+      ].join('\n')
+    )
+  })
 
-	it('does not disallow /search — a blocked URL never gets to read its own noindex', async () => {
-		const route = await loadRobots()
+  it('does not disallow /search — a blocked URL never gets to read its own noindex', async () => {
+    const route = await loadRobots()
 
-		const body = await (await route.options.server.handlers.GET({ params: { kind: '', cursor: '' } })).text()
+    const body = await (await route.options.server.handlers.GET({ params: { kind: '', cursor: '' } })).text()
 
-		expect(body).not.toContain('/search')
-	})
+    expect(body).not.toContain('/search')
+  })
 
-	it('answers as plain text, cacheable by the shared cache for an hour', async () => {
-		const route = await loadRobots()
+  it('answers as plain text, cacheable by the shared cache for an hour', async () => {
+    const route = await loadRobots()
 
-		const response = await route.options.server.handlers.GET({ params: { kind: '', cursor: '' } })
+    const response = await route.options.server.handlers.GET({ params: { kind: '', cursor: '' } })
 
-		expect(response.headers.get('content-type')).toBe('text/plain; charset=utf-8')
-		expect(response.headers.get('cache-control')).toBe('public, max-age=0, s-maxage=3600, stale-while-revalidate=86400')
-	})
+    expect(response.headers.get('content-type')).toBe('text/plain; charset=utf-8')
+    expect(response.headers.get('cache-control')).toBe('public, max-age=0, s-maxage=3600, stale-while-revalidate=86400')
+  })
 })
 
 describe('/sitemap.xml', () => {
-	it('registers the escaped literal path rather than /sitemap/xml', async () => {
-		const route = await loadSitemapIndex()
+  it('registers the escaped literal path rather than /sitemap/xml', async () => {
+    const route = await loadSitemapIndex()
 
-		expect(route.id).toBe('/sitemap.xml')
-	})
+    expect(route.id).toBe('/sitemap.xml')
+  })
 
-	it('renders the index from a request-scoped SSR client', async () => {
-		const route = await loadSitemapIndex()
+  it('renders the index from a request-scoped SSR client', async () => {
+    const route = await loadSitemapIndex()
 
-		const response = await route.options.server.handlers.GET({ params: { kind: '', cursor: '' } })
+    const response = await route.options.server.handlers.GET({ params: { kind: '', cursor: '' } })
 
-		expect(mocks.collectIndexPaths).toHaveBeenCalledWith({ marker: 'ssr-client' })
-		expect(mocks.sitemapIndexXml).toHaveBeenCalledWith(['/sitemaps/companies/start'])
-		expect(await response.text()).toBe('<index>/sitemaps/companies/start</index>')
-		expect(response.headers.get('x-from')).toBe('xmlResponse')
-	})
+    expect(mocks.collectIndexPaths).toHaveBeenCalledWith({ marker: 'ssr-client' })
+    expect(mocks.sitemapIndexXml).toHaveBeenCalledWith(['/sitemaps/companies/start'])
+    expect(await response.text()).toBe('<index>/sitemaps/companies/start</index>')
+    expect(response.headers.get('x-from')).toBe('xmlResponse')
+  })
 })
 
 describe('/sitemaps/$kind/$cursor', () => {
-	it('registers both path parameters', async () => {
-		const route = await loadSitemapShard()
+  it('registers both path parameters', async () => {
+    const route = await loadSitemapShard()
 
-		expect(route.id).toBe('/sitemaps/$kind/$cursor')
-	})
+    expect(route.id).toBe('/sitemaps/$kind/$cursor')
+  })
 
-	it('renders one shard for a known kind, passing the cursor through untouched', async () => {
-		const route = await loadSitemapShard()
+  it('renders one shard for a known kind, passing the cursor through untouched', async () => {
+    const route = await loadSitemapShard()
 
-		const response = await route.options.server.handlers.GET({ params: { kind: 'companies', cursor: 'abc123' } })
+    const response = await route.options.server.handlers.GET({ params: { kind: 'companies', cursor: 'abc123' } })
 
-		expect(mocks.fetchShard).toHaveBeenCalledWith({ marker: 'ssr-client' }, 'companies', 'abc123')
-		expect(mocks.urlsetXml).toHaveBeenCalledWith(['/shop/one', '/shop/two'])
-		expect(await response.text()).toBe('<urlset>/shop/one|/shop/two</urlset>')
-		expect(response.headers.get('x-from')).toBe('xmlResponse')
-	})
+    expect(mocks.fetchShard).toHaveBeenCalledWith({ marker: 'ssr-client' }, 'companies', 'abc123')
+    expect(mocks.urlsetXml).toHaveBeenCalledWith(['/shop/one', '/shop/two'])
+    expect(await response.text()).toBe('<urlset>/shop/one|/shop/two</urlset>')
+    expect(response.headers.get('x-from')).toBe('xmlResponse')
+  })
 
-	it('404s an unknown kind instead of answering an empty urlset', async () => {
-		const route = await loadSitemapShard()
+  it('404s an unknown kind instead of answering an empty urlset', async () => {
+    const route = await loadSitemapShard()
 
-		const response = await route.options.server.handlers.GET({ params: { kind: 'nope', cursor: 'start' } })
+    const response = await route.options.server.handlers.GET({ params: { kind: 'nope', cursor: 'start' } })
 
-		expect(response.status).toBe(404)
-		expect(await response.text()).toBe('Not found')
-		// The 404 is decided before any query is issued — an unknown kind must not reach the backend.
-		expect(mocks.fetchShard).not.toHaveBeenCalled()
-		expect(mocks.xmlResponse).not.toHaveBeenCalled()
-	})
+    expect(response.status).toBe(404)
+    expect(await response.text()).toBe('Not found')
+    // The 404 is decided before any query is issued — an unknown kind must not reach the backend.
+    expect(mocks.fetchShard).not.toHaveBeenCalled()
+    expect(mocks.xmlResponse).not.toHaveBeenCalled()
+  })
 })

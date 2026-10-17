@@ -12,19 +12,19 @@ import type { ReactNode } from 'react'
  * The server rate-limits as well — this is the cheap half of that pair, not a replacement for it.
  */
 export interface SubmitButtonProps {
-	readonly busy: boolean
-	readonly children: ReactNode
-	readonly busyLabel?: string
-	readonly disabled?: boolean
+  readonly busy: boolean
+  readonly children: ReactNode
+  readonly busyLabel?: string
+  readonly disabled?: boolean
 }
 
 export const SubmitButton = ({ busy, children, busyLabel = 'Working…', disabled = false }: SubmitButtonProps) => (
-	<button
-		type="submit"
-		disabled={busy || disabled}
-		aria-busy={busy}
-		className="rounded-box bg-palette-bg px-4 py-2 text-sm font-medium text-palette-white disabled:opacity-60"
-	>
-		{busy ? busyLabel : children}
-	</button>
+  <button
+    type="submit"
+    disabled={busy || disabled}
+    aria-busy={busy}
+    className="rounded-box bg-palette-bg px-4 py-2 text-sm font-medium text-palette-white disabled:opacity-60"
+  >
+    {busy ? busyLabel : children}
+  </button>
 )

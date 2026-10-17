@@ -19,32 +19,32 @@ import { SearchBox } from './SearchBox'
  * which of two links to draw.
  */
 export const Header = () => {
-	const session = useSession()
+  const session = useSession()
 
-	return (
-		<header className="border-b border-slate-200 bg-white">
-			<div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 md:flex-row md:items-center md:gap-6">
-				<Link to="/" className="text-lg font-semibold whitespace-nowrap text-palette-bg">
-					{SITE_NAME}
-				</Link>
+  return (
+    <header className="border-b border-slate-200 bg-white">
+      <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 md:flex-row md:items-center md:gap-6">
+        <Link to="/" className="text-lg font-semibold whitespace-nowrap text-palette-bg">
+          {SITE_NAME}
+        </Link>
 
-				<SearchBox />
+        <SearchBox />
 
-				<nav aria-label="Main" className="flex items-center gap-4 text-sm whitespace-nowrap">
-					<Link to="/shops" className="text-slate-600 hover:text-palette-bg">
-						Shops
-					</Link>
-					{session.signedIn ? (
-						<Link to="/account" className="font-medium text-palette-bg hover:underline">
-							Account
-						</Link>
-					) : (
-						<Link to="/login" className="font-medium text-palette-bg hover:underline">
-							Sign in
-						</Link>
-					)}
-				</nav>
-			</div>
-		</header>
-	)
+        <nav aria-label="Main" className="flex items-center gap-4 text-sm whitespace-nowrap">
+          <Link to="/shops" className="text-slate-600 hover:text-palette-bg">
+            Shops
+          </Link>
+          {session.signedIn ? (
+            <Link to="/account" className="font-medium text-palette-bg hover:underline">
+              Account
+            </Link>
+          ) : (
+            <Link to="/login" className="font-medium text-palette-bg hover:underline">
+              Sign in
+            </Link>
+          )}
+        </nav>
+      </div>
+    </header>
+  )
 }

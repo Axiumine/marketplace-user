@@ -41,88 +41,88 @@ import { useTurnstileToken } from './useTurnstileToken'
  * the session store together, which is what makes that impossible rather than merely unlikely.
  */
 const schema = z.object({
-	email: z.email('Enter a valid email address.'),
-	password: z.string().min(1, 'Enter your password.'),
-	rememberMe: z.boolean()
+  email: z.email('Enter a valid email address.'),
+  password: z.string().min(1, 'Enter your password.'),
+  rememberMe: z.boolean()
 })
 
 type Values = z.infer<typeof schema>
 
 export const LoginForm = () => {
-	const turnstile = useTurnstileToken()
-	const [failure, setFailure] = useState<string | undefined>(undefined)
-	// Set once and never cleared: the only thing that ends it is the document the `assign` below is
-	// fetching. Without it `isSubmitting` drops back to false the moment this handler returns and the
-	// button goes live again for the length of the load, where a second click buys a second `LoginUser`.
-	const [leaving, setLeaving] = useState(false)
-	const [, login] = useMutation(LoginUserDocument)
+  const turnstile = useTurnstileToken()
+  const [failure, setFailure] = useState<string | undefined>(undefined)
+  // Set once and never cleared: the only thing that ends it is the document the `assign` below is
+  // fetching. Without it `isSubmitting` drops back to false the moment this handler returns and the
+  // button goes live again for the length of the load, where a second click buys a second `LoginUser`.
+  const [leaving, setLeaving] = useState(false)
+  const [, login] = useMutation(LoginUserDocument)
 
-	const {
-		register,
-		handleSubmit,
-		formState: { errors, isSubmitting }
-	} = useForm<Values>({ resolver: zodResolver(schema) })
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting }
+  } = useForm<Values>({ resolver: zodResolver(schema) })
 
-	const onSubmit = handleSubmit(async (values) => {
-		setFailure(undefined)
+  const onSubmit = handleSubmit(async (values) => {
+    setFailure(undefined)
 
-		const result = await login({ ...values, turnstileToken: turnstile.read() }, CTX_PUBLIC_AUTHORIZATION)
+    const result = await login({ ...values, turnstileToken: turnstile.read() }, CTX_PUBLIC_AUTHORIZATION)
 
-		// `dataOf` and not a bare `result.error` test: a `{"data": null}` envelope carries no error at all,
-		// and signing someone in on one would set an empty session and bounce them off the account page.
-		const data = dataOf(result)
+    // `dataOf` and not a bare `result.error` test: a `{"data": null}` envelope carries no error at all,
+    // and signing someone in on one would set an empty session and bounce them off the account page.
+    const data = dataOf(result)
 
-		if (data === undefined) {
-			setFailure(messageOf(result.error))
-			// The server verifies Turnstile before anything else, so a refusal for any other reason — a
-			// wrong password here — has already spent the token. Without this, every retry is rejected as
-			// a Cloudflare duplicate no matter how the credentials are fixed.
-			turnstile.reset()
-			return
-		}
+    if (data === undefined) {
+      setFailure(messageOf(result.error))
+      // The server verifies Turnstile before anything else, so a refusal for any other reason — a
+      // wrong password here — has already spent the token. Without this, every retry is rejected as
+      // a Cloudflare duplicate no matter how the credentials are fixed.
+      turnstile.reset()
+      return
+    }
 
-		// ⚠️ Both stores are module state, so the load below rebuilds them empty and neither value reaches
-		// the account page. They are written anyway, for the interval between here and the unload: the
-		// header reads `signedIn`, and leaving it false would show "Sign in" over a form that has just
-		// succeeded. `/account` re-mints the token from the httpOnly refresh cookie, which is the path a
-		// reload of the private area has always taken.
-		setAccessToken(data.loginUser.accessToken)
-		setSession(values.email)
+    // ⚠️ Both stores are module state, so the load below rebuilds them empty and neither value reaches
+    // the account page. They are written anyway, for the interval between here and the unload: the
+    // header reads `signedIn`, and leaving it false would show "Sign in" over a form that has just
+    // succeeded. `/account` re-mints the token from the httpOnly refresh cookie, which is the path a
+    // reload of the private area has always taken.
+    setAccessToken(data.loginUser.accessToken)
+    setSession(values.email)
 
-		setLeaving(true)
-		window.location.assign('/account')
-	})
+    setLeaving(true)
+    window.location.assign('/account')
+  })
 
-	return (
-		<form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
-			<TextField {...register('email')} label="Email" type="email" autoComplete="username" error={errors.email?.message} />
+  return (
+    <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
+      <TextField {...register('email')} label="Email" type="email" autoComplete="username" error={errors.email?.message} />
 
-			<TextField
-				{...register('password')}
-				label="Password"
-				type="password"
-				autoComplete="current-password"
-				error={errors.password?.message}
-			/>
+      <TextField
+        {...register('password')}
+        label="Password"
+        type="password"
+        autoComplete="current-password"
+        error={errors.password?.message}
+      />
 
-			<label className="flex items-center gap-2 text-sm text-slate-700">
-				<input {...register('rememberMe')} type="checkbox" className="size-4" />
-				Keep me signed in
-			</label>
+      <label className="flex items-center gap-2 text-sm text-slate-700">
+        <input {...register('rememberMe')} type="checkbox" className="size-4" />
+        Keep me signed in
+      </label>
 
-			<Turnstile key={turnstile.resetKey} onToken={turnstile.onToken} />
+      <Turnstile key={turnstile.resetKey} onToken={turnstile.onToken} />
 
-			<FormStatus tone="error" message={failure} />
+      <FormStatus tone="error" message={failure} />
 
-			<SubmitButton busy={isSubmitting || leaving} busyLabel="Signing in…">
-				Sign in
-			</SubmitButton>
+      <SubmitButton busy={isSubmitting || leaving} busyLabel="Signing in…">
+        Sign in
+      </SubmitButton>
 
-			<p className="text-sm">
-				<Link to="/reset-password" className="underline">
-					Forgot your password?
-				</Link>
-			</p>
-		</form>
-	)
+      <p className="text-sm">
+        <Link to="/reset-password" className="underline">
+          Forgot your password?
+        </Link>
+      </p>
+    </form>
+  )
 }
