@@ -15,16 +15,16 @@
  * "this environment is missing a class every browser has for a decade".
  */
 class AnimationEventPolyfill extends Event {
-	readonly animationName: string
-	readonly elapsedTime: number
-	readonly pseudoElement: string
+  readonly animationName: string
+  readonly elapsedTime: number
+  readonly pseudoElement: string
 
-	constructor(type: string, init: AnimationEventInit = {}) {
-		super(type, init)
-		this.animationName = init.animationName ?? ''
-		this.elapsedTime = init.elapsedTime ?? 0
-		this.pseudoElement = init.pseudoElement ?? ''
-	}
+  constructor(type: string, init: AnimationEventInit = {}) {
+    super(type, init)
+    this.animationName = init.animationName ?? ''
+    this.elapsedTime = init.elapsedTime ?? 0
+    this.pseudoElement = init.pseudoElement ?? ''
+  }
 }
 
 window.AnimationEvent = AnimationEventPolyfill

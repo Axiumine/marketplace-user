@@ -29,30 +29,30 @@ export const PIN_DROPPED: readonly [number, number] = [-71.05893123, 42.36015678
 export const PIN_DROPPED_TEXT = '-71.058931,42.360157'
 
 export const positionPickerStub = async () => {
-	const { createElement } = await import('react')
+  const { createElement } = await import('react')
 
-	return {
-		PositionPickerIsland: (props: {
-			position?: readonly [number, number] | undefined
-			onPick: (position: readonly [number, number]) => void
-		}) =>
-			createElement('div', { 'data-testid': 'position-picker' }, [
-				createElement(
-					'span',
-					{ key: 'at', 'data-testid': 'picker-position' },
-					props.position === undefined ? 'nowhere' : `${String(props.position[0])},${String(props.position[1])}`
-				),
-				createElement(
-					'button',
-					{
-						key: 'drop',
-						type: 'button',
-						onClick: () => {
-							props.onPick(PIN_DROPPED)
-						}
-					},
-					'Drop the pin'
-				)
-			])
-	}
+  return {
+    PositionPickerIsland: (props: {
+      position?: readonly [number, number] | undefined
+      onPick: (position: readonly [number, number]) => void
+    }) =>
+      createElement('div', { 'data-testid': 'position-picker' }, [
+        createElement(
+          'span',
+          { key: 'at', 'data-testid': 'picker-position' },
+          props.position === undefined ? 'nowhere' : `${String(props.position[0])},${String(props.position[1])}`
+        ),
+        createElement(
+          'button',
+          {
+            key: 'drop',
+            type: 'button',
+            onClick: () => {
+              props.onPick(PIN_DROPPED)
+            }
+          },
+          'Drop the pin'
+        )
+      ])
+  }
 }

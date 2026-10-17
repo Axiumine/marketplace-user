@@ -6,8 +6,8 @@
  * search, the other means try again.
  */
 export const EmptyState = ({ title, hint }: { readonly title: string; readonly hint?: string }) => (
-	<div className="rounded-box border border-dashed border-slate-300 bg-white p-8 text-center">
-		<p className="font-medium text-palette-bg">{title}</p>
-		{hint !== undefined && <p className="mt-1 text-sm text-slate-500">{hint}</p>}
-	</div>
+  <div className="rounded-box border border-dashed border-slate-300 bg-white p-8 text-center">
+    <p className="font-medium text-palette-bg">{title}</p>
+    {hint !== undefined && <p className="mt-1 text-sm text-slate-500">{hint}</p>}
+  </div>
 )

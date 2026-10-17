@@ -20,10 +20,10 @@ import { graphql } from '@gql/userAuthorization'
  * exchange at all.
  */
 export const RefreshDocument = graphql(`
-	mutation Refresh {
-		refresh {
-			status
-			accessToken
-		}
-	}
+  mutation Refresh {
+    refresh {
+      status
+      accessToken
+    }
+  }
 `)

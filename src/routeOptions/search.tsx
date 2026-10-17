@@ -96,23 +96,23 @@ const MAX_CROSS_SHOP_PAGE = maxPageFor(2_000)
  * and the page renders a plain text search instead of erroring on something somebody mistyped.
  */
 const nearSchema = z
-	.string()
-	.transform((raw) => raw.split(','))
-	.pipe(z.tuple([z.string(), z.string(), z.string()]))
-	.transform(([lng, lat, radiusMeters]) => ({
-		lng: Number(lng),
-		lat: Number(lat),
-		radiusMeters: Number(radiusMeters)
-	}))
-	.pipe(
-		z.object({
-			lng: z.number().min(-180).max(180),
-			lat: z.number().min(-90).max(90),
-			// Capped rather than merely positive: an unbounded radius is a query over the whole collection
-			// dressed up as a geo search, and it is reachable by anyone who can edit a URL.
-			radiusMeters: z.number().positive().max(MAX_RADIUS_METERS)
-		})
-	)
+  .string()
+  .transform((raw) => raw.split(','))
+  .pipe(z.tuple([z.string(), z.string(), z.string()]))
+  .transform(([lng, lat, radiusMeters]) => ({
+    lng: Number(lng),
+    lat: Number(lat),
+    radiusMeters: Number(radiusMeters)
+  }))
+  .pipe(
+    z.object({
+      lng: z.number().min(-180).max(180),
+      lat: z.number().min(-90).max(90),
+      // Capped rather than merely positive: an unbounded radius is a query over the whole collection
+      // dressed up as a geo search, and it is reachable by anyone who can edit a URL.
+      radiusMeters: z.number().positive().max(MAX_RADIUS_METERS)
+    })
+  )
 
 /**
  * ⚠️ **`.optional()` on `kind` and `page` is load-bearing, and not for parsing.** It is what makes the
@@ -127,12 +127,12 @@ const nearSchema = z
  * error boundary for a mistyped parameter is a 500 where the visitor expected results.
  */
 const searchSchema = z.object({
-	q: z.string().catch(''),
-	kind: z.enum(SEARCH_KINDS).catch(DEFAULT_SEARCH_KIND).optional(),
-	page: z.coerce.number().int().min(1).catch(1).optional(),
-	// The unparsed `lng,lat,radius`, exactly as the URL spells it. `nearOf` below turns it into a point,
-	// and a URL that is not one becomes no location at all rather than an error.
-	near: z.string().optional().catch(undefined)
+  q: z.string().catch(''),
+  kind: z.enum(SEARCH_KINDS).catch(DEFAULT_SEARCH_KIND).optional(),
+  page: z.coerce.number().int().min(1).catch(1).optional(),
+  // The unparsed `lng,lat,radius`, exactly as the URL spells it. `nearOf` below turns it into a point,
+  // and a URL that is not one becomes no location at all rather than an error.
+  near: z.string().optional().catch(undefined)
 })
 
 export type SearchSearch = z.infer<typeof searchSchema>
@@ -141,16 +141,16 @@ type Near = z.output<typeof nearSchema>
 
 /** The one place the raw parameter becomes a point — a malformed one is dropped, never thrown. */
 const nearOf = (raw: string | undefined): Near | undefined => {
-	const parsed = nearSchema.safeParse(raw)
+  const parsed = nearSchema.safeParse(raw)
 
-	return parsed.success ? parsed.data : undefined
+  return parsed.success ? parsed.data : undefined
 }
 
 interface ISearchDeps {
-	q: string
-	kind: SearchKind
-	page: number
-	near?: Near | undefined
+  q: string
+  kind: SearchKind
+  page: number
+  near?: Near | undefined
 }
 
 /**
@@ -166,150 +166,150 @@ interface ISearchDeps {
  * two addresses.
  */
 const searchPath = (q: string, kind: SearchKind, near?: Near): string => {
-	const params = new URLSearchParams({ q })
+  const params = new URLSearchParams({ q })
 
-	if (kind !== DEFAULT_SEARCH_KIND) params.set('kind', kind)
-	if (near !== undefined) params.set('near', `${String(near.lng)},${String(near.lat)},${String(near.radiusMeters)}`)
+  if (kind !== DEFAULT_SEARCH_KIND) params.set('kind', kind)
+  if (near !== undefined) params.set('near', `${String(near.lng)},${String(near.lat)},${String(near.radiusMeters)}`)
 
-	return `/search?${params.toString()}`
+  return `/search?${params.toString()}`
 }
 
 const loader = async ({ context, deps }: { context: RouterContext; deps: ISearchDeps }) => {
-	const q = deps.q.trim()
-	const base = { q, kind: deps.kind, page: deps.page, near: deps.near }
+  const q = deps.q.trim()
+  const base = { q, kind: deps.kind, page: deps.page, near: deps.near }
 
-	// An empty query is not a request worth making. The page renders the search box and says so, and the
-	// backend never sees a text search for the empty string — which on a text index is a full scan.
-	if (q === '') return { ...base, companies: EMPTY_PAGE, items: EMPTY_PAGE }
+  // An empty query is not a request worth making. The page renders the search box and says so, and the
+  // backend never sees a text search for the empty string — which on a text index is a full scan.
+  if (q === '') return { ...base, companies: EMPTY_PAGE, items: EMPTY_PAGE }
 
-	// ⚠️ A page this deep can never be answered for either kind — the offset it turns into would reach the
-	// backend past its own cap and throw. `/search` is `noindex` on every result and has no entity of its
-	// own to 404, so this answers the same graceful nothing an empty query does, rather than crash.
-	const cap = deps.kind === 'companies' ? MAX_PAGE : MAX_CROSS_SHOP_PAGE
-	if (deps.page > cap) return { ...base, companies: EMPTY_PAGE, items: EMPTY_PAGE }
+  // ⚠️ A page this deep can never be answered for either kind — the offset it turns into would reach the
+  // backend past its own cap and throw. `/search` is `noindex` on every result and has no entity of its
+  // own to 404, so this answers the same graceful nothing an empty query does, rather than crash.
+  const cap = deps.kind === 'companies' ? MAX_PAGE : MAX_CROSS_SHOP_PAGE
+  if (deps.page > cap) return { ...base, companies: EMPTY_PAGE, items: EMPTY_PAGE }
 
-	const variables = { q, near: deps.near, limit: PAGE_SIZE, offset: offsetOf(deps.page) }
+  const variables = { q, near: deps.near, limit: PAGE_SIZE, offset: offsetOf(deps.page) }
 
-	if (deps.kind === 'companies') {
-		const data = await runQuery(context.gql, SearchCompaniesDocument, variables)
+  if (deps.kind === 'companies') {
+    const data = await runQuery(context.gql, SearchCompaniesDocument, variables)
 
-		return { ...base, companies: data.searchCompanies, items: EMPTY_PAGE }
-	}
+    return { ...base, companies: data.searchCompanies, items: EMPTY_PAGE }
+  }
 
-	const data = await runQuery(context.gql, SearchItemsDocument, variables)
+  const data = await runQuery(context.gql, SearchItemsDocument, variables)
 
-	return { ...base, companies: EMPTY_PAGE, items: data.searchItems }
+  return { ...base, companies: EMPTY_PAGE, items: data.searchItems }
 }
 
 type LoaderData = Awaited<ReturnType<typeof loader>>
 
 const head = ({ loaderData }: { loaderData?: LoaderData }) => {
-	const q = loaderData?.q ?? ''
-	const page = loaderData?.page ?? 1
-	const kind = loaderData?.kind ?? DEFAULT_SEARCH_KIND
+  const q = loaderData?.q ?? ''
+  const page = loaderData?.page ?? 1
+  const kind = loaderData?.kind ?? DEFAULT_SEARCH_KIND
 
-	// The kind and the page are both in the title because a shared link opens on them, and a tab that
-	// says "Search — lamp" on page 4 of the shops is a title that describes a different page.
-	const named = q === '' ? 'Search' : `Search — ${q} · ${KIND_LABEL[kind]}`
+  // The kind and the page are both in the title because a shared link opens on them, and a tab that
+  // says "Search — lamp" on page 4 of the shops is a title that describes a different page.
+  const named = q === '' ? 'Search' : `Search — ${q} · ${KIND_LABEL[kind]}`
 
-	return headFor({
-		title: page === 1 ? named : `${named} — page ${String(page)}`,
-		description: 'Search shops and items across the platform.',
-		// The canonical is the bare `/search`, so the thousands of `?q=` variations collapse into one URL
-		// even for a crawler that ignores `noindex`.
-		path: '/search',
-		noIndex: true
-	})
+  return headFor({
+    title: page === 1 ? named : `${named} — page ${String(page)}`,
+    description: 'Search shops and items across the platform.',
+    // The canonical is the bare `/search`, so the thousands of `?q=` variations collapse into one URL
+    // even for a crawler that ignores `noindex`.
+    path: '/search',
+    noIndex: true
+  })
 }
 
 const Search = () => {
-	const { q, kind, page, near, companies, items } = route.useLoaderData()
+  const { q, kind, page, near, companies, items } = route.useLoaderData()
 
-	// The active kind's page. The other one is `EMPTY_PAGE` and is never read.
-	const found = kind === 'companies' ? companies : items
-	const { prev, next } = pageLinks(searchPath(q, kind, near), page, found.hasMore)
+  // The active kind's page. The other one is `EMPTY_PAGE` and is never read.
+  const found = kind === 'companies' ? companies : items
+  const { prev, next } = pageLinks(searchPath(q, kind, near), page, found.hasMore)
 
-	return (
-		<div className="mx-auto max-w-6xl px-4 py-8">
-			<h1 className="text-3xl font-semibold text-palette-bg">Search</h1>
+  return (
+    <div className="mx-auto max-w-6xl px-4 py-8">
+      <h1 className="text-3xl font-semibold text-palette-bg">Search</h1>
 
-			<div className="mt-4 max-w-xl">
-				<SearchBox initialQuery={q} kind={kind} />
-			</div>
+      <div className="mt-4 max-w-xl">
+        <SearchBox initialQuery={q} kind={kind} />
+      </div>
 
-			{q === '' ? (
-				<div className="mt-8">
-					<EmptyState title="Type something to search" hint="Shop names, item names and descriptions." />
-				</div>
-			) : (
-				<>
-					{/*
-					 * Plain `<a href>`s, like `Pagination`: switching kind is a whole new result set from a
-					 * different collection, and the anchor works with no JavaScript at all. `aria-current`
-					 * is what tells a screen reader which of the two is being shown — the styling alone says
-					 * it only to people who can see it.
-					 */}
-					<nav aria-label="What to search" className="mt-6 flex gap-2">
-						{SEARCH_KINDS.map((candidate) => (
-							<a
-								key={candidate}
-								href={searchPath(q, candidate, near)}
-								aria-current={candidate === kind ? 'page' : undefined}
-								className={
-									candidate === kind
-										? 'rounded-box bg-palette-bg px-4 py-2 text-sm font-medium text-palette-white'
-										: 'rounded-box border border-slate-300 bg-white px-4 py-2 text-sm text-slate-600'
-								}
-							>
-								{KIND_LABEL[candidate]}
-							</a>
-						))}
-					</nav>
+      {q === '' ? (
+        <div className="mt-8">
+          <EmptyState title="Type something to search" hint="Shop names, item names and descriptions." />
+        </div>
+      ) : (
+        <>
+          {/*
+           * Plain `<a href>`s, like `Pagination`: switching kind is a whole new result set from a
+           * different collection, and the anchor works with no JavaScript at all. `aria-current`
+           * is what tells a screen reader which of the two is being shown — the styling alone says
+           * it only to people who can see it.
+           */}
+          <nav aria-label="What to search" className="mt-6 flex gap-2">
+            {SEARCH_KINDS.map((candidate) => (
+              <a
+                key={candidate}
+                href={searchPath(q, candidate, near)}
+                aria-current={candidate === kind ? 'page' : undefined}
+                className={
+                  candidate === kind
+                    ? 'rounded-box bg-palette-bg px-4 py-2 text-sm font-medium text-palette-white'
+                    : 'rounded-box border border-slate-300 bg-white px-4 py-2 text-sm text-slate-600'
+                }
+              >
+                {KIND_LABEL[candidate]}
+              </a>
+            ))}
+          </nav>
 
-					{found.nodes.length === 0 ? (
-						<div className="mt-8">
-							<EmptyState title={`Nothing found for “${q}”`} hint="Try fewer words, a different spelling, or the other tab." />
-						</div>
-					) : (
-						<section aria-label={KIND_LABEL[kind]} className="mt-8">
-							{/*
-							 * ⚠️ `totalIsExact` is always false on the items tab, and not because of the cap:
-							 * the backend's count runs on `item` alone, where it can see neither the shop's
-							 * publication state nor the radius. `formatTotal` renders that as "300+", which is
-							 * the honest reading.
-							 */}
-							<p className="text-slate-600">
-								{formatTotal(found.total, found.totalIsExact)} {KIND_LABEL[kind].toLowerCase()} found.
-							</p>
+          {found.nodes.length === 0 ? (
+            <div className="mt-8">
+              <EmptyState title={`Nothing found for “${q}”`} hint="Try fewer words, a different spelling, or the other tab." />
+            </div>
+          ) : (
+            <section aria-label={KIND_LABEL[kind]} className="mt-8">
+              {/*
+               * ⚠️ `totalIsExact` is always false on the items tab, and not because of the cap:
+               * the backend's count runs on `item` alone, where it can see neither the shop's
+               * publication state nor the radius. `formatTotal` renders that as "300+", which is
+               * the honest reading.
+               */}
+              <p className="text-slate-600">
+                {formatTotal(found.total, found.totalIsExact)} {KIND_LABEL[kind].toLowerCase()} found.
+              </p>
 
-							<div className="mt-4">
-								{kind === 'companies' ? <ShopGrid companies={companies.nodes} /> : <ItemGrid items={items.nodes} />}
-							</div>
+              <div className="mt-4">
+                {kind === 'companies' ? <ShopGrid companies={companies.nodes} /> : <ItemGrid items={items.nodes} />}
+              </div>
 
-							<Pagination prev={prev} next={next} page={page} />
-						</section>
-					)}
-				</>
-			)}
-		</div>
-	)
+              <Pagination prev={prev} next={next} page={page} />
+            </section>
+          )}
+        </>
+      )}
+    </div>
+  )
 }
 
 export const searchRouteOptions = {
-	validateSearch: searchSchema,
-	// Without this the loader never re-runs on a page or kind change: the router keys a loader's result
-	// by its params, and neither `?page=` nor `?kind=` is one.
-	//
-	// Both are normalised here rather than in the loader, so an absent parameter and its explicit default
-	// produce the *same* key — they are the same page, and keying them apart would fetch and cache it
-	// twice.
-	loaderDeps: ({ search }: { search: SearchSearch }): ISearchDeps => ({
-		q: search.q,
-		kind: search.kind ?? DEFAULT_SEARCH_KIND,
-		page: pageNumber(search.page),
-		near: nearOf(search.near)
-	}),
-	loader,
-	head,
-	component: Search
+  validateSearch: searchSchema,
+  // Without this the loader never re-runs on a page or kind change: the router keys a loader's result
+  // by its params, and neither `?page=` nor `?kind=` is one.
+  //
+  // Both are normalised here rather than in the loader, so an absent parameter and its explicit default
+  // produce the *same* key — they are the same page, and keying them apart would fetch and cache it
+  // twice.
+  loaderDeps: ({ search }: { search: SearchSearch }): ISearchDeps => ({
+    q: search.q,
+    kind: search.kind ?? DEFAULT_SEARCH_KIND,
+    page: pageNumber(search.page),
+    near: nearOf(search.near)
+  }),
+  loader,
+  head,
+  component: Search
 }

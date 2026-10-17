@@ -14,24 +14,24 @@ import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-
  * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
 type Documents = {
-    "\n\tmutation UserAddressAdd($address: GraphQLInputUserAddress!) {\n\t\tuserAddressAdd(address: $address) {\n\t\t\t_id\n\t\t}\n\t}\n": typeof types.UserAddressAddDocument,
-    "\n\tmutation UserAddressUpdate($_id: ID!, $address: GraphQLInputUserAddress!) {\n\t\tuserAddressUpdate(_id: $_id, address: $address)\n\t}\n": typeof types.UserAddressUpdateDocument,
-    "\n\tmutation UserAddressDel($_id: ID!) {\n\t\tuserAddressDel(_id: $_id)\n\t}\n": typeof types.UserAddressDelDocument,
-    "\n\tmutation UserDefaultAddressSet($_id: ID!) {\n\t\tuserDefaultAddressSet(_id: $_id)\n\t}\n": typeof types.UserDefaultAddressSetDocument,
-    "\n\tmutation UserPersonalDataUpdate($personalData: GraphQLInputUserPersonalData!) {\n\t\tuserPersonalDataUpdate(personalData: $personalData)\n\t}\n": typeof types.UserPersonalDataUpdateDocument,
-    "\n\tmutation UserUpdatePwd($passwordOld: String!, $passwordNew: String!) {\n\t\tuserUpdatePwd(passwordOld: $passwordOld, passwordNew: $passwordNew)\n\t}\n": typeof types.UserUpdatePwdDocument,
-    "\n\tmutation UserDel {\n\t\tuserDel\n\t}\n": typeof types.UserDelDocument,
-    "\n\tquery Me {\n\t\tme {\n\t\t\t_id\n\t\t\temail\n\t\t\tregisteredAt\n\t\t\tdefaultAddress\n\t\t\tpersonalData {\n\t\t\t\tfirstName\n\t\t\t\tlastName\n\t\t\t\tbirth {\n\t\t\t\t\tdate\n\t\t\t\t}\n\t\t\t\tcontacts {\n\t\t\t\t\tmobile\n\t\t\t\t\tlandline\n\t\t\t\t\temail\n\t\t\t\t}\n\t\t\t}\n\t\t\taddresses {\n\t\t\t\t_id\n\t\t\t\tlabel\n\t\t\t\tstreet\n\t\t\t\tpostalCode\n\t\t\t\tcity\n\t\t\t\tprovince\n\t\t\t\tposition {\n\t\t\t\t\ttype\n\t\t\t\t\tcoordinates\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n": typeof types.MeDocument,
+    "\n  mutation UserAddressAdd($address: GraphQLInputUserAddress!) {\n    userAddressAdd(address: $address) {\n      _id\n    }\n  }\n": typeof types.UserAddressAddDocument,
+    "\n  mutation UserAddressUpdate($_id: ID!, $address: GraphQLInputUserAddress!) {\n    userAddressUpdate(_id: $_id, address: $address)\n  }\n": typeof types.UserAddressUpdateDocument,
+    "\n  mutation UserAddressDel($_id: ID!) {\n    userAddressDel(_id: $_id)\n  }\n": typeof types.UserAddressDelDocument,
+    "\n  mutation UserDefaultAddressSet($_id: ID!) {\n    userDefaultAddressSet(_id: $_id)\n  }\n": typeof types.UserDefaultAddressSetDocument,
+    "\n  mutation UserPersonalDataUpdate($personalData: GraphQLInputUserPersonalData!) {\n    userPersonalDataUpdate(personalData: $personalData)\n  }\n": typeof types.UserPersonalDataUpdateDocument,
+    "\n  mutation UserUpdatePwd($passwordOld: String!, $passwordNew: String!) {\n    userUpdatePwd(passwordOld: $passwordOld, passwordNew: $passwordNew)\n  }\n": typeof types.UserUpdatePwdDocument,
+    "\n  mutation UserDel {\n    userDel\n  }\n": typeof types.UserDelDocument,
+    "\n  query Me {\n    me {\n      _id\n      email\n      registeredAt\n      defaultAddress\n      personalData {\n        firstName\n        lastName\n        birth {\n          date\n        }\n        contacts {\n          mobile\n          landline\n          email\n        }\n      }\n      addresses {\n        _id\n        label\n        street\n        postalCode\n        city\n        province\n        position {\n          type\n          coordinates\n        }\n      }\n    }\n  }\n": typeof types.MeDocument,
 };
 const documents: Documents = {
-    "\n\tmutation UserAddressAdd($address: GraphQLInputUserAddress!) {\n\t\tuserAddressAdd(address: $address) {\n\t\t\t_id\n\t\t}\n\t}\n": types.UserAddressAddDocument,
-    "\n\tmutation UserAddressUpdate($_id: ID!, $address: GraphQLInputUserAddress!) {\n\t\tuserAddressUpdate(_id: $_id, address: $address)\n\t}\n": types.UserAddressUpdateDocument,
-    "\n\tmutation UserAddressDel($_id: ID!) {\n\t\tuserAddressDel(_id: $_id)\n\t}\n": types.UserAddressDelDocument,
-    "\n\tmutation UserDefaultAddressSet($_id: ID!) {\n\t\tuserDefaultAddressSet(_id: $_id)\n\t}\n": types.UserDefaultAddressSetDocument,
-    "\n\tmutation UserPersonalDataUpdate($personalData: GraphQLInputUserPersonalData!) {\n\t\tuserPersonalDataUpdate(personalData: $personalData)\n\t}\n": types.UserPersonalDataUpdateDocument,
-    "\n\tmutation UserUpdatePwd($passwordOld: String!, $passwordNew: String!) {\n\t\tuserUpdatePwd(passwordOld: $passwordOld, passwordNew: $passwordNew)\n\t}\n": types.UserUpdatePwdDocument,
-    "\n\tmutation UserDel {\n\t\tuserDel\n\t}\n": types.UserDelDocument,
-    "\n\tquery Me {\n\t\tme {\n\t\t\t_id\n\t\t\temail\n\t\t\tregisteredAt\n\t\t\tdefaultAddress\n\t\t\tpersonalData {\n\t\t\t\tfirstName\n\t\t\t\tlastName\n\t\t\t\tbirth {\n\t\t\t\t\tdate\n\t\t\t\t}\n\t\t\t\tcontacts {\n\t\t\t\t\tmobile\n\t\t\t\t\tlandline\n\t\t\t\t\temail\n\t\t\t\t}\n\t\t\t}\n\t\t\taddresses {\n\t\t\t\t_id\n\t\t\t\tlabel\n\t\t\t\tstreet\n\t\t\t\tpostalCode\n\t\t\t\tcity\n\t\t\t\tprovince\n\t\t\t\tposition {\n\t\t\t\t\ttype\n\t\t\t\t\tcoordinates\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n": types.MeDocument,
+    "\n  mutation UserAddressAdd($address: GraphQLInputUserAddress!) {\n    userAddressAdd(address: $address) {\n      _id\n    }\n  }\n": types.UserAddressAddDocument,
+    "\n  mutation UserAddressUpdate($_id: ID!, $address: GraphQLInputUserAddress!) {\n    userAddressUpdate(_id: $_id, address: $address)\n  }\n": types.UserAddressUpdateDocument,
+    "\n  mutation UserAddressDel($_id: ID!) {\n    userAddressDel(_id: $_id)\n  }\n": types.UserAddressDelDocument,
+    "\n  mutation UserDefaultAddressSet($_id: ID!) {\n    userDefaultAddressSet(_id: $_id)\n  }\n": types.UserDefaultAddressSetDocument,
+    "\n  mutation UserPersonalDataUpdate($personalData: GraphQLInputUserPersonalData!) {\n    userPersonalDataUpdate(personalData: $personalData)\n  }\n": types.UserPersonalDataUpdateDocument,
+    "\n  mutation UserUpdatePwd($passwordOld: String!, $passwordNew: String!) {\n    userUpdatePwd(passwordOld: $passwordOld, passwordNew: $passwordNew)\n  }\n": types.UserUpdatePwdDocument,
+    "\n  mutation UserDel {\n    userDel\n  }\n": types.UserDelDocument,
+    "\n  query Me {\n    me {\n      _id\n      email\n      registeredAt\n      defaultAddress\n      personalData {\n        firstName\n        lastName\n        birth {\n          date\n        }\n        contacts {\n          mobile\n          landline\n          email\n        }\n      }\n      addresses {\n        _id\n        label\n        street\n        postalCode\n        city\n        province\n        position {\n          type\n          coordinates\n        }\n      }\n    }\n  }\n": types.MeDocument,
 };
 
 /**
@@ -51,35 +51,35 @@ export function graphql(source: string): unknown;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n\tmutation UserAddressAdd($address: GraphQLInputUserAddress!) {\n\t\tuserAddressAdd(address: $address) {\n\t\t\t_id\n\t\t}\n\t}\n"): (typeof documents)["\n\tmutation UserAddressAdd($address: GraphQLInputUserAddress!) {\n\t\tuserAddressAdd(address: $address) {\n\t\t\t_id\n\t\t}\n\t}\n"];
+export function graphql(source: "\n  mutation UserAddressAdd($address: GraphQLInputUserAddress!) {\n    userAddressAdd(address: $address) {\n      _id\n    }\n  }\n"): (typeof documents)["\n  mutation UserAddressAdd($address: GraphQLInputUserAddress!) {\n    userAddressAdd(address: $address) {\n      _id\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n\tmutation UserAddressUpdate($_id: ID!, $address: GraphQLInputUserAddress!) {\n\t\tuserAddressUpdate(_id: $_id, address: $address)\n\t}\n"): (typeof documents)["\n\tmutation UserAddressUpdate($_id: ID!, $address: GraphQLInputUserAddress!) {\n\t\tuserAddressUpdate(_id: $_id, address: $address)\n\t}\n"];
+export function graphql(source: "\n  mutation UserAddressUpdate($_id: ID!, $address: GraphQLInputUserAddress!) {\n    userAddressUpdate(_id: $_id, address: $address)\n  }\n"): (typeof documents)["\n  mutation UserAddressUpdate($_id: ID!, $address: GraphQLInputUserAddress!) {\n    userAddressUpdate(_id: $_id, address: $address)\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n\tmutation UserAddressDel($_id: ID!) {\n\t\tuserAddressDel(_id: $_id)\n\t}\n"): (typeof documents)["\n\tmutation UserAddressDel($_id: ID!) {\n\t\tuserAddressDel(_id: $_id)\n\t}\n"];
+export function graphql(source: "\n  mutation UserAddressDel($_id: ID!) {\n    userAddressDel(_id: $_id)\n  }\n"): (typeof documents)["\n  mutation UserAddressDel($_id: ID!) {\n    userAddressDel(_id: $_id)\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n\tmutation UserDefaultAddressSet($_id: ID!) {\n\t\tuserDefaultAddressSet(_id: $_id)\n\t}\n"): (typeof documents)["\n\tmutation UserDefaultAddressSet($_id: ID!) {\n\t\tuserDefaultAddressSet(_id: $_id)\n\t}\n"];
+export function graphql(source: "\n  mutation UserDefaultAddressSet($_id: ID!) {\n    userDefaultAddressSet(_id: $_id)\n  }\n"): (typeof documents)["\n  mutation UserDefaultAddressSet($_id: ID!) {\n    userDefaultAddressSet(_id: $_id)\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n\tmutation UserPersonalDataUpdate($personalData: GraphQLInputUserPersonalData!) {\n\t\tuserPersonalDataUpdate(personalData: $personalData)\n\t}\n"): (typeof documents)["\n\tmutation UserPersonalDataUpdate($personalData: GraphQLInputUserPersonalData!) {\n\t\tuserPersonalDataUpdate(personalData: $personalData)\n\t}\n"];
+export function graphql(source: "\n  mutation UserPersonalDataUpdate($personalData: GraphQLInputUserPersonalData!) {\n    userPersonalDataUpdate(personalData: $personalData)\n  }\n"): (typeof documents)["\n  mutation UserPersonalDataUpdate($personalData: GraphQLInputUserPersonalData!) {\n    userPersonalDataUpdate(personalData: $personalData)\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n\tmutation UserUpdatePwd($passwordOld: String!, $passwordNew: String!) {\n\t\tuserUpdatePwd(passwordOld: $passwordOld, passwordNew: $passwordNew)\n\t}\n"): (typeof documents)["\n\tmutation UserUpdatePwd($passwordOld: String!, $passwordNew: String!) {\n\t\tuserUpdatePwd(passwordOld: $passwordOld, passwordNew: $passwordNew)\n\t}\n"];
+export function graphql(source: "\n  mutation UserUpdatePwd($passwordOld: String!, $passwordNew: String!) {\n    userUpdatePwd(passwordOld: $passwordOld, passwordNew: $passwordNew)\n  }\n"): (typeof documents)["\n  mutation UserUpdatePwd($passwordOld: String!, $passwordNew: String!) {\n    userUpdatePwd(passwordOld: $passwordOld, passwordNew: $passwordNew)\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n\tmutation UserDel {\n\t\tuserDel\n\t}\n"): (typeof documents)["\n\tmutation UserDel {\n\t\tuserDel\n\t}\n"];
+export function graphql(source: "\n  mutation UserDel {\n    userDel\n  }\n"): (typeof documents)["\n  mutation UserDel {\n    userDel\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n\tquery Me {\n\t\tme {\n\t\t\t_id\n\t\t\temail\n\t\t\tregisteredAt\n\t\t\tdefaultAddress\n\t\t\tpersonalData {\n\t\t\t\tfirstName\n\t\t\t\tlastName\n\t\t\t\tbirth {\n\t\t\t\t\tdate\n\t\t\t\t}\n\t\t\t\tcontacts {\n\t\t\t\t\tmobile\n\t\t\t\t\tlandline\n\t\t\t\t\temail\n\t\t\t\t}\n\t\t\t}\n\t\t\taddresses {\n\t\t\t\t_id\n\t\t\t\tlabel\n\t\t\t\tstreet\n\t\t\t\tpostalCode\n\t\t\t\tcity\n\t\t\t\tprovince\n\t\t\t\tposition {\n\t\t\t\t\ttype\n\t\t\t\t\tcoordinates\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n"): (typeof documents)["\n\tquery Me {\n\t\tme {\n\t\t\t_id\n\t\t\temail\n\t\t\tregisteredAt\n\t\t\tdefaultAddress\n\t\t\tpersonalData {\n\t\t\t\tfirstName\n\t\t\t\tlastName\n\t\t\t\tbirth {\n\t\t\t\t\tdate\n\t\t\t\t}\n\t\t\t\tcontacts {\n\t\t\t\t\tmobile\n\t\t\t\t\tlandline\n\t\t\t\t\temail\n\t\t\t\t}\n\t\t\t}\n\t\t\taddresses {\n\t\t\t\t_id\n\t\t\t\tlabel\n\t\t\t\tstreet\n\t\t\t\tpostalCode\n\t\t\t\tcity\n\t\t\t\tprovince\n\t\t\t\tposition {\n\t\t\t\t\ttype\n\t\t\t\t\tcoordinates\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n"];
+export function graphql(source: "\n  query Me {\n    me {\n      _id\n      email\n      registeredAt\n      defaultAddress\n      personalData {\n        firstName\n        lastName\n        birth {\n          date\n        }\n        contacts {\n          mobile\n          landline\n          email\n        }\n      }\n      addresses {\n        _id\n        label\n        street\n        postalCode\n        city\n        province\n        position {\n          type\n          coordinates\n        }\n      }\n    }\n  }\n"): (typeof documents)["\n  query Me {\n    me {\n      _id\n      email\n      registeredAt\n      defaultAddress\n      personalData {\n        firstName\n        lastName\n        birth {\n          date\n        }\n        contacts {\n          mobile\n          landline\n          email\n        }\n      }\n      addresses {\n        _id\n        label\n        street\n        postalCode\n        city\n        province\n        position {\n          type\n          coordinates\n        }\n      }\n    }\n  }\n"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};

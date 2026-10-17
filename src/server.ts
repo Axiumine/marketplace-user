@@ -18,19 +18,19 @@ import { cacheControlFor } from '@/lib/cachePolicy'
 const handler = createStartHandler(defaultStreamHandler)
 
 const fetch: RequestHandler<Register> = async (request, opts) => {
-	const response = await handler(request, opts)
-	const cacheControl = cacheControlFor(request, response)
+  const response = await handler(request, opts)
+  const cacheControl = cacheControlFor(request, response)
 
-	if (cacheControl !== undefined) {
-		response.headers.set('cache-control', cacheControl)
-		// Signed-in and anonymous responses differ, so any shared cache in front must key on that. It
-		// cannot be told to key on the cookie's *value* — that would be one cache entry per visitor — so
-		// nginx bypasses instead, and this header is the standards-conformant statement of the same fact
-		// for anything else in the path.
-		response.headers.set('vary', 'cookie')
-	}
+  if (cacheControl !== undefined) {
+    response.headers.set('cache-control', cacheControl)
+    // Signed-in and anonymous responses differ, so any shared cache in front must key on that. It
+    // cannot be told to key on the cookie's *value* — that would be one cache entry per visitor — so
+    // nginx bypasses instead, and this header is the standards-conformant statement of the same fact
+    // for anything else in the path.
+    response.headers.set('vary', 'cookie')
+  }
 
-	return response
+  return response
 }
 
 export default { fetch }

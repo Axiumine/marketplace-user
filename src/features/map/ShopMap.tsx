@@ -43,257 +43,257 @@ const MAX_PINS = 500
 const SETTLE_MS = 250
 
 interface Pin {
-	readonly _id: string
-	readonly publicName: string
-	readonly slug: string
-	readonly coordinates: readonly number[]
+  readonly _id: string
+  readonly publicName: string
+  readonly slug: string
+  readonly coordinates: readonly number[]
 }
 
 const SOURCE = 'shops'
 
 export interface ShopMapProps {
-	/** `[lng, lat]`, GeoJSON order — the same order the API speaks, so nothing is swapped on the way in. */
-	readonly center: readonly [number, number]
-	readonly zoom: number
-	/** Pins to show before the first viewport query answers. The listing already has them; reuse beats refetch. */
-	readonly initialPins?: readonly Pin[]
+  /** `[lng, lat]`, GeoJSON order — the same order the API speaks, so nothing is swapped on the way in. */
+  readonly center: readonly [number, number]
+  readonly zoom: number
+  /** Pins to show before the first viewport query answers. The listing already has them; reuse beats refetch. */
+  readonly initialPins?: readonly Pin[]
 }
 
 const toFeatureCollection = (pins: readonly Pin[]): FeatureCollection => ({
-	type: 'FeatureCollection',
-	features: pins.map((pin) => ({
-		type: 'Feature',
-		id: pin._id,
-		geometry: { type: 'Point', coordinates: [...pin.coordinates] },
-		properties: { slug: pin.slug, publicName: pin.publicName }
-	}))
+  type: 'FeatureCollection',
+  features: pins.map((pin) => ({
+    type: 'Feature',
+    id: pin._id,
+    geometry: { type: 'Point', coordinates: [...pin.coordinates] },
+    properties: { slug: pin.slug, publicName: pin.publicName }
+  }))
 })
 
 export const ShopMap = ({ center, zoom, initialPins = [] }: ShopMapProps) => {
-	/*
-	 * The box MapLibre mounts into, held in state rather than in a ref.
-	 *
-	 * A ref would be read once, on the effect run that follows the first commit, and nothing would re-run
-	 * the effect if the element arrived later. State makes the arrival a render: the first pass has no box
-	 * and builds no map, the second has one and builds it. Exactly one map either way.
-	 */
-	const [container, setContainer] = useState<HTMLDivElement | null>(null)
-	const mapRef = useRef<maplibregl.Map | null>(null)
-	const client = useClient()
-	const [truncated, setTruncated] = useState(false)
-	const [loadError, setLoadError] = useState(false)
+  /*
+   * The box MapLibre mounts into, held in state rather than in a ref.
+   *
+   * A ref would be read once, on the effect run that follows the first commit, and nothing would re-run
+   * the effect if the element arrived later. State makes the arrival a render: the first pass has no box
+   * and builds no map, the second has one and builds it. Exactly one map either way.
+   */
+  const [container, setContainer] = useState<HTMLDivElement | null>(null)
+  const mapRef = useRef<maplibregl.Map | null>(null)
+  const client = useClient()
+  const [truncated, setTruncated] = useState(false)
+  const [loadError, setLoadError] = useState(false)
 
-	useEffect(() => {
-		if (container === null) return
+  useEffect(() => {
+    if (container === null) return
 
-		registerPmtilesProtocol()
+    registerPmtilesProtocol()
 
-		const map = new maplibregl.Map({
-			container,
-			style: env.mapStyleUrl,
-			center: toMutableLngLat(center),
-			zoom,
-			// The basemap credit is a licence obligation for OSM-derived data. It is also in the footer, so
-			// the obligation is met even if the canvas never paints — this control is the in-map copy.
-			attributionControl: { compact: true }
-		})
+    const map = new maplibregl.Map({
+      container,
+      style: env.mapStyleUrl,
+      center: toMutableLngLat(center),
+      zoom,
+      // The basemap credit is a licence obligation for OSM-derived data. It is also in the footer, so
+      // the obligation is met even if the canvas never paints — this control is the in-map copy.
+      attributionControl: { compact: true }
+    })
 
-		mapRef.current = map
-		map.addControl(new maplibregl.NavigationControl(), 'top-right')
+    mapRef.current = map
+    map.addControl(new maplibregl.NavigationControl(), 'top-right')
 
-		let timer: ReturnType<typeof setTimeout> | undefined
-		let disposed = false
+    let timer: ReturnType<typeof setTimeout> | undefined
+    let disposed = false
 
-		const load = async () => {
-			const bounds = map.getBounds()
+    const load = async () => {
+      const bounds = map.getBounds()
 
-			const result = await client
-				.query(CompaniesNearbyDocument, {
-					bbox: {
-						minLng: bounds.getWest(),
-						minLat: bounds.getSouth(),
-						maxLng: bounds.getEast(),
-						maxLat: bounds.getNorth()
-					},
-					limit: MAX_PINS
-				})
-				.toPromise()
+      const result = await client
+        .query(CompaniesNearbyDocument, {
+          bbox: {
+            minLng: bounds.getWest(),
+            minLat: bounds.getSouth(),
+            maxLng: bounds.getEast(),
+            maxLat: bounds.getNorth()
+          },
+          limit: MAX_PINS
+        })
+        .toPromise()
 
-			// The component can unmount while a query is in flight — a navigation away from the page is the
-			// normal case. Touching a removed map throws, and the throw lands in an unhandled rejection.
-			if (disposed) return
+      // The component can unmount while a query is in flight — a navigation away from the page is the
+      // normal case. Touching a removed map throws, and the throw lands in an unhandled rejection.
+      if (disposed) return
 
-			// ⚠️ `companiesNearby` is non-null, so a resolver error — the service down, or the backend's own
-			// bbox-too-large rejection — nulls the whole envelope rather than answering an empty page. Read
-			// without this check, that is indistinguishable from "no shops here": the home page's own default
-			// centre and zoom routinely exceed the backend's bbox cap, so this is reachable on an ordinary
-			// first load, not only during an outage.
-			setLoadError(result.error !== undefined)
+      // ⚠️ `companiesNearby` is non-null, so a resolver error — the service down, or the backend's own
+      // bbox-too-large rejection — nulls the whole envelope rather than answering an empty page. Read
+      // without this check, that is indistinguishable from "no shops here": the home page's own default
+      // centre and zoom routinely exceed the backend's bbox cap, so this is reachable on an ordinary
+      // first load, not only during an outage.
+      setLoadError(result.error !== undefined)
 
-			const nodes = result.data?.companiesNearby.nodes ?? []
-			setTruncated(result.data?.companiesNearby.truncated ?? false)
+      const nodes = result.data?.companiesNearby.nodes ?? []
+      setTruncated(result.data?.companiesNearby.truncated ?? false)
 
-			const source = map.getSource(SOURCE)
-			if (source === undefined) return
+      const source = map.getSource(SOURCE)
+      if (source === undefined) return
 
-			// `setData` answers a promise — it hands the data to the worker that re-tiles it and resolves when
-			// that is done. Awaited so a failure there rejects this `load()` rather than floating away as an
-			// unhandled rejection with no line of ours in its stack.
-			await (source as maplibregl.GeoJSONSource).setData(
-				toFeatureCollection(
-					nodes.map((node) => ({
-						_id: node._id,
-						publicName: node.publicName,
-						slug: node.slug,
-						coordinates: node.position.coordinates
-					}))
-				)
-			)
-		}
+      // `setData` answers a promise — it hands the data to the worker that re-tiles it and resolves when
+      // that is done. Awaited so a failure there rejects this `load()` rather than floating away as an
+      // unhandled rejection with no line of ours in its stack.
+      await (source as maplibregl.GeoJSONSource).setData(
+        toFeatureCollection(
+          nodes.map((node) => ({
+            _id: node._id,
+            publicName: node.publicName,
+            slug: node.slug,
+            coordinates: node.position.coordinates
+          }))
+        )
+      )
+    }
 
-		// `clearTimeout` is spelled without a guard on purpose, here and in the teardown below. It accepts
-		// `undefined` and does nothing with it, so `if (timer !== undefined)` is a branch whose two sides are
-		// indistinguishable from outside — untestable by construction, and the kind of check that reads as if
-		// it were protecting against something.
-		const scheduleLoad = () => {
-			clearTimeout(timer)
-			timer = setTimeout(() => void load(), SETTLE_MS)
-		}
+    // `clearTimeout` is spelled without a guard on purpose, here and in the teardown below. It accepts
+    // `undefined` and does nothing with it, so `if (timer !== undefined)` is a branch whose two sides are
+    // indistinguishable from outside — untestable by construction, and the kind of check that reads as if
+    // it were protecting against something.
+    const scheduleLoad = () => {
+      clearTimeout(timer)
+      timer = setTimeout(() => void load(), SETTLE_MS)
+    }
 
-		map.on('load', () => {
-			/*
-			 * ⚠️ Clustering is done by the source, not by the application. At 500 pins in view, drawing one
-			 * marker element each would put 500 DOM nodes over a canvas that repaints on every frame of a
-			 * drag; `cluster: true` keeps the whole thing inside WebGL and is the reason this is MapLibre and
-			 * not Leaflet with markers.
-			 */
-			map.addSource(SOURCE, {
-				type: 'geojson',
-				data: toFeatureCollection(initialPins),
-				cluster: true,
-				clusterRadius: 50,
-				clusterMaxZoom: 14
-			})
+    map.on('load', () => {
+      /*
+       * ⚠️ Clustering is done by the source, not by the application. At 500 pins in view, drawing one
+       * marker element each would put 500 DOM nodes over a canvas that repaints on every frame of a
+       * drag; `cluster: true` keeps the whole thing inside WebGL and is the reason this is MapLibre and
+       * not Leaflet with markers.
+       */
+      map.addSource(SOURCE, {
+        type: 'geojson',
+        data: toFeatureCollection(initialPins),
+        cluster: true,
+        clusterRadius: 50,
+        clusterMaxZoom: 14
+      })
 
-			map.addLayer({
-				id: 'clusters',
-				type: 'circle',
-				source: SOURCE,
-				filter: ['has', 'point_count'],
-				paint: {
-					'circle-color': '#ffd615',
-					'circle-stroke-color': '#0e0e13',
-					'circle-stroke-width': 1,
-					'circle-radius': ['step', ['get', 'point_count'], 16, 10, 22, 50, 30]
-				}
-			})
+      map.addLayer({
+        id: 'clusters',
+        type: 'circle',
+        source: SOURCE,
+        filter: ['has', 'point_count'],
+        paint: {
+          'circle-color': '#ffd615',
+          'circle-stroke-color': '#0e0e13',
+          'circle-stroke-width': 1,
+          'circle-radius': ['step', ['get', 'point_count'], 16, 10, 22, 50, 30]
+        }
+      })
 
-			/*
-			 * ⚠️ This layer needs a `glyphs` URL in the style document — a symbol layer with no font source
-			 * renders nothing and logs one warning, so the count silently disappears while the circles stay.
-			 * The parent workspace's `marketplace-nginx/` serves the Protomaps style, which carries one; a hand-written
-			 * style must too.
-			 */
-			map.addLayer({
-				id: 'cluster-count',
-				type: 'symbol',
-				source: SOURCE,
-				filter: ['has', 'point_count'],
-				layout: { 'text-field': ['get', 'point_count_abbreviated'], 'text-size': 12 },
-				paint: { 'text-color': '#0e0e13' }
-			})
+      /*
+       * ⚠️ This layer needs a `glyphs` URL in the style document — a symbol layer with no font source
+       * renders nothing and logs one warning, so the count silently disappears while the circles stay.
+       * The parent workspace's `marketplace-nginx/` serves the Protomaps style, which carries one; a hand-written
+       * style must too.
+       */
+      map.addLayer({
+        id: 'cluster-count',
+        type: 'symbol',
+        source: SOURCE,
+        filter: ['has', 'point_count'],
+        layout: { 'text-field': ['get', 'point_count_abbreviated'], 'text-size': 12 },
+        paint: { 'text-color': '#0e0e13' }
+      })
 
-			map.addLayer({
-				id: 'shop',
-				type: 'circle',
-				source: SOURCE,
-				filter: ['!', ['has', 'point_count']],
-				paint: {
-					'circle-color': '#ba5c16',
-					'circle-stroke-color': '#fdffff',
-					'circle-stroke-width': 2,
-					'circle-radius': 7
-				}
-			})
+      map.addLayer({
+        id: 'shop',
+        type: 'circle',
+        source: SOURCE,
+        filter: ['!', ['has', 'point_count']],
+        paint: {
+          'circle-color': '#ba5c16',
+          'circle-stroke-color': '#fdffff',
+          'circle-stroke-width': 2,
+          'circle-radius': 7
+        }
+      })
 
-			scheduleLoad()
-		})
+      scheduleLoad()
+    })
 
-		map.on('moveend', scheduleLoad)
+    map.on('moveend', scheduleLoad)
 
-		// A cluster is a zoom affordance, not a destination: clicking one zooms to the level where it breaks
-		// apart, which is what a person expects and what stops a dense city from being one permanent blob.
-		map.on('click', 'clusters', (event) => {
-			const feature = event.features?.[0]
-			if (feature === undefined) return
+    // A cluster is a zoom affordance, not a destination: clicking one zooms to the level where it breaks
+    // apart, which is what a person expects and what stops a dense city from being one permanent blob.
+    map.on('click', 'clusters', (event) => {
+      const feature = event.features?.[0]
+      if (feature === undefined) return
 
-			const target = toLngLat((feature.geometry as Point).coordinates)
-			if (target === undefined) return
+      const target = toLngLat((feature.geometry as Point).coordinates)
+      if (target === undefined) return
 
-			const clusterId = feature.properties.cluster_id as number
-			void (map.getSource(SOURCE) as maplibregl.GeoJSONSource).getClusterExpansionZoom(clusterId).then((expansion) => {
-				if (disposed) return
-				map.easeTo({ center: toMutableLngLat(target), zoom: expansion })
-			})
-		})
+      const clusterId = feature.properties.cluster_id as number
+      void (map.getSource(SOURCE) as maplibregl.GeoJSONSource).getClusterExpansionZoom(clusterId).then((expansion) => {
+        if (disposed) return
+        map.easeTo({ center: toMutableLngLat(target), zoom: expansion })
+      })
+    })
 
-		/*
-		 * A popup with a real `<a href>`, rather than a click that navigates straight to the shop.
-		 *
-		 * A pin is a few pixels wide and a mis-tap on a phone is common; sending someone to a different page
-		 * on a mis-tap is a much worse outcome than showing them a name and letting them confirm. The anchor
-		 * is also the only reason the pins are reachable at all for someone who cannot use a pointer.
-		 */
-		map.on('click', 'shop', (event) => {
-			const feature = event.features?.[0]
-			if (feature === undefined) return
+    /*
+     * A popup with a real `<a href>`, rather than a click that navigates straight to the shop.
+     *
+     * A pin is a few pixels wide and a mis-tap on a phone is common; sending someone to a different page
+     * on a mis-tap is a much worse outcome than showing them a name and letting them confirm. The anchor
+     * is also the only reason the pins are reachable at all for someone who cannot use a pointer.
+     */
+    map.on('click', 'shop', (event) => {
+      const feature = event.features?.[0]
+      if (feature === undefined) return
 
-			const anchorAt = toLngLat((feature.geometry as Point).coordinates)
-			if (anchorAt === undefined) return
+      const anchorAt = toLngLat((feature.geometry as Point).coordinates)
+      if (anchorAt === undefined) return
 
-			const slug = String(feature.properties.slug)
-			const name = String(feature.properties.publicName)
-			const anchor = document.createElement('a')
-			anchor.href = `/shop/${encodeURIComponent(slug)}`
-			anchor.textContent = name
-			anchor.className = 'font-semibold underline'
+      const slug = String(feature.properties.slug)
+      const name = String(feature.properties.publicName)
+      const anchor = document.createElement('a')
+      anchor.href = `/shop/${encodeURIComponent(slug)}`
+      anchor.textContent = name
+      anchor.className = 'font-semibold underline'
 
-			new maplibregl.Popup().setLngLat(toMutableLngLat(anchorAt)).setDOMContent(anchor).addTo(map)
-		})
+      new maplibregl.Popup().setLngLat(toMutableLngLat(anchorAt)).setDOMContent(anchor).addTo(map)
+    })
 
-		for (const layer of ['clusters', 'shop']) {
-			map.on('mouseenter', layer, () => (map.getCanvas().style.cursor = 'pointer'))
-			map.on('mouseleave', layer, () => (map.getCanvas().style.cursor = ''))
-		}
+    for (const layer of ['clusters', 'shop']) {
+      map.on('mouseenter', layer, () => (map.getCanvas().style.cursor = 'pointer'))
+      map.on('mouseleave', layer, () => (map.getCanvas().style.cursor = ''))
+    }
 
-		return () => {
-			disposed = true
-			clearTimeout(timer)
-			map.remove()
-			mapRef.current = null
-		}
-		// The map is created once, on the render that brings the box, and mutated through its own API
-		// afterwards. Re-running this on a prop change would tear down and rebuild a WebGL context, losing
-		// the visitor's current pan and zoom.
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [container])
+    return () => {
+      disposed = true
+      clearTimeout(timer)
+      map.remove()
+      mapRef.current = null
+    }
+    // The map is created once, on the render that brings the box, and mutated through its own API
+    // afterwards. Re-running this on a prop change would tear down and rebuild a WebGL context, losing
+    // the visitor's current pan and zoom.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [container])
 
-	return (
-		<div className="relative">
-			<div ref={setContainer} style={{ height: 'var(--map-height)' }} className="w-full rounded-box" />
-			{loadError ? (
-				<p role="alert" className="absolute right-2 bottom-2 rounded-box bg-white/90 px-2 py-1 text-xs text-app-error">
-					Couldn’t load shops nearby — try moving the map again.
-				</p>
-			) : (
-				truncated && (
-					<p className="absolute right-2 bottom-2 rounded-box bg-white/90 px-2 py-1 text-xs text-slate-600">
-						Showing the first {MAX_PINS} shops in view — zoom in for the rest
-					</p>
-				)
-			)}
-		</div>
-	)
+  return (
+    <div className="relative">
+      <div ref={setContainer} style={{ height: 'var(--map-height)' }} className="w-full rounded-box" />
+      {loadError ? (
+        <p role="alert" className="absolute right-2 bottom-2 rounded-box bg-white/90 px-2 py-1 text-xs text-app-error">
+          Couldn’t load shops nearby — try moving the map again.
+        </p>
+      ) : (
+        truncated && (
+          <p className="absolute right-2 bottom-2 rounded-box bg-white/90 px-2 py-1 text-xs text-slate-600">
+            Showing the first {MAX_PINS} shops in view — zoom in for the rest
+          </p>
+        )
+      )}
+    </div>
+  )
 }
 
 export default ShopMap

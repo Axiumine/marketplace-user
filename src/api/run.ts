@@ -15,14 +15,14 @@ import type { AnyVariables, Client, TypedDocumentNode } from '@urql/core'
  * calls `client.query` itself and says why.
  */
 export const runQuery = async <Data, Variables extends AnyVariables>(
-	client: Client,
-	document: TypedDocumentNode<Data, Variables>,
-	variables: Variables
+  client: Client,
+  document: TypedDocumentNode<Data, Variables>,
+  variables: Variables
 ): Promise<Data> => {
-	const result = await client.query(document, variables).toPromise()
+  const result = await client.query(document, variables).toPromise()
 
-	if (result.error !== undefined) throw result.error
-	if (result.data === undefined) throw new Error('The server answered with no data')
+  if (result.error !== undefined) throw result.error
+  if (result.data === undefined) throw new Error('The server answered with no data')
 
-	return result.data
+  return result.data
 }

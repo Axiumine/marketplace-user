@@ -19,60 +19,60 @@ import type { InputHTMLAttributes, Ref } from 'react'
  * form at all.
  */
 export interface TextFieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'id' | 'className'> {
-	readonly name: string
-	readonly label: string
-	readonly autoComplete: string
-	/**
-	 * ⚠️ `| undefined` is written out, and it has to be. `tsconfig.json` sets
-	 * `exactOptionalPropertyTypes: true`, under which `error?: string` means "absent, or a string" and
-	 * **rejects an explicit `undefined`** — so `error={errors.email?.message}`, the shape every call site
-	 * here uses, fails to compile. Spelling the union makes "present but empty" expressible, which is what
-	 * a form field genuinely wants: the prop is always passed and its value is what varies.
-	 */
-	readonly error?: string | undefined
-	/** Static guidance shown under the field, read out alongside the error when both are present. */
-	readonly hint?: string | undefined
-	readonly ref?: Ref<HTMLInputElement>
+  readonly name: string
+  readonly label: string
+  readonly autoComplete: string
+  /**
+   * ⚠️ `| undefined` is written out, and it has to be. `tsconfig.json` sets
+   * `exactOptionalPropertyTypes: true`, under which `error?: string` means "absent, or a string" and
+   * **rejects an explicit `undefined`** — so `error={errors.email?.message}`, the shape every call site
+   * here uses, fails to compile. Spelling the union makes "present but empty" expressible, which is what
+   * a form field genuinely wants: the prop is always passed and its value is what varies.
+   */
+  readonly error?: string | undefined
+  /** Static guidance shown under the field, read out alongside the error when both are present. */
+  readonly hint?: string | undefined
+  readonly ref?: Ref<HTMLInputElement>
 }
 
 export const TextField = ({ name, label, error, hint, ref, ...rest }: TextFieldProps) => {
-	const errorId = `${name}-error`
-	const hintId = `${name}-hint`
-	const describedBy = [hint === undefined ? undefined : hintId, error === undefined ? undefined : errorId]
-		.filter((id) => id !== undefined)
-		.join(' ')
+  const errorId = `${name}-error`
+  const hintId = `${name}-hint`
+  const describedBy = [hint === undefined ? undefined : hintId, error === undefined ? undefined : errorId]
+    .filter((id) => id !== undefined)
+    .join(' ')
 
-	return (
-		<div className="flex flex-col gap-1">
-			<label htmlFor={name} className="text-sm font-medium text-palette-bg">
-				{label}
-			</label>
+  return (
+    <div className="flex flex-col gap-1">
+      <label htmlFor={name} className="text-sm font-medium text-palette-bg">
+        {label}
+      </label>
 
-			<input
-				{...rest}
-				ref={ref}
-				id={name}
-				name={name}
-				aria-invalid={error === undefined ? undefined : true}
-				// An empty string here would still be an attribute, and `aria-describedby=""` points at a
-				// non-existent element rather than at nothing.
-				aria-describedby={describedBy === '' ? undefined : describedBy}
-				className={`rounded-box border px-3 py-2 text-sm outline-none focus:border-palette-bg ${
-					error === undefined ? 'border-slate-300' : 'border-app-error'
-				}`}
-			/>
+      <input
+        {...rest}
+        ref={ref}
+        id={name}
+        name={name}
+        aria-invalid={error === undefined ? undefined : true}
+        // An empty string here would still be an attribute, and `aria-describedby=""` points at a
+        // non-existent element rather than at nothing.
+        aria-describedby={describedBy === '' ? undefined : describedBy}
+        className={`rounded-box border px-3 py-2 text-sm outline-none focus:border-palette-bg ${
+          error === undefined ? 'border-slate-300' : 'border-app-error'
+        }`}
+      />
 
-			{hint !== undefined && (
-				<p id={hintId} className="text-xs text-tip">
-					{hint}
-				</p>
-			)}
+      {hint !== undefined && (
+        <p id={hintId} className="text-xs text-tip">
+          {hint}
+        </p>
+      )}
 
-			{error !== undefined && (
-				<p id={errorId} className="text-xs text-app-error">
-					{error}
-				</p>
-			)}
-		</div>
-	)
+      {error !== undefined && (
+        <p id={errorId} className="text-xs text-app-error">
+          {error}
+        </p>
+      )}
+    </div>
+  )
 }

@@ -18,14 +18,14 @@
  * the factory runs, which is always after this module has finished evaluating.
  */
 export const mapIslandStub = async () => {
-	const { createElement } = await import('react')
+  const { createElement } = await import('react')
 
-	return {
-		MapIsland: (props: { center: readonly [number, number]; zoom: number; initialPins?: readonly { slug: string }[] }) =>
-			createElement(
-				'div',
-				{ 'data-testid': 'map' },
-				`${String(props.center[0])},${String(props.center[1])} @ ${String(props.zoom)} · ${(props.initialPins ?? []).map((pin) => pin.slug).join(' ')}`
-			)
-	}
+  return {
+    MapIsland: (props: { center: readonly [number, number]; zoom: number; initialPins?: readonly { slug: string }[] }) =>
+      createElement(
+        'div',
+        { 'data-testid': 'map' },
+        `${String(props.center[0])},${String(props.center[1])} @ ${String(props.zoom)} · ${(props.initialPins ?? []).map((pin) => pin.slug).join(' ')}`
+      )
+  }
 }

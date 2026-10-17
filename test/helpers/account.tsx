@@ -10,15 +10,15 @@ import type { RouterRenderResult } from './render'
 import { CUSTOMER_EMAIL, renderWithRouter } from './render'
 
 export interface AccountRenderOptions {
-	/** The account the gate loads. */
-	me?: MeFixture
-	/** Replies for whatever the screen under test sends, merged over the `Me` reply. */
-	replies?: GraphQLReplies
-	path?: string
+  /** The account the gate loads. */
+  me?: MeFixture
+  /** Replies for whatever the screen under test sends, merged over the `Me` reply. */
+  replies?: GraphQLReplies
+  path?: string
 }
 
 export interface AccountRenderResult extends RouterRenderResult {
-	readonly stub: ReturnType<typeof stubGraphQL>
+  readonly stub: ReturnType<typeof stubGraphQL>
 }
 
 /**
@@ -30,15 +30,15 @@ export interface AccountRenderResult extends RouterRenderResult {
  * query, the same auth exchange and the same cache the app ships.
  */
 export const renderInAccount = async (
-	ui: ReactElement,
-	{ me = FULL_ME, replies = {}, path = '/account' }: AccountRenderOptions = {}
+  ui: ReactElement,
+  { me = FULL_ME, replies = {}, path = '/account' }: AccountRenderOptions = {}
 ): Promise<AccountRenderResult> => {
-	const stub = stubGraphQL({ ...meReply(me), ...replies })
-	const result = await renderWithRouter(<AccountGate>{ui}</AccountGate>, {
-		token: 'access-token',
-		session: CUSTOMER_EMAIL,
-		path
-	})
+  const stub = stubGraphQL({ ...meReply(me), ...replies })
+  const result = await renderWithRouter(<AccountGate>{ui}</AccountGate>, {
+    token: 'access-token',
+    session: CUSTOMER_EMAIL,
+    path
+  })
 
-	return { ...result, stub }
+  return { ...result, stub }
 }

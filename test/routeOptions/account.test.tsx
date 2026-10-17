@@ -17,55 +17,55 @@ import { renderRoute } from '../helpers/render'
 installOnlineListenerGuard()
 
 const mount = async (path: string) => {
-	const stub = stubGraphQL(meReply())
-	const result = await renderRoute(path, { token: 'access-token', session: 'customer@marketplace.it' })
+  const stub = stubGraphQL(meReply())
+  const result = await renderRoute(path, { token: 'access-token', session: 'customer@marketplace.it' })
 
-	return { ...result, stub }
+  return { ...result, stub }
 }
 
 describe('the account layout', () => {
-	/*
-	 * ⚠️ `ssr: false` lives here and nowhere else, which is why the private area is one subtree rather than
-	 * three sibling routes — the flag is inherited. Server-rendering a page that holds one customer's name
-	 * and addresses puts it one misconfigured `Vary` away from being served to the next visitor out of the
-	 * shared nginx cache. A shell with no data in it cannot leak anything, whatever the cache does.
-	 */
-	it('never renders on the server', () => {
-		expect(accountRouteOptions.ssr).toBe(false)
-	})
+  /*
+   * ⚠️ `ssr: false` lives here and nowhere else, which is why the private area is one subtree rather than
+   * three sibling routes — the flag is inherited. Server-rendering a page that holds one customer's name
+   * and addresses puts it one misconfigured `Vary` away from being served to the next visitor out of the
+   * shared nginx cache. A shell with no data in it cannot leak anything, whatever the cache does.
+   */
+  it('never renders on the server', () => {
+    expect(accountRouteOptions.ssr).toBe(false)
+  })
 
-	it('renders the heading and the navigation for the whole subtree', async () => {
-		await mount('/account')
+  it('renders the heading and the navigation for the whole subtree', async () => {
+    await mount('/account')
 
-		expect(screen.getByRole('heading', { level: 1, name: 'Your account' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: 'Your account' })).toBeInTheDocument()
 
-		const nav = within(screen.getByRole('navigation', { name: 'Account' }))
+    const nav = within(screen.getByRole('navigation', { name: 'Account' }))
 
-		expect(nav.getByRole('link', { name: 'Profile' })).toHaveAttribute('href', '/account')
-		expect(nav.getByRole('link', { name: 'Addresses' })).toHaveAttribute('href', '/account/addresses')
-		expect(nav.getByRole('link', { name: 'Password' })).toHaveAttribute('href', '/account/password')
-		expect(nav.getByRole('link', { name: 'Close account' })).toHaveAttribute('href', '/account/close')
-		expect(nav.getByRole('button', { name: 'Sign out' })).toBeInTheDocument()
-	})
+    expect(nav.getByRole('link', { name: 'Profile' })).toHaveAttribute('href', '/account')
+    expect(nav.getByRole('link', { name: 'Addresses' })).toHaveAttribute('href', '/account/addresses')
+    expect(nav.getByRole('link', { name: 'Password' })).toHaveAttribute('href', '/account/password')
+    expect(nav.getByRole('link', { name: 'Close account' })).toHaveAttribute('href', '/account/close')
+    expect(nav.getByRole('button', { name: 'Sign out' })).toBeInTheDocument()
+  })
 
-	/*
-	 * ⚠️ The gate is *inside* the layout, not around it: the heading and the navigation render while `me` is
-	 * still in flight, so the page has a shape from the first frame. It also keeps sign-out reachable when
-	 * `me` is failing, which is exactly the state a customer needs it in.
-	 */
-	it('keeps the navigation up while the account is still loading', async () => {
-		stubGraphQL({ Me: { pending: true } })
-		await renderRoute('/account', { token: 'access-token', session: 'customer@marketplace.it' })
+  /*
+   * ⚠️ The gate is *inside* the layout, not around it: the heading and the navigation render while `me` is
+   * still in flight, so the page has a shape from the first frame. It also keeps sign-out reachable when
+   * `me` is failing, which is exactly the state a customer needs it in.
+   */
+  it('keeps the navigation up while the account is still loading', async () => {
+    stubGraphQL({ Me: { pending: true } })
+    await renderRoute('/account', { token: 'access-token', session: 'customer@marketplace.it' })
 
-		expect(screen.getByRole('navigation', { name: 'Account' })).toBeInTheDocument()
-		expect(screen.getByRole('status')).toHaveTextContent('Loading your account…')
-	})
+    expect(screen.getByRole('navigation', { name: 'Account' })).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent('Loading your account…')
+  })
 
-	it('asks for the account once, for the whole subtree', async () => {
-		const { stub } = await mount('/account/addresses')
+  it('asks for the account once, for the whole subtree', async () => {
+    const { stub } = await mount('/account/addresses')
 
-		expect(stub.calls.map((call) => call.operationName)).toEqual(['Me'])
-	})
+    expect(stub.calls.map((call) => call.operationName)).toEqual(['Me'])
+  })
 })
 
 /*
@@ -75,81 +75,81 @@ describe('the account layout', () => {
  * machine and fails on a loaded one, which is the worst kind of assertion to own.
  */
 describe('the account screens', () => {
-	it('opens on the profile', async () => {
-		await mount('/account')
+  it('opens on the profile', async () => {
+    await mount('/account')
 
-		const section = within(await screen.findByRole('region', { name: 'Your details' }))
+    const section = within(await screen.findByRole('region', { name: 'Your details' }))
 
-		expect(section.getByRole('heading', { level: 2, name: 'Your details' })).toBeInTheDocument()
-		expect(section.getByDisplayValue('Julia')).toBeInTheDocument()
-	})
+    expect(section.getByRole('heading', { level: 2, name: 'Your details' })).toBeInTheDocument()
+    expect(section.getByDisplayValue('Julia')).toBeInTheDocument()
+  })
 
-	it('renders the address book', async () => {
-		await mount('/account/addresses')
+  it('renders the address book', async () => {
+    await mount('/account/addresses')
 
-		expect(await screen.findByRole('region', { name: 'Your addresses' })).toBeInTheDocument()
-		expect(screen.getByText('Save as many as you like and mark one as the default.')).toBeInTheDocument()
-	})
+    expect(await screen.findByRole('region', { name: 'Your addresses' })).toBeInTheDocument()
+    expect(screen.getByText('Save as many as you like and mark one as the default.')).toBeInTheDocument()
+  })
 
-	it('renders the password screen, and says what changing it does not do', async () => {
-		await mount('/account/password')
+  it('renders the password screen, and says what changing it does not do', async () => {
+    await mount('/account/password')
 
-		const section = within(await screen.findByRole('region', { name: 'Password' }))
+    const section = within(await screen.findByRole('region', { name: 'Password' }))
 
-		expect(section.getByRole('heading', { level: 2, name: 'Password' })).toBeInTheDocument()
-		expect(
-			section.getByText('Changing it here keeps you signed in on this device. Other devices stay signed in too.')
-		).toBeInTheDocument()
-	})
+    expect(section.getByRole('heading', { level: 2, name: 'Password' })).toBeInTheDocument()
+    expect(
+      section.getByText('Changing it here keeps you signed in on this device. Other devices stay signed in too.')
+    ).toBeInTheDocument()
+  })
 
-	/*
-	 * ⚠️ A screen of its own rather than a card under the password form, which is where a fourth control is
-	 * cheapest to bolt on. A destructive action sitting under a form is one mis-aimed press away from the
-	 * wrong outcome, and this is the only screen in the private area that ends the session it is standing
-	 * in — nothing above it survives the press.
-	 */
-	it('renders the close screen, behind its own heading', async () => {
-		await mount('/account/close')
+  /*
+   * ⚠️ A screen of its own rather than a card under the password form, which is where a fourth control is
+   * cheapest to bolt on. A destructive action sitting under a form is one mis-aimed press away from the
+   * wrong outcome, and this is the only screen in the private area that ends the session it is standing
+   * in — nothing above it survives the press.
+   */
+  it('renders the close screen, behind its own heading', async () => {
+    await mount('/account/close')
 
-		const section = within(await screen.findByRole('region', { name: 'Close my account' }))
+    const section = within(await screen.findByRole('region', { name: 'Close my account' }))
 
-		expect(section.getByRole('heading', { level: 2, name: 'Close my account' })).toBeInTheDocument()
-		expect(section.getByRole('button', { name: 'Close my account' })).toBeDisabled()
-	})
+    expect(section.getByRole('heading', { level: 2, name: 'Close my account' })).toBeInTheDocument()
+    expect(section.getByRole('button', { name: 'Close my account' })).toBeDisabled()
+  })
 
-	/*
-	 * ⚠️ None of the four defines a head. TanStack Router *merges* heads along the matched chain rather than
-	 * replacing them, so a child repeating the layout's head would give one page two `<title>` tags. The only
-	 * reason to define one here would be to change the title, and "Your account" is right for all three.
-	 *
-	 * The label leads each row because `%s` formats the *first* element: led by the route options, it put
-	 * the whole object, component functions included, into the test's name. See the length cap in
-	 * vitest.testNames.ts for why a name is not free text.
-	 */
-	it.each([
-		['the profile screen', accountProfileRouteOptions],
-		['the address book', accountAddressesRouteOptions],
-		['the password screen', accountPasswordRouteOptions],
-		['the close screen', accountCloseRouteOptions]
-	])('leaves the head to the layout: %s', (_label, options) => {
-		expect(options).not.toHaveProperty('head')
-	})
+  /*
+   * ⚠️ None of the four defines a head. TanStack Router *merges* heads along the matched chain rather than
+   * replacing them, so a child repeating the layout's head would give one page two `<title>` tags. The only
+   * reason to define one here would be to change the title, and "Your account" is right for all three.
+   *
+   * The label leads each row because `%s` formats the *first* element: led by the route options, it put
+   * the whole object, component functions included, into the test's name. See the length cap in
+   * vitest.testNames.ts for why a name is not free text.
+   */
+  it.each([
+    ['the profile screen', accountProfileRouteOptions],
+    ['the address book', accountAddressesRouteOptions],
+    ['the password screen', accountPasswordRouteOptions],
+    ['the close screen', accountCloseRouteOptions]
+  ])('leaves the head to the layout: %s', (_label, options) => {
+    expect(options).not.toHaveProperty('head')
+  })
 })
 
 describe('the account head', () => {
-	/*
-	 * ⚠️ `noIndex` on top of `ssr: false`, because the flag is not a robots directive: the shell still comes
-	 * back as HTML at a real URL, and a crawler that ran the JavaScript would find a login redirect rather
-	 * than an error. `robots.txt` disallows the prefix too — the two mechanisms fail in different ways.
-	 */
-	it('keeps the private area out of the index', () => {
-		const head = accountRouteOptions.head() as RouteHead
+  /*
+   * ⚠️ `noIndex` on top of `ssr: false`, because the flag is not a robots directive: the shell still comes
+   * back as HTML at a real URL, and a crawler that ran the JavaScript would find a login redirect rather
+   * than an error. `robots.txt` disallows the prefix too — the two mechanisms fail in different ways.
+   */
+  it('keeps the private area out of the index', () => {
+    const head = accountRouteOptions.head() as RouteHead
 
-		expect(titleOf(head)).toBe('Your account · Marketplace')
-		expect(metaOf(head, 'robots')).toBe('noindex, follow')
-		expect(canonicalOf(head)).toBe('http://127.0.0.1:3045/account')
-		// Not a snippet — the page is out of the index either way — but `headFor` writes it into
-		// `og:description` as well, which is what a chat client shows for a pasted link.
-		expect(metaOf(head, 'description')).toBe('Manage your details and delivery addresses.')
-	})
+    expect(titleOf(head)).toBe('Your account · Marketplace')
+    expect(metaOf(head, 'robots')).toBe('noindex, follow')
+    expect(canonicalOf(head)).toBe('http://127.0.0.1:3045/account')
+    // Not a snippet — the page is out of the index either way — but `headFor` writes it into
+    // `og:description` as well, which is what a chat client shows for a pasted link.
+    expect(metaOf(head, 'description')).toBe('Manage your details and delivery addresses.')
+  })
 })

@@ -42,7 +42,7 @@ const route = getRouteApi('/shops/')
  * reads it (`loaderDeps` below). Every paginated route here does the same.
  */
 const searchSchema = z.object({
-	page: z.coerce.number().int().min(1).catch(1).optional()
+  page: z.coerce.number().int().min(1).catch(1).optional()
 })
 
 export type ShopsSearch = z.infer<typeof searchSchema>
@@ -58,8 +58,8 @@ export type ShopsSearch = z.infer<typeof searchSchema>
  * level of its own.
  */
 const CRUMBS = [
-	{ name: 'Home', path: '/' },
-	{ name: 'Shops', path: '/shops' }
+  { name: 'Home', path: '/' },
+  { name: 'Shops', path: '/shops' }
 ]
 
 /**
@@ -70,15 +70,15 @@ const CRUMBS = [
 const MAX_PAGE = maxPageFor(10_000)
 
 const loader = async ({ context, deps }: { context: RouterContext; deps: { page: number } }) => {
-	const page = pageNumber(deps.page)
-	if (page > MAX_PAGE) throw notFound()
+  const page = pageNumber(deps.page)
+  if (page > MAX_PAGE) throw notFound()
 
-	const data = await runQuery(context.gql, CompaniesDocument, {
-		limit: PAGE_SIZE,
-		offset: offsetOf(page)
-	})
+  const data = await runQuery(context.gql, CompaniesDocument, {
+    limit: PAGE_SIZE,
+    offset: offsetOf(page)
+  })
 
-	return { companies: data.companies, page }
+  return { companies: data.companies, page }
 }
 
 type LoaderData = Awaited<ReturnType<typeof loader>>
@@ -93,73 +93,73 @@ type LoaderData = Awaited<ReturnType<typeof loader>>
  * this is invites the crawler to drop the page's links along with the page.
  */
 const head = ({ loaderData }: { loaderData?: LoaderData }) => {
-	const page = loaderData?.page ?? 1
-	const nodes = loaderData?.companies.nodes ?? []
-	const path = page === 1 ? '/shops' : `/shops?page=${String(page)}`
+  const page = loaderData?.page ?? 1
+  const nodes = loaderData?.companies.nodes ?? []
+  const path = page === 1 ? '/shops' : `/shops?page=${String(page)}`
 
-	const seo = headFor({
-		title: page === 1 ? 'All shops' : `All shops — page ${String(page)}`,
-		description: 'Every shop on the platform, with what they sell and where to find them.',
-		path,
-		noIndex: page > 1
-	})
+  const seo = headFor({
+    title: page === 1 ? 'All shops' : `All shops — page ${String(page)}`,
+    description: 'Every shop on the platform, with what they sell and where to find them.',
+    path,
+    noIndex: page > 1
+  })
 
-	const { prev, next } = pageLinks('/shops', page, loaderData?.companies.hasMore ?? false)
+  const { prev, next } = pageLinks('/shops', page, loaderData?.companies.hasMore ?? false)
 
-	return {
-		...seo,
-		links: [
-			...seo.links,
-			...(prev === undefined ? [] : [{ rel: 'prev', href: absoluteUrl(prev) }]),
-			...(next === undefined ? [] : [{ rel: 'next', href: absoluteUrl(next) }])
-		],
-		scripts: jsonLdScripts(
-			breadcrumbJsonLd(CRUMBS),
-			// The offset makes the ItemList positions global rather than per page, so page 3 declares
-			// positions 49–72. Restarting at 1 on every page tells a crawler it is looking at three
-			// different lists that all begin with a first result.
-			itemListJsonLd(
-				nodes.map((company) => `/shop/${company.slug}`),
-				offsetOf(page)
-			)
-		)
-	}
+  return {
+    ...seo,
+    links: [
+      ...seo.links,
+      ...(prev === undefined ? [] : [{ rel: 'prev', href: absoluteUrl(prev) }]),
+      ...(next === undefined ? [] : [{ rel: 'next', href: absoluteUrl(next) }])
+    ],
+    scripts: jsonLdScripts(
+      breadcrumbJsonLd(CRUMBS),
+      // The offset makes the ItemList positions global rather than per page, so page 3 declares
+      // positions 49–72. Restarting at 1 on every page tells a crawler it is looking at three
+      // different lists that all begin with a first result.
+      itemListJsonLd(
+        nodes.map((company) => `/shop/${company.slug}`),
+        offsetOf(page)
+      )
+    )
+  }
 }
 
 const Shops = () => {
-	const { companies, page } = route.useLoaderData()
-	const { prev, next } = pageLinks('/shops', page, companies.hasMore)
+  const { companies, page } = route.useLoaderData()
+  const { prev, next } = pageLinks('/shops', page, companies.hasMore)
 
-	return (
-		<div className="mx-auto max-w-6xl px-4 py-8">
-			<Breadcrumbs crumbs={CRUMBS} />
+  return (
+    <div className="mx-auto max-w-6xl px-4 py-8">
+      <Breadcrumbs crumbs={CRUMBS} />
 
-			<h1 className="text-3xl font-semibold text-palette-bg">All shops</h1>
-			<p className="mt-2 text-slate-600">{formatTotal(companies.total, companies.totalIsExact)} shops published.</p>
+      <h1 className="text-3xl font-semibold text-palette-bg">All shops</h1>
+      <p className="mt-2 text-slate-600">{formatTotal(companies.total, companies.totalIsExact)} shops published.</p>
 
-			<div className="mt-6">
-				{companies.nodes.length === 0 ? (
-					<EmptyState title="No shops on this page" hint="Try the first page." />
-				) : (
-					<ShopGrid companies={companies.nodes} />
-				)}
-			</div>
+      <div className="mt-6">
+        {companies.nodes.length === 0 ? (
+          <EmptyState title="No shops on this page" hint="Try the first page." />
+        ) : (
+          <ShopGrid companies={companies.nodes} />
+        )}
+      </div>
 
-			<Pagination prev={prev} next={next} page={page} />
-		</div>
-	)
+      <Pagination prev={prev} next={next} page={page} />
+    </div>
+  )
 }
 
 export const shopsRouteOptions = {
-	validateSearch: searchSchema,
-	// Without this the loader never re-runs on a page change: the router keys a loader's result by its
-	// params, and `?page=` is not one. `loaderDeps` is what puts the search value into that key.
-	//
-	// `pageNumber` normalises here rather than in the loader, so an absent `?page=` and an explicit
-	// `?page=1` produce the *same* key — they are the same page, and keying them apart would fetch and
-	// cache it twice.
-	loaderDeps: ({ search }: { search: ShopsSearch }) => ({ page: pageNumber(search.page) }),
-	loader,
-	head,
-	component: Shops
+  validateSearch: searchSchema,
+  // Without this the loader never re-runs on a page change: the router keys a loader's result by its
+  // params, and `?page=` is not one. `loaderDeps` is what puts the search value into that key.
+  //
+  // `pageNumber` normalises here rather than in the loader, so an absent `?page=` and an explicit
+  // `?page=1` produce the *same* key — they are the same page, and keying them apart would fetch and
+  // cache it twice.
+  loaderDeps: ({ search }: { search: ShopsSearch }) => ({ page: pageNumber(search.page) }),
+  loader,
+  head,
+  component: Shops
 }

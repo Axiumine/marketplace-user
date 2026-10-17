@@ -20,26 +20,26 @@ import { assertCanonicalCategoryUrl, categoryHead, CategoryView, loadCategory } 
 const route = getRouteApi('/category/$slug/$childSlug')
 
 const searchSchema = z.object({
-	page: z.coerce.number().int().min(1).catch(1).optional()
+  page: z.coerce.number().int().min(1).catch(1).optional()
 })
 
 export type CategoryChildSearch = z.infer<typeof searchSchema>
 
 const loader = async ({
-	context,
-	params,
-	deps
+  context,
+  params,
+  deps
 }: {
-	context: RouterContext
-	params: { slug: string; childSlug: string }
-	deps: { page: number }
+  context: RouterContext
+  params: { slug: string; childSlug: string }
+  deps: { page: number }
 }): Promise<CategoryLoaderResult> => {
-	const result = await loadCategory({ context, slug: params.childSlug, page: deps.page })
-	if (result === undefined) throw notFound()
+  const result = await loadCategory({ context, slug: params.childSlug, page: deps.page })
+  if (result === undefined) throw notFound()
 
-	assertCanonicalCategoryUrl(result, categoryPath(params.childSlug, params.slug))
+  assertCanonicalCategoryUrl(result, categoryPath(params.childSlug, params.slug))
 
-	return result
+  return result
 }
 
 const head = ({ loaderData }: { loaderData?: CategoryLoaderResult }) => categoryHead(loaderData)
@@ -47,9 +47,9 @@ const head = ({ loaderData }: { loaderData?: CategoryLoaderResult }) => category
 const CategoryChild = () => <CategoryView result={route.useLoaderData()} />
 
 export const categoryChildRouteOptions = {
-	validateSearch: searchSchema,
-	loaderDeps: ({ search }: { search: CategoryChildSearch }) => ({ page: pageNumber(search.page) }),
-	loader,
-	head,
-	component: CategoryChild
+  validateSearch: searchSchema,
+  loaderDeps: ({ search }: { search: CategoryChildSearch }) => ({ page: pageNumber(search.page) }),
+  loader,
+  head,
+  component: CategoryChild
 }

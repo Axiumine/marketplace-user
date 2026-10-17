@@ -24,24 +24,24 @@ import { afterAll, beforeAll, expect } from 'vitest'
  * list live for the whole file regardless of that per-test restoration.
  */
 export const installOnlineListenerGuard = (): void => {
-	const onlineRegistrations: (AbortSignal | undefined)[] = []
-	const realAddEventListener = window.addEventListener.bind(window)
+  const onlineRegistrations: (AbortSignal | undefined)[] = []
+  const realAddEventListener = window.addEventListener.bind(window)
 
-	beforeAll(() => {
-		window.addEventListener = (
-			type: string,
-			listener: EventListenerOrEventListenerObject,
-			options?: boolean | AddEventListenerOptions
-		): void => {
-			if (type === 'online') onlineRegistrations.push(typeof options === 'object' ? options?.signal : undefined)
-			realAddEventListener(type, listener, options)
-		}
-	})
+  beforeAll(() => {
+    window.addEventListener = (
+      type: string,
+      listener: EventListenerOrEventListenerObject,
+      options?: boolean | AddEventListenerOptions
+    ): void => {
+      if (type === 'online') onlineRegistrations.push(typeof options === 'object' ? options?.signal : undefined)
+      realAddEventListener(type, listener, options)
+    }
+  })
 
-	afterAll(() => {
-		window.addEventListener = realAddEventListener
+  afterAll(() => {
+    window.addEventListener = realAddEventListener
 
-		expect(onlineRegistrations.length).toBeGreaterThan(0)
-		expect(onlineRegistrations.every((signal) => signal?.aborted === true)).toBe(true)
-	})
+    expect(onlineRegistrations.length).toBeGreaterThan(0)
+    expect(onlineRegistrations.every((signal) => signal?.aborted === true)).toBe(true)
+  })
 }

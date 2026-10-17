@@ -14,10 +14,10 @@ import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-
  * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
 type Documents = {
-    "\n\tmutation LoginUser($email: String!, $password: String!, $rememberMe: Boolean!, $turnstileToken: String) {\n\t\tloginUser(email: $email, password: $password, rememberMe: $rememberMe, turnstileToken: $turnstileToken) {\n\t\t\taccessToken\n\t\t}\n\t}\n": typeof types.LoginUserDocument,
+    "\n  mutation LoginUser($email: String!, $password: String!, $rememberMe: Boolean!, $turnstileToken: String) {\n    loginUser(email: $email, password: $password, rememberMe: $rememberMe, turnstileToken: $turnstileToken) {\n      accessToken\n    }\n  }\n": typeof types.LoginUserDocument,
 };
 const documents: Documents = {
-    "\n\tmutation LoginUser($email: String!, $password: String!, $rememberMe: Boolean!, $turnstileToken: String) {\n\t\tloginUser(email: $email, password: $password, rememberMe: $rememberMe, turnstileToken: $turnstileToken) {\n\t\t\taccessToken\n\t\t}\n\t}\n": types.LoginUserDocument,
+    "\n  mutation LoginUser($email: String!, $password: String!, $rememberMe: Boolean!, $turnstileToken: String) {\n    loginUser(email: $email, password: $password, rememberMe: $rememberMe, turnstileToken: $turnstileToken) {\n      accessToken\n    }\n  }\n": types.LoginUserDocument,
 };
 
 /**
@@ -37,7 +37,7 @@ export function graphql(source: string): unknown;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n\tmutation LoginUser($email: String!, $password: String!, $rememberMe: Boolean!, $turnstileToken: String) {\n\t\tloginUser(email: $email, password: $password, rememberMe: $rememberMe, turnstileToken: $turnstileToken) {\n\t\t\taccessToken\n\t\t}\n\t}\n"): (typeof documents)["\n\tmutation LoginUser($email: String!, $password: String!, $rememberMe: Boolean!, $turnstileToken: String) {\n\t\tloginUser(email: $email, password: $password, rememberMe: $rememberMe, turnstileToken: $turnstileToken) {\n\t\t\taccessToken\n\t\t}\n\t}\n"];
+export function graphql(source: "\n  mutation LoginUser($email: String!, $password: String!, $rememberMe: Boolean!, $turnstileToken: String) {\n    loginUser(email: $email, password: $password, rememberMe: $rememberMe, turnstileToken: $turnstileToken) {\n      accessToken\n    }\n  }\n"): (typeof documents)["\n  mutation LoginUser($email: String!, $password: String!, $rememberMe: Boolean!, $turnstileToken: String) {\n    loginUser(email: $email, password: $password, rememberMe: $rememberMe, turnstileToken: $turnstileToken) {\n      accessToken\n    }\n  }\n"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};

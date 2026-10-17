@@ -12,8 +12,8 @@ import { vi } from 'vitest'
  * leaks into the next file.
  */
 export const stubLocationAssign = (): ReturnType<typeof vi.fn> => {
-	const assign = vi.fn()
-	vi.stubGlobal('location', { ...window.location, assign })
+  const assign = vi.fn()
+  vi.stubGlobal('location', { ...window.location, assign })
 
-	return assign
+  return assign
 }

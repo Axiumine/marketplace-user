@@ -22,17 +22,17 @@ import { graphql } from '@gql/userResource'
  * resolver; copying either one across breaks it. Do not "align" them.
  */
 export const UserAddressAddDocument = graphql(`
-	mutation UserAddressAdd($address: GraphQLInputUserAddress!) {
-		userAddressAdd(address: $address) {
-			_id
-		}
-	}
+  mutation UserAddressAdd($address: GraphQLInputUserAddress!) {
+    userAddressAdd(address: $address) {
+      _id
+    }
+  }
 `)
 
 export const UserAddressUpdateDocument = graphql(`
-	mutation UserAddressUpdate($_id: ID!, $address: GraphQLInputUserAddress!) {
-		userAddressUpdate(_id: $_id, address: $address)
-	}
+  mutation UserAddressUpdate($_id: ID!, $address: GraphQLInputUserAddress!) {
+    userAddressUpdate(_id: $_id, address: $address)
+  }
 `)
 
 /**
@@ -44,9 +44,9 @@ export const UserAddressUpdateDocument = graphql(`
  * code path someone has to remember.
  */
 export const UserAddressDelDocument = graphql(`
-	mutation UserAddressDel($_id: ID!) {
-		userAddressDel(_id: $_id)
-	}
+  mutation UserAddressDel($_id: ID!) {
+    userAddressDel(_id: $_id)
+  }
 `)
 
 /**
@@ -57,9 +57,9 @@ export const UserAddressDelDocument = graphql(`
  * state with two defaults or none — that state is not expressible.
  */
 export const UserDefaultAddressSetDocument = graphql(`
-	mutation UserDefaultAddressSet($_id: ID!) {
-		userDefaultAddressSet(_id: $_id)
-	}
+  mutation UserDefaultAddressSet($_id: ID!) {
+    userDefaultAddressSet(_id: $_id)
+  }
 `)
 
 /**
@@ -68,9 +68,9 @@ export const UserDefaultAddressSetDocument = graphql(`
  * not a mistake in the slice.
  */
 export const UserPersonalDataUpdateDocument = graphql(`
-	mutation UserPersonalDataUpdate($personalData: GraphQLInputUserPersonalData!) {
-		userPersonalDataUpdate(personalData: $personalData)
-	}
+  mutation UserPersonalDataUpdate($personalData: GraphQLInputUserPersonalData!) {
+    userPersonalDataUpdate(personalData: $personalData)
+  }
 `)
 
 /**
@@ -79,9 +79,9 @@ export const UserPersonalDataUpdateDocument = graphql(`
  * one.
  */
 export const UserUpdatePwdDocument = graphql(`
-	mutation UserUpdatePwd($passwordOld: String!, $passwordNew: String!) {
-		userUpdatePwd(passwordOld: $passwordOld, passwordNew: $passwordNew)
-	}
+  mutation UserUpdatePwd($passwordOld: String!, $passwordNew: String!) {
+    userUpdatePwd(passwordOld: $passwordOld, passwordNew: $passwordNew)
+  }
 `)
 
 /**
@@ -98,7 +98,7 @@ export const UserUpdatePwdDocument = graphql(`
  * sign-out that follows and answers 401. What comes after the `true` is a logout, not an invalidation.
  */
 export const UserDelDocument = graphql(`
-	mutation UserDel {
-		userDel
-	}
+  mutation UserDel {
+    userDel
+  }
 `)

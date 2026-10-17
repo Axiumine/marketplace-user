@@ -20,57 +20,57 @@ const BASE_MS = 1_000
 const CAP_MS = 30_000
 
 export interface RefreshBreaker {
-	/** True while the cooldown window opened by a previous transport failure has not yet elapsed. */
-	isOpen(): boolean
-	/**
-	 * Records one more consecutive refresh transport failure and opens a cooldown window of
-	 * `min(30_000, 1_000 * 2^(n-1))` ms, `n` being the new consecutive count — 1s, 2s, 4s, … capped at 30s.
-	 */
-	recordFailure(): void
-	/** A refresh minted a token: the outage, if there was one, is over. */
-	recordSuccess(): void
+  /** True while the cooldown window opened by a previous transport failure has not yet elapsed. */
+  isOpen(): boolean
+  /**
+   * Records one more consecutive refresh transport failure and opens a cooldown window of
+   * `min(30_000, 1_000 * 2^(n-1))` ms, `n` being the new consecutive count — 1s, 2s, 4s, … capped at 30s.
+   */
+  recordFailure(): void
+  /** A refresh minted a token: the outage, if there was one, is over. */
+  recordSuccess(): void
 }
 
 export interface CreateRefreshBreakerOptions {
-	/** Injected for deterministic tests; defaults to the real clock. */
-	now?: (() => number) | undefined
-	/**
-	 * Aborting this removes the `online` listener below. Production callers pass nothing: the breaker
-	 * lives as long as the client that owns it, which lives as long as the page. A test that builds a
-	 * breaker (directly, or through `createGraphQLClient`) per test passes a per-test controller's signal
-	 * and aborts it in teardown, or the listener accumulates on the one jsdom `window` the whole suite
-	 * shares.
-	 */
-	signal?: AbortSignal | undefined
+  /** Injected for deterministic tests; defaults to the real clock. */
+  now?: (() => number) | undefined
+  /**
+   * Aborting this removes the `online` listener below. Production callers pass nothing: the breaker
+   * lives as long as the client that owns it, which lives as long as the page. A test that builds a
+   * breaker (directly, or through `createGraphQLClient`) per test passes a per-test controller's signal
+   * and aborts it in teardown, or the listener accumulates on the one jsdom `window` the whole suite
+   * shares.
+   */
+  signal?: AbortSignal | undefined
 }
 
 export const createRefreshBreaker = ({ now = Date.now, signal }: CreateRefreshBreakerOptions = {}): RefreshBreaker => {
-	let consecutiveFailures = 0
-	let openUntil = 0
+  let consecutiveFailures = 0
+  let openUntil = 0
 
-	const reset = (): void => {
-		consecutiveFailures = 0
-		openUntil = 0
-	}
+  const reset = (): void => {
+    consecutiveFailures = 0
+    openUntil = 0
+  }
 
-	/*
-	 * The network coming back is the clearest signal there is that a fresh attempt is worth making —
-	 * waiting out the rest of an exponential window after that would only delay the customer's next
-	 * screen for no reason. `typeof window` guards the SSR/non-browser case; see the module doc above for
-	 * why `refreshAuth`, and therefore this breaker, never actually runs there.
-	 */
-	if (typeof window !== 'undefined') {
-		// `exactOptionalPropertyTypes` rejects `{ signal: undefined }` against DOM's `AddEventListenerOptions`
-		// — the key has to be absent, not present with an undefined value, when no signal was injected.
-		window.addEventListener('online', reset, signal === undefined ? undefined : { signal })
-	}
+  /*
+   * The network coming back is the clearest signal there is that a fresh attempt is worth making —
+   * waiting out the rest of an exponential window after that would only delay the customer's next
+   * screen for no reason. `typeof window` guards the SSR/non-browser case; see the module doc above for
+   * why `refreshAuth`, and therefore this breaker, never actually runs there.
+   */
+  if (typeof window !== 'undefined') {
+    // `exactOptionalPropertyTypes` rejects `{ signal: undefined }` against DOM's `AddEventListenerOptions`
+    // — the key has to be absent, not present with an undefined value, when no signal was injected.
+    window.addEventListener('online', reset, signal === undefined ? undefined : { signal })
+  }
 
-	return {
-		isOpen: () => now() < openUntil,
-		recordFailure: () => {
-			consecutiveFailures += 1
-			openUntil = now() + Math.min(CAP_MS, BASE_MS * 2 ** (consecutiveFailures - 1))
-		},
-		recordSuccess: reset
-	}
+  return {
+    isOpen: () => now() < openUntil,
+    recordFailure: () => {
+      consecutiveFailures += 1
+      openUntil = now() + Math.min(CAP_MS, BASE_MS * 2 ** (consecutiveFailures - 1))
+    },
+    recordSuccess: reset
+  }
 }

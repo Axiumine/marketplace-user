@@ -29,28 +29,28 @@ import { headFor } from '@/lib/seo'
  * only event that can change the answer.
  */
 const head = () =>
-	headFor({
-		title: 'Sign in',
-		description: 'Sign in to your account to manage your details and addresses.',
-		path: '/login',
-		noIndex: true
-	})
+  headFor({
+    title: 'Sign in',
+    description: 'Sign in to your account to manage your details and addresses.',
+    path: '/login',
+    noIndex: true
+  })
 
 const Login = () => (
-	<AuthCard
-		title="Sign in"
-		footer={
-			<>
-				No account yet?{' '}
-				<Link to="/register" className="underline">
-					Create one
-				</Link>
-				.
-			</>
-		}
-	>
-		<LoginForm />
-	</AuthCard>
+  <AuthCard
+    title="Sign in"
+    footer={
+      <>
+        No account yet?{' '}
+        <Link to="/register" className="underline">
+          Create one
+        </Link>
+        .
+      </>
+    }
+  >
+    <LoginForm />
+  </AuthCard>
 )
 
 export const loginRouteOptions = { head, component: Login }

@@ -15,29 +15,29 @@ import type { ShopMapProps } from '@/features/map/ShopMap'
  * that does not exist yet at the moment the factory runs.
  */
 vi.mock('@/features/map/ShopMap', async () => {
-	const { createElement } = await import('react')
+  const { createElement } = await import('react')
 
-	return {
-		default: (props: ShopMapProps) =>
-			createElement(
-				'div',
-				{ 'data-testid': 'shop-map' },
-				`${String(props.center[0])},${String(props.center[1])} @ ${String(props.zoom)} · ${String(props.initialPins?.length ?? 0)} pins`
-			)
-	}
+  return {
+    default: (props: ShopMapProps) =>
+      createElement(
+        'div',
+        { 'data-testid': 'shop-map' },
+        `${String(props.center[0])},${String(props.center[1])} @ ${String(props.zoom)} · ${String(props.initialPins?.length ?? 0)} pins`
+      )
+  }
 })
 
 const CENTER = [-71.06, 42.3601] as const
 
 const PINS: NonNullable<ShopMapProps['initialPins']> = [
-	{ _id: '66b0000000000000000000a1', publicName: 'Rivers Boutique', slug: 'rivers-boutique', coordinates: [-71.0589, 42.3601] }
+  { _id: '66b0000000000000000000a1', publicName: 'Rivers Boutique', slug: 'rivers-boutique', coordinates: [-71.0589, 42.3601] }
 ]
 
 const placeholderOf = (container: HTMLElement): HTMLElement => {
-	const placeholder = container.querySelector('[aria-hidden="true"]')
-	if (placeholder === null) throw new Error('No placeholder rendered')
+  const placeholder = container.querySelector('[aria-hidden="true"]')
+  if (placeholder === null) throw new Error('No placeholder rendered')
 
-	return placeholder as HTMLElement
+  return placeholder as HTMLElement
 }
 
 /**
@@ -48,7 +48,7 @@ const placeholderOf = (container: HTMLElement): HTMLElement => {
  * teaches people to ignore warnings.
  */
 const flush = async (): Promise<void> => {
-	await act(async () => {})
+  await act(async () => {})
 }
 
 let MapIsland: typeof import('@/features/map/MapIsland').MapIsland
@@ -60,84 +60,84 @@ let MapIsland: typeof import('@/features/map/MapIsland').MapIsland
  * the component.
  */
 beforeEach(async () => {
-	vi.resetModules()
-	;({ MapIsland } = await import('@/features/map/MapIsland'))
+  vi.resetModules()
+  ;({ MapIsland } = await import('@/features/map/MapIsland'))
 })
 
 describe('MapIsland', () => {
-	/*
-	 * ⚠️ The one assertion this component exists for. A fallback of `null` collapses to zero height, and the
-	 * map shoving everything below it down the page at hydration is exactly what Cumulative Layout Shift
-	 * measures — a metric that is scored on the page as a whole, so one island costs the whole route.
-	 */
-	it('holds the map’s final height open before the map is there', async () => {
-		const { container } = render(<MapIsland center={CENTER} zoom={12} />)
+  /*
+   * ⚠️ The one assertion this component exists for. A fallback of `null` collapses to zero height, and the
+   * map shoving everything below it down the page at hydration is exactly what Cumulative Layout Shift
+   * measures — a metric that is scored on the page as a whole, so one island costs the whole route.
+   */
+  it('holds the map’s final height open before the map is there', async () => {
+    const { container } = render(<MapIsland center={CENTER} zoom={12} />)
 
-		expect(placeholderOf(container)).toHaveStyle({ height: 'var(--map-height)' })
+    expect(placeholderOf(container)).toHaveStyle({ height: 'var(--map-height)' })
 
-		await flush()
-	})
+    await flush()
+  })
 
-	it('renders the placeholder as a full-width box rather than as nothing', async () => {
-		const { container } = render(<MapIsland center={CENTER} zoom={12} />)
+  it('renders the placeholder as a full-width box rather than as nothing', async () => {
+    const { container } = render(<MapIsland center={CENTER} zoom={12} />)
 
-		expect(placeholderOf(container)).toHaveClass('w-full')
+    expect(placeholderOf(container)).toHaveClass('w-full')
 
-		await flush()
-	})
+    await flush()
+  })
 
-	// The placeholder is furniture: it says nothing, does nothing and is not the map. Announcing it would
-	// have a screen reader stop at a decorative box on every catalogue page.
-	it('hides the placeholder from assistive technology', async () => {
-		const { container } = render(<MapIsland center={CENTER} zoom={12} />)
+  // The placeholder is furniture: it says nothing, does nothing and is not the map. Announcing it would
+  // have a screen reader stop at a decorative box on every catalogue page.
+  it('hides the placeholder from assistive technology', async () => {
+    const { container } = render(<MapIsland center={CENTER} zoom={12} />)
 
-		expect(placeholderOf(container)).toBeEmptyDOMElement()
-		expect(screen.queryByRole('img')).not.toBeInTheDocument()
+    expect(placeholderOf(container)).toBeEmptyDOMElement()
+    expect(screen.queryByRole('img')).not.toBeInTheDocument()
 
-		await flush()
-	})
+    await flush()
+  })
 
-	it('swaps the map in once its chunk has arrived', async () => {
-		render(<MapIsland center={CENTER} zoom={12} />)
+  it('swaps the map in once its chunk has arrived', async () => {
+    render(<MapIsland center={CENTER} zoom={12} />)
 
-		expect(await screen.findByTestId('shop-map')).toBeInTheDocument()
-	})
+    expect(await screen.findByTestId('shop-map')).toBeInTheDocument()
+  })
 
-	it('takes the placeholder away once the map is mounted', async () => {
-		const { container } = render(<MapIsland center={CENTER} zoom={12} />)
+  it('takes the placeholder away once the map is mounted', async () => {
+    const { container } = render(<MapIsland center={CENTER} zoom={12} />)
 
-		await screen.findByTestId('shop-map')
+    await screen.findByTestId('shop-map')
 
-		expect(container.querySelector('[aria-hidden="true"]')).toBeNull()
-	})
+    expect(container.querySelector('[aria-hidden="true"]')).toBeNull()
+  })
 
-	// The island is a pass-through: every prop reaches the map unchanged, including the pins the listing
-	// beside it already loaded.
-	it('hands the map the props it was given', async () => {
-		render(<MapIsland center={CENTER} zoom={14} initialPins={PINS} />)
+  // The island is a pass-through: every prop reaches the map unchanged, including the pins the listing
+  // beside it already loaded.
+  it('hands the map the props it was given', async () => {
+    render(<MapIsland center={CENTER} zoom={14} initialPins={PINS} />)
 
-		expect(await screen.findByTestId('shop-map')).toHaveTextContent('-71.06,42.3601 @ 14 · 1 pins')
-	})
+    expect(await screen.findByTestId('shop-map')).toHaveTextContent('-71.06,42.3601 @ 14 · 1 pins')
+  })
 
-	it('defaults to no pins when the page has none to hand over', async () => {
-		render(<MapIsland center={CENTER} zoom={12} />)
+  it('defaults to no pins when the page has none to hand over', async () => {
+    render(<MapIsland center={CENTER} zoom={12} />)
 
-		expect(await screen.findByTestId('shop-map')).toHaveTextContent('· 0 pins')
-	})
+    expect(await screen.findByTestId('shop-map')).toHaveTextContent('· 0 pins')
+  })
 
-	it('matches the snapshot before the map has arrived', async () => {
-		const { container } = render(<MapIsland center={CENTER} zoom={12} />)
+  it('matches the snapshot before the map has arrived', async () => {
+    const { container } = render(<MapIsland center={CENTER} zoom={12} />)
 
-		expect(container.firstChild).toMatchSnapshot()
+    expect(container.firstChild).toMatchSnapshot()
 
-		await flush()
-	})
+    await flush()
+  })
 
-	it('matches the snapshot once the map has swapped in', async () => {
-		const { container } = render(<MapIsland center={CENTER} zoom={14} initialPins={PINS} />)
+  it('matches the snapshot once the map has swapped in', async () => {
+    const { container } = render(<MapIsland center={CENTER} zoom={14} initialPins={PINS} />)
 
-		await screen.findByTestId('shop-map')
+    await screen.findByTestId('shop-map')
 
-		expect(container.firstChild).toMatchSnapshot()
-	})
+    expect(container.firstChild).toMatchSnapshot()
+  })
 })

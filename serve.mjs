@@ -38,8 +38,8 @@ const HOSTNAME = '127.0.0.1'
 const port = Number(process.env.PORT)
 
 if (!Number.isInteger(port) || port <= 0 || port > 65535) {
-	console.error(`PORT must be an integer between 1 and 65535, got ${JSON.stringify(process.env.PORT)}`)
-	process.exit(1)
+  console.error(`PORT must be an integer between 1 and 65535, got ${JSON.stringify(process.env.PORT)}`)
+  process.exit(1)
 }
 
 serve({ fetch: handler.fetch, port, hostname: HOSTNAME })

@@ -26,18 +26,18 @@ import appCss from '../styles.css?url'
  * permanently static.
  */
 const Shell = ({ children }: { children: ReactNode }) => (
-	<html lang="en">
-		<head>
-			<HeadContent />
-		</head>
-		<body>
-			<a href="#main" className="skip-link">
-				Skip to content
-			</a>
-			{children}
-			<Scripts />
-		</body>
-	</html>
+  <html lang="en">
+    <head>
+      <HeadContent />
+    </head>
+    <body>
+      <a href="#main" className="skip-link">
+        Skip to content
+      </a>
+      {children}
+      <Scripts />
+    </body>
+  </html>
 )
 
 /**
@@ -61,19 +61,19 @@ const Shell = ({ children }: { children: ReactNode }) => (
 const rootApi = getRouteApi('__root__')
 
 const Layout = () => {
-	const { gql } = rootApi.useRouteContext()
+  const { gql } = rootApi.useRouteContext()
 
-	return (
-		<UrqlProvider value={gql}>
-			<div className="flex min-h-full flex-col">
-				<Header />
-				<main id="main" className="flex-1">
-					<Outlet />
-				</main>
-				<Footer />
-			</div>
-		</UrqlProvider>
-	)
+  return (
+    <UrqlProvider value={gql}>
+      <div className="flex min-h-full flex-col">
+        <Header />
+        <main id="main" className="flex-1">
+          <Outlet />
+        </main>
+        <Footer />
+      </div>
+    </UrqlProvider>
+  )
 }
 
 /**
@@ -90,23 +90,23 @@ const Layout = () => {
  * full TLS handshake when PMTiles is served from a CDN.
  */
 const head = () => ({
-	meta: [
-		{ charSet: 'utf-8' },
-		{ name: 'viewport', content: 'width=device-width, initial-scale=1' },
-		...headFor({
-			title: SITE_NAME,
-			description: 'Find shops near you and browse what they offer.',
-			path: '/'
-		}).meta
-	],
-	links: [
-		{ rel: 'stylesheet', href: appCss },
-		{ rel: 'icon', href: '/favicon.ico' }
-	]
+  meta: [
+    { charSet: 'utf-8' },
+    { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+    ...headFor({
+      title: SITE_NAME,
+      description: 'Find shops near you and browse what they offer.',
+      path: '/'
+    }).meta
+  ],
+  links: [
+    { rel: 'stylesheet', href: appCss },
+    { rel: 'icon', href: '/favicon.ico' }
+  ]
 })
 
 export const rootRouteOptions = {
-	head,
-	shellComponent: Shell,
-	component: Layout
+  head,
+  shellComponent: Shell,
+  component: Layout
 }

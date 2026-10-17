@@ -9,12 +9,12 @@ import { PersonalDataForm } from '@/features/account/PersonalDataForm'
  * change the title, and "Your account" is right for all three.
  */
 const AccountProfile = () => (
-	<section aria-label="Your details">
-		<h2 className="text-lg font-medium text-palette-bg">Your details</h2>
-		<p className="mt-1 mb-4 text-sm text-slate-600">Optional, and only used to reach you about your orders.</p>
+  <section aria-label="Your details">
+    <h2 className="text-lg font-medium text-palette-bg">Your details</h2>
+    <p className="mt-1 mb-4 text-sm text-slate-600">Optional, and only used to reach you about your orders.</p>
 
-		<PersonalDataForm />
-	</section>
+    <PersonalDataForm />
+  </section>
 )
 
 export const accountProfileRouteOptions = { component: AccountProfile }

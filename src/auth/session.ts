@@ -29,16 +29,16 @@
  * survive one either, and the refresh cookie is what restores both.
  */
 export interface Session {
-	readonly signedIn: boolean
-	/**
-	 * The address the customer typed at login, or null.
-	 *
-	 * Null after every reload, and that is expected rather than a gap: the login form is the only place
-	 * this app learns it before `me` answers. It is kept here instead of in the URL because a URL is
-	 * written to browser history and sent in every referrer header the app leaks — an email address does
-	 * not belong in either.
-	 */
-	readonly email: string | null
+  readonly signedIn: boolean
+  /**
+   * The address the customer typed at login, or null.
+   *
+   * Null after every reload, and that is expected rather than a gap: the login form is the only place
+   * this app learns it before `me` answers. It is kept here instead of in the URL because a URL is
+   * written to browser history and sent in every referrer header the app leaks — an email address does
+   * not belong in either.
+   */
+  readonly email: string | null
 }
 
 const SIGNED_OUT: Session = Object.freeze({ signedIn: false, email: null })
@@ -48,18 +48,18 @@ let current: Session = SIGNED_OUT
 const listeners = new Set<() => void>()
 
 const emit = (next: Session): void => {
-	current = next
-	for (const listener of listeners) listener()
+  current = next
+  for (const listener of listeners) listener()
 }
 
 export const getSession = (): Session => current
 
 export const setSession = (email: string | null): void => {
-	emit(Object.freeze({ signedIn: true, email }))
+  emit(Object.freeze({ signedIn: true, email }))
 }
 
 export const clearSession = (): void => {
-	emit(SIGNED_OUT)
+  emit(SIGNED_OUT)
 }
 
 /**
@@ -68,10 +68,10 @@ export const clearSession = (): void => {
  * why `current` is replaced rather than mutated and why the two states are frozen.
  */
 export const subscribeSession = (listener: () => void): (() => void) => {
-	listeners.add(listener)
-	return () => {
-		listeners.delete(listener)
-	}
+  listeners.add(listener)
+  return () => {
+    listeners.delete(listener)
+  }
 }
 
 /**

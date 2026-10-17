@@ -10,15 +10,15 @@
  */
 
 export interface FlatCategory {
-	readonly _id: string
-	readonly idParent?: string | null
-	readonly name: string
-	readonly slug: string
-	readonly position: number
+  readonly _id: string
+  readonly idParent?: string | null
+  readonly name: string
+  readonly slug: string
+  readonly position: number
 }
 
 export interface CategoryNode extends FlatCategory {
-	readonly children: readonly CategoryNode[]
+  readonly children: readonly CategoryNode[]
 }
 
 const byPosition = (a: FlatCategory, b: FlatCategory): number => a.position - b.position || a.name.localeCompare(b.name, 'en-GB')
@@ -38,23 +38,23 @@ const byPosition = (a: FlatCategory, b: FlatCategory): number => a.position - b.
  * to return them in, which is not stable between requests.
  */
 export const nestCategories = (flat: readonly FlatCategory[]): readonly CategoryNode[] => {
-	const tops = flat.filter((category) => category.idParent === undefined || category.idParent === null)
+  const tops = flat.filter((category) => category.idParent === undefined || category.idParent === null)
 
-	const childrenOf = (id: string): readonly CategoryNode[] =>
-		flat
-			.filter((category) => category.idParent === id)
-			.sort(byPosition)
-			.map((category) => ({ ...category, children: [] }))
+  const childrenOf = (id: string): readonly CategoryNode[] =>
+    flat
+      .filter((category) => category.idParent === id)
+      .sort(byPosition)
+      .map((category) => ({ ...category, children: [] }))
 
-	// `tops` and every `childrenOf` result are arrays this function just built, so sorting them in place
-	// never reorders the caller's array — which is the urql document cache's, shared with every other
-	// component holding that query.
-	return tops.sort(byPosition).map((category) => ({ ...category, children: childrenOf(category._id) }))
+  // `tops` and every `childrenOf` result are arrays this function just built, so sorting them in place
+  // never reorders the caller's array — which is the urql document cache's, shared with every other
+  // component holding that query.
+  return tops.sort(byPosition).map((category) => ({ ...category, children: childrenOf(category._id) }))
 }
 
 /** The `/category/:slug` or `/category/:parentSlug/:slug` path a category lives at. */
 export const categoryPath = (slug: string, parentSlug?: string): string =>
-	parentSlug === undefined ? `/category/${slug}` : `/category/${parentSlug}/${slug}`
+  parentSlug === undefined ? `/category/${slug}` : `/category/${parentSlug}/${slug}`
 
 /**
  * Finds a category by slug, and its parent when it has one.
@@ -65,16 +65,16 @@ export const categoryPath = (slug: string, parentSlug?: string): string =>
  * the route options check that the parent in the URL is the real one and redirect when it is not.
  */
 export const findCategory = (
-	flat: readonly FlatCategory[],
-	slug: string
+  flat: readonly FlatCategory[],
+  slug: string
 ): { readonly category: FlatCategory; readonly parent?: FlatCategory } | undefined => {
-	const category = flat.find((candidate) => candidate.slug === slug)
-	if (category === undefined) return undefined
+  const category = flat.find((candidate) => candidate.slug === slug)
+  if (category === undefined) return undefined
 
-	// No `idParent === null` short-circuit before the lookup. `_id` is required and non-null on every
-	// category the API can answer with, so a nullish `idParent` matches nothing and the same
-	// `{ category }` comes back either way — a branch that changes only how fast the answer is reached
-	// is a branch no test can distinguish and no mutant can be killed on.
-	const parent = flat.find((candidate) => candidate._id === category.idParent)
-	return parent === undefined ? { category } : { category, parent }
+  // No `idParent === null` short-circuit before the lookup. `_id` is required and non-null on every
+  // category the API can answer with, so a nullish `idParent` matches nothing and the same
+  // `{ category }` comes back either way — a branch that changes only how fast the answer is reached
+  // is a branch no test can distinguish and no mutant can be killed on.
+  const parent = flat.find((candidate) => candidate._id === category.idParent)
+  return parent === undefined ? { category } : { category, parent }
 }

@@ -21,9 +21,9 @@ import { stubLocationAssign } from '../helpers/location'
  * so there is nothing to close over.
  */
 const mocks = vi.hoisted(() => ({
-	useClient: vi.fn(),
-	clearAccessToken: vi.fn(),
-	clearSession: vi.fn()
+  useClient: vi.fn(),
+  clearAccessToken: vi.fn(),
+  clearSession: vi.fn()
 }))
 
 vi.mock('urql', () => ({ useClient: mocks.useClient }))
@@ -34,53 +34,53 @@ vi.mock('@/auth/session', () => ({ clearSession: mocks.clearSession }))
 const fakeClient = (id: string) => ({ id, mutation: vi.fn(() => ({ toPromise: async () => ({}) })) })
 
 describe('useLogout dependencies', () => {
-	beforeEach(() => {
-		vi.clearAllMocks()
-		// The hook ends in a real `location.assign`; jsdom answers the real one with a *"Not implemented:
-		// navigation"* console error, which would bury whatever these tests are actually saying.
-		stubLocationAssign()
-	})
+  beforeEach(() => {
+    vi.clearAllMocks()
+    // The hook ends in a real `location.assign`; jsdom answers the real one with a *"Not implemented:
+    // navigation"* console error, which would bury whatever these tests are actually saying.
+    stubLocationAssign()
+  })
 
-	it('rebuilds the callback when the urql client is replaced', () => {
-		mocks.useClient.mockReturnValue(fakeClient('first'))
+  it('rebuilds the callback when the urql client is replaced', () => {
+    mocks.useClient.mockReturnValue(fakeClient('first'))
 
-		const { result, rerender } = renderHook(() => useLogout())
-		const first = result.current
+    const { result, rerender } = renderHook(() => useLogout())
+    const first = result.current
 
-		mocks.useClient.mockReturnValue(fakeClient('second'))
-		rerender()
+    mocks.useClient.mockReturnValue(fakeClient('second'))
+    rerender()
 
-		expect(result.current).not.toBe(first)
-	})
+    expect(result.current).not.toBe(first)
+  })
 
-	// Identity is the symptom; this is the consequence. A callback that kept the first client would send
-	// the logout through a client the app has already discarded.
-	it('sends the mutation through the client it currently has, not the one it started with', async () => {
-		const first = fakeClient('first')
-		mocks.useClient.mockReturnValue(first)
+  // Identity is the symptom; this is the consequence. A callback that kept the first client would send
+  // the logout through a client the app has already discarded.
+  it('sends the mutation through the client it currently has, not the one it started with', async () => {
+    const first = fakeClient('first')
+    mocks.useClient.mockReturnValue(first)
 
-		const { result, rerender } = renderHook(() => useLogout())
+    const { result, rerender } = renderHook(() => useLogout())
 
-		const second = fakeClient('second')
-		mocks.useClient.mockReturnValue(second)
-		rerender()
+    const second = fakeClient('second')
+    mocks.useClient.mockReturnValue(second)
+    rerender()
 
-		await result.current()
+    await result.current()
 
-		expect(second.mutation).toHaveBeenCalledTimes(1)
-		expect(first.mutation).not.toHaveBeenCalled()
-	})
+    expect(second.mutation).toHaveBeenCalledTimes(1)
+    expect(first.mutation).not.toHaveBeenCalled()
+  })
 
-	// The callback is memoised, not rebuilt on every render — that is the whole reason the list exists,
-	// and a component passing it to a memoised child would re-render that child on every keystroke.
-	it('keeps the same callback while the client does not change', () => {
-		mocks.useClient.mockReturnValue(fakeClient('only'))
+  // The callback is memoised, not rebuilt on every render — that is the whole reason the list exists,
+  // and a component passing it to a memoised child would re-render that child on every keystroke.
+  it('keeps the same callback while the client does not change', () => {
+    mocks.useClient.mockReturnValue(fakeClient('only'))
 
-		const { result, rerender } = renderHook(() => useLogout())
-		const first = result.current
+    const { result, rerender } = renderHook(() => useLogout())
+    const first = result.current
 
-		rerender()
+    rerender()
 
-		expect(result.current).toBe(first)
-	})
+    expect(result.current).toBe(first)
+  })
 })

@@ -14,7 +14,7 @@ import { graphql } from '@gql/logout'
  * may already have dropped is worse than a stale key that expires on its own.
  */
 export const LogoutDocument = graphql(`
-	mutation Logout {
-		logout
-	}
+  mutation Logout {
+    logout
+  }
 `)

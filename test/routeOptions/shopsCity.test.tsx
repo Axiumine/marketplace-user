@@ -14,96 +14,96 @@ import { renderRoute } from '../helpers/render'
 installOnlineListenerGuard()
 
 const mount = async (path: string, companies: GraphQLReply = companiesReply([companyOf()])) => {
-	const stub = stubGraphQL({ Companies: companies })
-	const result = await renderRoute(path)
+  const stub = stubGraphQL({ Companies: companies })
+  const result = await renderRoute(path)
 
-	return { ...result, stub }
+  return { ...result, stub }
 }
 
 const head = (city: string, page: number, slugs: readonly string[] = [], hasMore = false): RouteHead =>
-	shopsCityRouteOptions.head({
-		loaderData: {
-			companies: { nodes: slugs.map((slug) => ({ slug })), total: slugs.length, totalIsExact: true, hasMore },
-			city,
-			page
-		}
-	} as Parameters<typeof shopsCityRouteOptions.head>[0]) as RouteHead
+  shopsCityRouteOptions.head({
+    loaderData: {
+      companies: { nodes: slugs.map((slug) => ({ slug })), total: slugs.length, totalIsExact: true, hasMore },
+      city,
+      page
+    }
+  } as Parameters<typeof shopsCityRouteOptions.head>[0]) as RouteHead
 
 describe('the city listing route', () => {
-	/*
-	 * ⚠️ The segment is the city name verbatim, because the resolver matches `address.city` for equality
-	 * and there is no slug column to match instead. Lowercasing it, hyphenating its spaces or stripping its
-	 * accents produces a page that renders zero results and reports no error anywhere.
-	 */
-	it('asks for the city exactly as the URL spells it', async () => {
-		const { stub } = await mount('/shops/Reggio%20Emilia')
+  /*
+   * ⚠️ The segment is the city name verbatim, because the resolver matches `address.city` for equality
+   * and there is no slug column to match instead. Lowercasing it, hyphenating its spaces or stripping its
+   * accents produces a page that renders zero results and reports no error anywhere.
+   */
+  it('asks for the city exactly as the URL spells it', async () => {
+    const { stub } = await mount('/shops/Reggio%20Emilia')
 
-		expect(stub.calls[0]?.variables).toEqual({ limit: 24, offset: 0, city: 'Reggio Emilia' })
-	})
+    expect(stub.calls[0]?.variables).toEqual({ limit: 24, offset: 0, city: 'Reggio Emilia' })
+  })
 
-	// Surrounding space is the one deviation allowed, and it is trimmed rather than sent: `city: ' Boston'`
-	// matches nothing, and a link that picked up a stray space would 404 a city that exists.
-	it('trims the segment before querying', async () => {
-		const { stub } = await mount('/shops/%20Boston%20')
+  // Surrounding space is the one deviation allowed, and it is trimmed rather than sent: `city: ' Boston'`
+  // matches nothing, and a link that picked up a stray space would 404 a city that exists.
+  it('trims the segment before querying', async () => {
+    const { stub } = await mount('/shops/%20Boston%20')
 
-		expect(stub.calls[0]?.variables).toEqual({ limit: 24, offset: 0, city: 'Boston' })
-	})
+    expect(stub.calls[0]?.variables).toEqual({ limit: 24, offset: 0, city: 'Boston' })
+  })
 
-	it('offsets the query by the page in the URL', async () => {
-		const { stub } = await mount('/shops/Boston?page=2')
+  it('offsets the query by the page in the URL', async () => {
+    const { stub } = await mount('/shops/Boston?page=2')
 
-		expect(stub.calls[0]?.variables).toEqual({ limit: 24, offset: 24, city: 'Boston' })
-	})
+    expect(stub.calls[0]?.variables).toEqual({ limit: 24, offset: 24, city: 'Boston' })
+  })
 
-	it('renders the city listing under its own heading', async () => {
-		await mount('/shops/Boston')
+  it('renders the city listing under its own heading', async () => {
+    await mount('/shops/Boston')
 
-		expect(screen.getByRole('heading', { level: 1, name: 'Shops in Boston' })).toBeInTheDocument()
-		expect(screen.getByText(/shops here/).textContent).toBe('1 shops here.')
-		expect(screen.getByRole('link', { name: /Rivers Boutique/ })).toHaveAttribute('href', '/shop/rivers-boutique')
-	})
+    expect(screen.getByRole('heading', { level: 1, name: 'Shops in Boston' })).toBeInTheDocument()
+    expect(screen.getByText(/shops here/).textContent).toBe('1 shops here.')
+    expect(screen.getByRole('link', { name: /Rivers Boutique/ })).toHaveAttribute('href', '/shop/rivers-boutique')
+  })
 
-	/*
-	 * ⚠️ A city with no published shops is a real 404, not an empty listing. Left as a 200 it is an
-	 * indexable page with no content, and anyone can mint an unlimited number of them by typing nonsense
-	 * into the segment — which is how a catalogue ends up with more empty URLs than real ones.
-	 */
-	it('404s a city that has no shops at all', async () => {
-		await mount('/shops/Atlantide', companiesReply([]))
+  /*
+   * ⚠️ A city with no published shops is a real 404, not an empty listing. Left as a 200 it is an
+   * indexable page with no content, and anyone can mint an unlimited number of them by typing nonsense
+   * into the segment — which is how a catalogue ends up with more empty URLs than real ones.
+   */
+  it('404s a city that has no shops at all', async () => {
+    await mount('/shops/Atlantide', companiesReply([]))
 
-		expect(screen.getByRole('heading', { level: 1, name: 'This page does not exist' })).toBeInTheDocument()
-	})
+    expect(screen.getByRole('heading', { level: 1, name: 'This page does not exist' })).toBeInTheDocument()
+  })
 
-	// Exempt on purpose: an out-of-range `?page=` on a real city is a bad parameter, not a missing city.
-	it('shows an empty page rather than a 404 past the end of a real city', async () => {
-		await mount('/shops/Boston?page=9', companiesReply([]))
+  // Exempt on purpose: an out-of-range `?page=` on a real city is a bad parameter, not a missing city.
+  it('shows an empty page rather than a 404 past the end of a real city', async () => {
+    await mount('/shops/Boston?page=9', companiesReply([]))
 
-		expect(screen.getByText('No shops on this page')).toBeInTheDocument()
-		expect(screen.queryByRole('heading', { name: 'This page does not exist' })).not.toBeInTheDocument()
-	})
+    expect(screen.getByText('No shops on this page')).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'This page does not exist' })).not.toBeInTheDocument()
+  })
 
-	it('keeps the city encoded in its own pagination links', async () => {
-		await mount('/shops/Reggio%20Emilia?page=2', companiesReply([companyOf()], { hasMore: true }))
+  it('keeps the city encoded in its own pagination links', async () => {
+    await mount('/shops/Reggio%20Emilia?page=2', companiesReply([companyOf()], { hasMore: true }))
 
-		expect(screen.getByRole('link', { name: '← Previous' })).toHaveAttribute('href', '/shops/Reggio%20Emilia')
-		expect(screen.getByRole('link', { name: 'Next →' })).toHaveAttribute('href', '/shops/Reggio%20Emilia?page=3')
-	})
+    expect(screen.getByRole('link', { name: '← Previous' })).toHaveAttribute('href', '/shops/Reggio%20Emilia')
+    expect(screen.getByRole('link', { name: 'Next →' })).toHaveAttribute('href', '/shops/Reggio%20Emilia?page=3')
+  })
 
-	// The trail is Home → Shops → city, and the city is the current page: text with `aria-current`, never a
-	// link to where the visitor already is.
-	it('places the city under the shops listing in the trail', async () => {
-		await mount('/shops/Boston')
+  // The trail is Home → Shops → city, and the city is the current page: text with `aria-current`, never a
+  // link to where the visitor already is.
+  it('places the city under the shops listing in the trail', async () => {
+    await mount('/shops/Boston')
 
-		const trail = within(screen.getByRole('navigation', { name: 'Breadcrumb' }))
+    const trail = within(screen.getByRole('navigation', { name: 'Breadcrumb' }))
 
-		expect(trail.getAllByRole('listitem')).toHaveLength(3)
-		expect(trail.getAllByRole('link').map((link) => [link.textContent, link.getAttribute('href')])).toEqual([
-			['Home', '/'],
-			['Shops', '/shops']
-		])
-		expect(trail.getByText('Boston')).toHaveAttribute('aria-current', 'page')
-		expect(trail.queryByRole('link', { name: 'Boston' })).not.toBeInTheDocument()
-	})
+    expect(trail.getAllByRole('listitem')).toHaveLength(3)
+    expect(trail.getAllByRole('link').map((link) => [link.textContent, link.getAttribute('href')])).toEqual([
+      ['Home', '/'],
+      ['Shops', '/shops']
+    ])
+    expect(trail.getByText('Boston')).toHaveAttribute('aria-current', 'page')
+    expect(trail.queryByRole('link', { name: 'Boston' })).not.toBeInTheDocument()
+  })
 })
 
 /*
@@ -117,104 +117,104 @@ describe('the city listing route', () => {
  * cannot be answered for any city, so it is checked and refused before the query is ever sent.
  */
 describe('the city listing route past the backend’s offset cap', () => {
-	it('404s a page beyond the cap without querying at all', async () => {
-		const { stub } = await mount('/shops/Boston?page=418')
+  it('404s a page beyond the cap without querying at all', async () => {
+    const { stub } = await mount('/shops/Boston?page=418')
 
-		expect(screen.getByRole('heading', { level: 1, name: 'This page does not exist' })).toBeInTheDocument()
-		expect(stub.calls).toHaveLength(0)
-	})
+    expect(screen.getByRole('heading', { level: 1, name: 'This page does not exist' })).toBeInTheDocument()
+    expect(stub.calls).toHaveLength(0)
+  })
 
-	it('still serves the deepest page the cap allows', async () => {
-		const { stub } = await mount('/shops/Boston?page=417')
+  it('still serves the deepest page the cap allows', async () => {
+    const { stub } = await mount('/shops/Boston?page=417')
 
-		expect(stub.calls[0]?.variables).toEqual({ limit: 24, offset: 9984, city: 'Boston' })
-	})
+    expect(stub.calls[0]?.variables).toEqual({ limit: 24, offset: 9984, city: 'Boston' })
+  })
 })
 
 describe('the city listing search parameter', () => {
-	it.each([
-		['abc', 1],
-		['0', 1],
-		['7', 7]
-	])('reads ?page=%s as page %i', (raw, expected) => {
-		expect(shopsCityRouteOptions.validateSearch.parse({ page: raw }).page).toBe(expected)
-	})
+  it.each([
+    ['abc', 1],
+    ['0', 1],
+    ['7', 7]
+  ])('reads ?page=%s as page %i', (raw, expected) => {
+    expect(shopsCityRouteOptions.validateSearch.parse({ page: raw }).page).toBe(expected)
+  })
 
-	it('normalises an absent page to 1 before the loader is keyed', () => {
-		expect(shopsCityRouteOptions.loaderDeps({ search: {} })).toEqual({ page: 1 })
-		expect(shopsCityRouteOptions.loaderDeps({ search: { page: 4 } })).toEqual({ page: 4 })
-	})
+  it('normalises an absent page to 1 before the loader is keyed', () => {
+    expect(shopsCityRouteOptions.loaderDeps({ search: {} })).toEqual({ page: 1 })
+    expect(shopsCityRouteOptions.loaderDeps({ search: { page: 4 } })).toEqual({ page: 4 })
+  })
 })
 
 describe('the city listing head', () => {
-	it('names the city in the title, and the page after the first', () => {
-		expect(titleOf(head('Boston', 1))).toBe('Shops in Boston · Marketplace')
-		expect(titleOf(head('Boston', 2))).toBe('Shops in Boston — page 2 · Marketplace')
-	})
+  it('names the city in the title, and the page after the first', () => {
+    expect(titleOf(head('Boston', 1))).toBe('Shops in Boston · Marketplace')
+    expect(titleOf(head('Boston', 2))).toBe('Shops in Boston — page 2 · Marketplace')
+  })
 
-	it('describes the city, since that is the query these pages exist for', () => {
-		expect(metaOf(head('Boston', 1), 'description')).toBe(
-			'Every shop published in Boston, with what they sell and where to find them.'
-		)
-	})
+  it('describes the city, since that is the query these pages exist for', () => {
+    expect(metaOf(head('Boston', 1), 'description')).toBe(
+      'Every shop published in Boston, with what they sell and where to find them.'
+    )
+  })
 
-	it('keeps the deeper pages out of the index without cutting their links', () => {
-		expect(metaOf(head('Boston', 1), 'robots')).toBeUndefined()
-		expect(metaOf(head('Boston', 3), 'robots')).toBe('noindex, follow')
-	})
+  it('keeps the deeper pages out of the index without cutting their links', () => {
+    expect(metaOf(head('Boston', 1), 'robots')).toBeUndefined()
+    expect(metaOf(head('Boston', 3), 'robots')).toBe('noindex, follow')
+  })
 
-	// The canonical is built from the same `encodeURIComponent` the links use — a canonical carrying a raw
-	// space is a different URL from the one linked to it, and the two split the page's ranking between them.
-	it('encodes the city in the canonical', () => {
-		expect(canonicalOf(head('Reggio Emilia', 1))).toBe('http://127.0.0.1:3045/shops/Reggio%20Emilia')
-		expect(canonicalOf(head('Reggio Emilia', 2))).toBe('http://127.0.0.1:3045/shops/Reggio%20Emilia?page=2')
-	})
+  // The canonical is built from the same `encodeURIComponent` the links use — a canonical carrying a raw
+  // space is a different URL from the one linked to it, and the two split the page's ranking between them.
+  it('encodes the city in the canonical', () => {
+    expect(canonicalOf(head('Reggio Emilia', 1))).toBe('http://127.0.0.1:3045/shops/Reggio%20Emilia')
+    expect(canonicalOf(head('Reggio Emilia', 2))).toBe('http://127.0.0.1:3045/shops/Reggio%20Emilia?page=2')
+  })
 
-	it('chains the pages together, absolutely', () => {
-		const middle = head('Boston', 2, [], true)
+  it('chains the pages together, absolutely', () => {
+    const middle = head('Boston', 2, [], true)
 
-		expect(linkOf(middle, 'prev')).toBe('http://127.0.0.1:3045/shops/Boston')
-		expect(linkOf(middle, 'next')).toBe('http://127.0.0.1:3045/shops/Boston?page=3')
-	})
+    expect(linkOf(middle, 'prev')).toBe('http://127.0.0.1:3045/shops/Boston')
+    expect(linkOf(middle, 'next')).toBe('http://127.0.0.1:3045/shops/Boston?page=3')
+  })
 
-	/*
-	 * ⚠️ The whole array on both ends, not `linkOf(…, 'prev')` twice. Each link is spread from a conditional
-	 * array, so an absent one is the *empty* branch producing nothing — and anything else that branch might
-	 * produce is invisible to a reader that searches the array by `rel`.
-	 */
-	it('emits no previous on the first page and no next on the last', () => {
-		expect(head('Boston', 1, [], true).links).toEqual([
-			{ rel: 'canonical', href: 'http://127.0.0.1:3045/shops/Boston' },
-			{ rel: 'next', href: 'http://127.0.0.1:3045/shops/Boston?page=2' }
-		])
-		expect(head('Boston', 2, [], false).links).toEqual([
-			{ rel: 'canonical', href: 'http://127.0.0.1:3045/shops/Boston?page=2' },
-			{ rel: 'prev', href: 'http://127.0.0.1:3045/shops/Boston' }
-		])
-	})
+  /*
+   * ⚠️ The whole array on both ends, not `linkOf(…, 'prev')` twice. Each link is spread from a conditional
+   * array, so an absent one is the *empty* branch producing nothing — and anything else that branch might
+   * produce is invisible to a reader that searches the array by `rel`.
+   */
+  it('emits no previous on the first page and no next on the last', () => {
+    expect(head('Boston', 1, [], true).links).toEqual([
+      { rel: 'canonical', href: 'http://127.0.0.1:3045/shops/Boston' },
+      { rel: 'next', href: 'http://127.0.0.1:3045/shops/Boston?page=2' }
+    ])
+    expect(head('Boston', 2, [], false).links).toEqual([
+      { rel: 'canonical', href: 'http://127.0.0.1:3045/shops/Boston?page=2' },
+      { rel: 'prev', href: 'http://127.0.0.1:3045/shops/Boston' }
+    ])
+  })
 
-	it('describes the trail Home → Shops → city', () => {
-		expect(jsonLdTyped(head('Boston', 1), 'BreadcrumbList')?.itemListElement).toEqual([
-			{ '@type': 'ListItem', position: 1, name: 'Home', item: 'http://127.0.0.1:3045/' },
-			{ '@type': 'ListItem', position: 2, name: 'Shops', item: 'http://127.0.0.1:3045/shops' },
-			{ '@type': 'ListItem', position: 3, name: 'Boston', item: 'http://127.0.0.1:3045/shops/Boston' }
-		])
-	})
+  it('describes the trail Home → Shops → city', () => {
+    expect(jsonLdTyped(head('Boston', 1), 'BreadcrumbList')?.itemListElement).toEqual([
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'http://127.0.0.1:3045/' },
+      { '@type': 'ListItem', position: 2, name: 'Shops', item: 'http://127.0.0.1:3045/shops' },
+      { '@type': 'ListItem', position: 3, name: 'Boston', item: 'http://127.0.0.1:3045/shops/Boston' }
+    ])
+  })
 
-	it('numbers the list from where the page actually starts', () => {
-		expect(jsonLdTyped(head('Boston', 2, ['rivers-boutique']), 'ItemList')?.itemListElement).toEqual([
-			{ '@type': 'ListItem', position: 25, url: 'http://127.0.0.1:3045/shop/rivers-boutique' }
-		])
-	})
+  it('numbers the list from where the page actually starts', () => {
+    expect(jsonLdTyped(head('Boston', 2, ['rivers-boutique']), 'ItemList')?.itemListElement).toEqual([
+      { '@type': 'ListItem', position: 25, url: 'http://127.0.0.1:3045/shop/rivers-boutique' }
+    ])
+  })
 
-	// Called on the server before the loader resolves, and again on a router the loader never ran for. The
-	// `hasMore` fallback is `false` rather than `true`: a placeholder head that advertises a page 2 is a
-	// `rel="next"` pointing at a URL nothing has said exists.
-	it('survives being called before the loader has answered', () => {
-		const empty = shopsCityRouteOptions.head({} as Parameters<typeof shopsCityRouteOptions.head>[0]) as RouteHead
+  // Called on the server before the loader resolves, and again on a router the loader never ran for. The
+  // `hasMore` fallback is `false` rather than `true`: a placeholder head that advertises a page 2 is a
+  // `rel="next"` pointing at a URL nothing has said exists.
+  it('survives being called before the loader has answered', () => {
+    const empty = shopsCityRouteOptions.head({} as Parameters<typeof shopsCityRouteOptions.head>[0]) as RouteHead
 
-		expect(jsonLdTyped(empty, 'ItemList')?.itemListElement).toEqual([])
-		expect(canonicalOf(empty)).toBe('http://127.0.0.1:3045/shops/')
-		expect(linkOf(empty, 'next')).toBeUndefined()
-	})
+    expect(jsonLdTyped(empty, 'ItemList')?.itemListElement).toEqual([])
+    expect(canonicalOf(empty)).toBe('http://127.0.0.1:3045/shops/')
+    expect(linkOf(empty, 'next')).toBeUndefined()
+  })
 })

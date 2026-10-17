@@ -14,23 +14,23 @@ import { getRouter } from '@/router'
 export const CUSTOMER_EMAIL = 'customer@marketplace.it'
 
 export interface RenderOptions {
-	/**
-	 * Seeds the in-memory access token. Defaults to `null` — the opposite of the sibling apps' helper,
-	 * because the opposite is the interesting default here: most of this app is anonymous catalogue, and
-	 * `requiresAuth` keeps a public endpoint from firing a refresh it does not need. Pass a string for the
-	 * private area, where a null token makes `willAuthError` send a `Refresh` first.
-	 */
-	token?: string | null
-	/** Seeds the signed-in address. `null` leaves the store signed out, which is what a visitor is. */
-	session?: string | null
-	/** Where the router starts. Only read by `renderRoute` and `renderWithRouter`. */
-	path?: string
+  /**
+   * Seeds the in-memory access token. Defaults to `null` — the opposite of the sibling apps' helper,
+   * because the opposite is the interesting default here: most of this app is anonymous catalogue, and
+   * `requiresAuth` keeps a public endpoint from firing a refresh it does not need. Pass a string for the
+   * private area, where a null token makes `willAuthError` send a `Refresh` first.
+   */
+  token?: string | null
+  /** Seeds the signed-in address. `null` leaves the store signed out, which is what a visitor is. */
+  session?: string | null
+  /** Where the router starts. Only read by `renderRoute` and `renderWithRouter`. */
+  path?: string
 }
 
 const seed = ({ token = null, session = null }: RenderOptions): void => {
-	if (token !== null) setAccessToken(token)
-	if (session !== null) setSession(session)
-	else clearSession()
+  if (token !== null) setAccessToken(token)
+  if (session !== null) setSession(session)
+  else clearSession()
 }
 
 /**
@@ -44,18 +44,18 @@ const seed = ({ token = null, session = null }: RenderOptions): void => {
 const clientControllers = new Set<AbortController>()
 
 const trackedSignal = (): AbortSignal => {
-	const controller = new AbortController()
-	clientControllers.add(controller)
+  const controller = new AbortController()
+  clientControllers.add(controller)
 
-	return controller.signal
+  return controller.signal
 }
 
 const buildClient = (): ReturnType<typeof createGraphQLClient> =>
-	createGraphQLClient({ onSessionLost: clearSession, signal: trackedSignal() })
+  createGraphQLClient({ onSessionLost: clearSession, signal: trackedSignal() })
 
 afterEach(() => {
-	for (const controller of clientControllers) controller.abort()
-	clientControllers.clear()
+  for (const controller of clientControllers) controller.abort()
+  clientControllers.clear()
 })
 
 /**
@@ -63,13 +63,13 @@ afterEach(() => {
  * forms built only from them.
  */
 export const renderWithClient = (ui: ReactElement, options: RenderOptions = {}): RenderResult => {
-	seed(options)
+  seed(options)
 
-	return render(<UrqlProvider value={buildClient()}>{ui}</UrqlProvider>)
+  return render(<UrqlProvider value={buildClient()}>{ui}</UrqlProvider>)
 }
 
 export interface RouterRenderResult extends RenderResult {
-	readonly router: AnyRouter
+  readonly router: AnyRouter
 }
 
 /**
@@ -83,7 +83,7 @@ export interface RouterRenderResult extends RenderResult {
  * actually ships.
  */
 const locate = (path: string): void => {
-	window.history.replaceState(null, '', path)
+  window.history.replaceState(null, '', path)
 }
 
 /**
@@ -99,19 +99,19 @@ const locate = (path: string): void => {
  * state against a router that never matched anything reports every link inactive.
  */
 export const renderWithRouter = async (ui: ReactElement, options: RenderOptions = {}): Promise<RouterRenderResult> => {
-	seed(options)
-	locate(options.path ?? '/')
+  seed(options)
+  locate(options.path ?? '/')
 
-	const router = getRouter(trackedSignal())
-	await router.load()
+  const router = getRouter(trackedSignal())
+  await router.load()
 
-	const result = render(
-		<RouterContextProvider router={router as never}>
-			<UrqlProvider value={buildClient()}>{ui}</UrqlProvider>
-		</RouterContextProvider>
-	)
+  const result = render(
+    <RouterContextProvider router={router as never}>
+      <UrqlProvider value={buildClient()}>{ui}</UrqlProvider>
+    </RouterContextProvider>
+  )
 
-	return { ...result, router }
+  return { ...result, router }
 }
 
 /**
@@ -127,17 +127,17 @@ export const renderWithRouter = async (ui: ReactElement, options: RenderOptions 
  * skip link and the `lang` attribute are only observable here.
  */
 export const renderRoute = async (path: string, options: RenderOptions = {}): Promise<RouterRenderResult> => {
-	seed(options)
-	locate(path)
+  seed(options)
+  locate(path)
 
-	const router = getRouter(trackedSignal())
-	await router.load()
+  const router = getRouter(trackedSignal())
+  await router.load()
 
-	const result = render(<RouterProvider router={router as never} />)
+  const result = render(<RouterProvider router={router as never} />)
 
-	await waitFor(() => {
-		expect(router.state.status).toBe('idle')
-	})
+  await waitFor(() => {
+    expect(router.state.status).toBe('idle')
+  })
 
-	return { ...result, router }
+  return { ...result, router }
 }

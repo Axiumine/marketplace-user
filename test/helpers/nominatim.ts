@@ -12,21 +12,21 @@ import type { RestHandler } from './graphql'
 export const NOMINATIM_SEARCH = '/nominatim/search'
 
 export interface ResponseOsm {
-	/** The parsed array Nominatim answers with. Defaults to no matches. */
-	results?: readonly unknown[]
-	/** HTTP status. Defaults to 200 — 429 and 503 are what a rate-limited client actually gets. */
-	status?: number
-	/** A raw body, for the answer that is not JSON at all. Wins over `results`. */
-	body?: string
-	/** Never settles unless the request is aborted, pinning the field in its searching state. */
-	pending?: boolean
-	/**
-	 * Milliseconds before the answer settles; immediate by default.
-	 *
-	 * What makes a slow answer land *after* a fast one that replaced it — the only way to tell a client
-	 * that abandons the request it superseded from one that lets both through in whatever order.
-	 */
-	delay?: number
+  /** The parsed array Nominatim answers with. Defaults to no matches. */
+  results?: readonly unknown[]
+  /** HTTP status. Defaults to 200 — 429 and 503 are what a rate-limited client actually gets. */
+  status?: number
+  /** A raw body, for the answer that is not JSON at all. Wins over `results`. */
+  body?: string
+  /** Never settles unless the request is aborted, pinning the field in its searching state. */
+  pending?: boolean
+  /**
+   * Milliseconds before the answer settles; immediate by default.
+   *
+   * What makes a slow answer land *after* a fast one that replaced it — the only way to tell a client
+   * that abandons the request it superseded from one that lets both through in whatever order.
+   */
+  delay?: number
 }
 
 /**
@@ -37,20 +37,20 @@ export interface ResponseOsm {
  * would leave it untested.
  */
 export const resultOsm = (over: Record<string, unknown> = {}) => ({
-	place_id: 240109189,
-	display_name: 'Main Street, 1, Boston, MA, 02108, USA',
-	lat: '42.36010',
-	lon: '-71.05890',
-	address: {
-		road: 'Main Street',
-		house_number: '1',
-		postcode: '02108',
-		city: 'Boston',
-		county: 'Boston',
-		'ISO3166-2-lvl4': 'US-MA',
-		country_code: 'us'
-	},
-	...over
+  place_id: 240109189,
+  display_name: 'Main Street, 1, Boston, MA, 02108, USA',
+  lat: '42.36010',
+  lon: '-71.05890',
+  address: {
+    road: 'Main Street',
+    house_number: '1',
+    postcode: '02108',
+    city: 'Boston',
+    county: 'Boston',
+    'ISO3166-2-lvl4': 'US-MA',
+    country_code: 'us'
+  },
+  ...over
 })
 
 /**
@@ -61,37 +61,37 @@ export const resultOsm = (over: Record<string, unknown> = {}) => ({
  * prove the opposite of what the test claims.
  */
 const abortOf = (signal: AbortSignal | null | undefined): Promise<never> =>
-	new Promise<never>((_, reject) => {
-		if (signal === null || signal === undefined) return
+  new Promise<never>((_, reject) => {
+    if (signal === null || signal === undefined) return
 
-		const onAbort = () => {
-			reject(new DOMException('The operation was aborted.', 'AbortError'))
-		}
+    const onAbort = () => {
+      reject(new DOMException('The operation was aborted.', 'AbortError'))
+    }
 
-		if (signal.aborted) onAbort()
-		else signal.addEventListener('abort', onAbort)
-	})
+    if (signal.aborted) onAbort()
+    else signal.addEventListener('abort', onAbort)
+  })
 
 const responseOf = (response: ResponseOsm): Response =>
-	new Response(response.body ?? JSON.stringify(response.results ?? []), {
-		status: response.status ?? 200,
-		headers: { 'content-type': 'application/json' }
-	})
+  new Response(response.body ?? JSON.stringify(response.results ?? []), {
+    status: response.status ?? 200,
+    headers: { 'content-type': 'application/json' }
+  })
 
 const deliver = (response: ResponseOsm): Promise<Response> =>
-	response.delay === undefined
-		? Promise.resolve(responseOf(response))
-		: new Promise<Response>((resolve) => {
-				setTimeout(() => {
-					resolve(responseOf(response))
-				}, response.delay)
-			})
+  response.delay === undefined
+    ? Promise.resolve(responseOf(response))
+    : new Promise<Response>((resolve) => {
+        setTimeout(() => {
+          resolve(responseOf(response))
+        }, response.delay)
+      })
 
 export interface OsmStub {
-	/** Every geocoder URL requested, in order. */
-	readonly calls: string[]
-	/** Pass to `stubGraphQL(replies, rest)` in a test that also talks GraphQL. */
-	readonly rest: RestHandler
+  /** Every geocoder URL requested, in order. */
+  readonly calls: string[]
+  /** Pass to `stubGraphQL(replies, rest)` in a test that also talks GraphQL. */
+  readonly rest: RestHandler
 }
 
 /**
@@ -101,32 +101,32 @@ export interface OsmStub {
  * times the field re-queries does not have to count.
  */
 export const osmStub = (replies: ResponseOsm | readonly ResponseOsm[] = {}): OsmStub => {
-	const queue = Array.isArray(replies) ? [...(replies as ResponseOsm[])] : [replies as ResponseOsm]
-	const calls: string[] = []
+  const queue = Array.isArray(replies) ? [...(replies as ResponseOsm[])] : [replies as ResponseOsm]
+  const calls: string[] = []
 
-	const rest: RestHandler = (url, init) => {
-		if (!url.startsWith(NOMINATIM_SEARCH)) return undefined
+  const rest: RestHandler = (url, init) => {
+    if (!url.startsWith(NOMINATIM_SEARCH)) return undefined
 
-		calls.push(url)
-		const response = queue.length > 1 ? (queue.shift() as ResponseOsm) : (queue[0] as ResponseOsm)
-		const abortPromise = abortOf(init?.signal)
+    calls.push(url)
+    const response = queue.length > 1 ? (queue.shift() as ResponseOsm) : (queue[0] as ResponseOsm)
+    const abortPromise = abortOf(init?.signal)
 
-		return response.pending === true ? abortPromise : Promise.race([deliver(response), abortPromise])
-	}
+    return response.pending === true ? abortPromise : Promise.race([deliver(response), abortPromise])
+  }
 
-	return { calls, rest }
+  return { calls, rest }
 }
 
 /** The same queue installed as the only `fetch` there is, for a test that sends nothing else. */
 export const installOsm = (replies: ResponseOsm | readonly ResponseOsm[] = {}): OsmStub => {
-	const stub = osmStub(replies)
+  const stub = osmStub(replies)
 
-	vi.stubGlobal('fetch', (input: RequestInfo | URL, init?: RequestInit) => {
-		const response = stub.rest(String(input), init)
-		if (response === undefined) throw new Error(`Unhandled request: ${String(input)}`)
+  vi.stubGlobal('fetch', (input: RequestInfo | URL, init?: RequestInit) => {
+    const response = stub.rest(String(input), init)
+    if (response === undefined) throw new Error(`Unhandled request: ${String(input)}`)
 
-		return Promise.resolve(response)
-	})
+    return Promise.resolve(response)
+  })
 
-	return stub
+  return stub
 }

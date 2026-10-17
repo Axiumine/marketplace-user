@@ -8,21 +8,21 @@
 # No `logoutUser` mutation exists or is needed.
 
 schema {
-	query: QueriesApi
-	mutation: MutationsApi
+  query: QueriesApi
+  mutation: MutationsApi
 }
 
 type QueriesApi {
-	helloLogout: Hello2Type!
+  helloLogout: Hello2Type!
 }
 
 type Hello2Type {
-	txt: String!
+  txt: String!
 }
 
 type MutationsApi {
-	"""
-	logout
-	"""
-	logout: Boolean!
+  """
+  logout
+  """
+  logout: Boolean!
 }

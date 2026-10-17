@@ -27,59 +27,59 @@ import { useRegistration } from './useRegistration'
  * this form into an account-enumeration oracle over the seller collection.
  */
 export const SellerRegisterForm = () => {
-	const { errors, failure, isSubmitting, onSubmit, register, sentTo, turnstile } = useRegistration(ShopOwnerRegisterDocument)
+  const { errors, failure, isSubmitting, onSubmit, register, sentTo, turnstile } = useRegistration(ShopOwnerRegisterDocument)
 
-	if (sentTo !== undefined) {
-		return (
-			<div className="flex flex-col gap-3">
-				<FormStatus tone="ok" message={`If ${sentTo} can be registered, an activation link is on its way.`} />
+  if (sentTo !== undefined) {
+    return (
+      <div className="flex flex-col gap-3">
+        <FormStatus tone="ok" message={`If ${sentTo} can be registered, an activation link is on its way.`} />
 
-				<p className="text-sm text-slate-600">
-					The link is good for three days. Check the spam folder before asking for another one — a second request replaces the
-					first link, so an old mail stops working.
-				</p>
+        <p className="text-sm text-slate-600">
+          The link is good for three days. Check the spam folder before asking for another one — a second request replaces the
+          first link, so an old mail stops working.
+        </p>
 
-				{/* The second half of the answer, and the half that is specific to a seller. Confirming the
-				    address is not what opens the shop area: the account waits for an admin after that, and
-				    somebody who is not told will read the refused login as a broken registration. */}
-				<p className="text-sm text-slate-600">
-					Confirming the address is the first of two steps. Our team reviews every application by hand, and you will hear from us
-					at that address once your account has been approved — signing in before then is not possible.
-				</p>
-			</div>
-		)
-	}
+        {/* The second half of the answer, and the half that is specific to a seller. Confirming the
+            address is not what opens the shop area: the account waits for an admin after that, and
+            somebody who is not told will read the refused login as a broken registration. */}
+        <p className="text-sm text-slate-600">
+          Confirming the address is the first of two steps. Our team reviews every application by hand, and you will hear from us
+          at that address once your account has been approved — signing in before then is not possible.
+        </p>
+      </div>
+    )
+  }
 
-	return (
-		<form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
-			<TextField {...register('email')} label="Email" type="email" autoComplete="username" error={errors.email?.message} />
+  return (
+    <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
+      <TextField {...register('email')} label="Email" type="email" autoComplete="username" error={errors.email?.message} />
 
-			<TextField
-				{...register('password')}
-				label="Password"
-				type="password"
-				// `new-password` rather than `current-password`: it is what makes a password manager offer to
-				// generate one instead of trying to fill in an existing entry.
-				autoComplete="new-password"
-				hint={PASSWORD_HINT}
-				error={errors.password?.message}
-			/>
+      <TextField
+        {...register('password')}
+        label="Password"
+        type="password"
+        // `new-password` rather than `current-password`: it is what makes a password manager offer to
+        // generate one instead of trying to fill in an existing entry.
+        autoComplete="new-password"
+        hint={PASSWORD_HINT}
+        error={errors.password?.message}
+      />
 
-			<TextField
-				{...register('repeatPassword')}
-				label="Repeat password"
-				type="password"
-				autoComplete="new-password"
-				error={errors.repeatPassword?.message}
-			/>
+      <TextField
+        {...register('repeatPassword')}
+        label="Repeat password"
+        type="password"
+        autoComplete="new-password"
+        error={errors.repeatPassword?.message}
+      />
 
-			<Turnstile key={turnstile.resetKey} onToken={turnstile.onToken} />
+      <Turnstile key={turnstile.resetKey} onToken={turnstile.onToken} />
 
-			<FormStatus tone="error" message={failure} />
+      <FormStatus tone="error" message={failure} />
 
-			<SubmitButton busy={isSubmitting} busyLabel="Sending your application…">
-				Apply to sell
-			</SubmitButton>
-		</form>
-	)
+      <SubmitButton busy={isSubmitting} busyLabel="Sending your application…">
+        Apply to sell
+      </SubmitButton>
+    </form>
+  )
 }

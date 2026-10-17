@@ -19,12 +19,12 @@ import { useTurnstileToken } from './useTurnstileToken'
  * about what happens next, never what is typed.
  */
 const schema = z
-	.object({
-		email: z.email('Enter a valid email address.'),
-		password: passwordSchema,
-		repeatPassword: z.string()
-	})
-	.superRefine(matchingPasswords)
+  .object({
+    email: z.email('Enter a valid email address.'),
+    password: passwordSchema,
+    repeatPassword: z.string()
+  })
+  .superRefine(matchingPasswords)
 
 type Values = z.infer<typeof schema>
 
@@ -44,35 +44,35 @@ type Variables = Values & { turnstileToken?: string | null | undefined }
  * `dataOf` handling below had to be made twice and would silently be made once.
  */
 export const useRegistration = <Data>(document: TypedDocumentNode<Data, Variables>) => {
-	const turnstile = useTurnstileToken()
-	const [failure, setFailure] = useState<string | undefined>(undefined)
-	const [sentTo, setSentTo] = useState<string | undefined>(undefined)
-	const [, submit] = useMutation(document)
+  const turnstile = useTurnstileToken()
+  const [failure, setFailure] = useState<string | undefined>(undefined)
+  const [sentTo, setSentTo] = useState<string | undefined>(undefined)
+  const [, submit] = useMutation(document)
 
-	const {
-		register,
-		handleSubmit,
-		formState: { errors, isSubmitting }
-	} = useForm<Values>({ resolver: zodResolver(schema) })
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting }
+  } = useForm<Values>({ resolver: zodResolver(schema) })
 
-	const onSubmit = handleSubmit(async (values) => {
-		setFailure(undefined)
+  const onSubmit = handleSubmit(async (values) => {
+    setFailure(undefined)
 
-		const result = await submit({ ...values, turnstileToken: turnstile.read() }, CTX_PUBLIC_RESOURCE)
+    const result = await submit({ ...values, turnstileToken: turnstile.read() }, CTX_PUBLIC_RESOURCE)
 
-		// `dataOf` and not a bare `result.error` test: a `{"data": null}` envelope carries no error at all, and
-		// telling someone to go and confirm an email nobody sent is worse than telling them it failed.
-		if (dataOf(result) === undefined) {
-			setFailure(messageOf(result.error))
-			// The server verifies Turnstile before anything else, so a refusal for any other reason has
-			// already spent the token — without this, every retry is rejected as a Cloudflare duplicate no
-			// matter how the form was fixed.
-			turnstile.reset()
-			return
-		}
+    // `dataOf` and not a bare `result.error` test: a `{"data": null}` envelope carries no error at all, and
+    // telling someone to go and confirm an email nobody sent is worse than telling them it failed.
+    if (dataOf(result) === undefined) {
+      setFailure(messageOf(result.error))
+      // The server verifies Turnstile before anything else, so a refusal for any other reason has
+      // already spent the token — without this, every retry is rejected as a Cloudflare duplicate no
+      // matter how the form was fixed.
+      turnstile.reset()
+      return
+    }
 
-		setSentTo(values.email)
-	})
+    setSentTo(values.email)
+  })
 
-	return { errors, failure, isSubmitting, onSubmit, register, sentTo, turnstile }
+  return { errors, failure, isSubmitting, onSubmit, register, sentTo, turnstile }
 }

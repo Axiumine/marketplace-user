@@ -11,100 +11,100 @@
 # `throwIfUserDontOwnAddress` before any write.
 
 schema {
-	query: QueriesApi
-	mutation: MutationsApi
+  query: QueriesApi
+  mutation: MutationsApi
 }
 
 type QueriesApi {
-	"""
-	the signed-in customer own account
-	"""
-	me: GraphQLUserMe!
+  """
+  the signed-in customer own account
+  """
+  me: GraphQLUserMe!
 }
 
 type GraphQLUserMe {
-	_id: ID!
-	email: String!
-	personalData: GraphQLUserPersonalData
-	addresses: [GraphQLUserAddress!]!
-	defaultAddress: ID
-	registeredAt: DateTime!
+  _id: ID!
+  email: String!
+  personalData: GraphQLUserPersonalData
+  addresses: [GraphQLUserAddress!]!
+  defaultAddress: ID
+  registeredAt: DateTime!
 }
 
 # Nullable on purpose: registration is email + password only, so a freshly confirmed account has none.
 # The private area's first screen is the one that fills it in.
 type GraphQLUserPersonalData {
-	firstName: String!
-	lastName: String!
-	birth: GraphQLUserBirth
-	contacts: GraphQLUserContacts
+  firstName: String!
+  lastName: String!
+  birth: GraphQLUserBirth
+  contacts: GraphQLUserContacts
 }
 
 type GraphQLUserBirth {
-	date: DateTime!
+  date: DateTime!
 }
 
 type GraphQLUserContacts {
-	mobile: String
-	landline: String
-	email: String
+  mobile: String
+  landline: String
+  email: String
 }
 
 type GraphQLUserAddress {
-	_id: ID!
-	street: String!
-	postalCode: String!
-	city: String!
-	province: String!
-	label: String
-	position: GraphQLUserPosition
+  _id: ID!
+  street: String!
+  postalCode: String!
+  city: String!
+  province: String!
+  label: String
+  position: GraphQLUserPosition
 }
 
 type GraphQLUserPosition {
-	type: String!
-	coordinates: [Float!]!
+  type: String!
+  coordinates: [Float!]!
 }
 
 type MutationsApi {
-	userAddressAdd(address: GraphQLInputUserAddress!): OnlyIdType!
-	userAddressUpdate(_id: ID!, address: GraphQLInputUserAddress!): Boolean!
+  userAddressAdd(address: GraphQLInputUserAddress!): OnlyIdType!
+  userAddressUpdate(_id: ID!, address: GraphQLInputUserAddress!): Boolean!
 
-	"""
-	Deleting the default address unsets `defaultAddress` in the same update — the collection
-	validator rejects a pointer at an address that is no longer in the array.
-	"""
-	userAddressDel(_id: ID!): Boolean!
+  """
+  Deleting the default address unsets `defaultAddress` in the same update — the collection
+  validator rejects a pointer at an address that is no longer in the array.
+  """
+  userAddressDel(_id: ID!): Boolean!
 
-	"""
-	One atomic `$set` of the top-level pointer. There is no 'clear all, then set one' step, because
-	the default is not a flag on an element.
-	"""
-	userDefaultAddressSet(_id: ID!): Boolean!
+  """
+  One atomic `$set` of the top-level pointer. There is no 'clear all, then set one' step, because
+  the default is not a flag on an element.
+  """
+  userDefaultAddressSet(_id: ID!): Boolean!
 
-	userPersonalDataUpdate(personalData: GraphQLInputUserPersonalData!): Boolean!
-	userUpdatePwd(passwordOld: String!, passwordNew: String!): Boolean!
+  userPersonalDataUpdate(personalData: GraphQLInputUserPersonalData!): Boolean!
+  userUpdatePwd(passwordOld: String!, passwordNew: String!): Boolean!
 
-	"""
-	Closes the signed-in customer's own account. Takes no id, like every other mutation here, and
-	here the absence matters most: an id accepted from a browser would make this 'close any
-	customer's account'.
+  """
+  Closes the signed-in customer's own account. Takes no id, like every other mutation here, and
+  here the absence matters most: an id accepted from a browser would make this 'close any
+  customer's account'.
 
-	Stamps `deleted` and nothing else. `disabled` is untouched in either direction, so closing
-	neither lifts a standing suspension nor hands one back to an admin, and no `deletedBy` is
-	written: its absence is what says the holder closed it themselves.
+  Stamps `deleted` and nothing else. `disabled` is untouched in either direction, so closing
+  neither lifts a standing suspension nor hands one back to an admin, and no `deletedBy` is
+  written: its absence is what says the holder closed it themselves.
 
-	Every session ends once the write lands — the caller's included, so the next request on this
-	token is refused. The document is never removed (ADR-041); the personal fields are overwritten
-	in place at day 30.
+  Every session ends once the write lands — the caller's included, so the next request on this
+  token is refused. The document is never removed (ADR-041); the personal fields are overwritten
+  in place at day 30.
 
-	Undoable for thirty days: registering again at the same address inside the window and confirming
-	the message restores this same document, `_id` and all (ADR-046).
-	"""
-	userDel: Boolean!
+  Undoable for thirty days: registering again at the same address inside the window and confirming
+  the message restores this same document, `_id` and all (ADR-046).
+  """
+  userDel: Boolean!
 }
 
 type OnlyIdType {
-	_id: ID!
+  _id: ID!
 }
 
 # ⚠️ `position` here declares `coordinates` alone — the resolver stamps `type: 'Point'` server-side, so
@@ -112,35 +112,35 @@ type OnlyIdType {
 # `GraphQLInputCompanyPosition`, which requires it because no stamp exists on that tier. Checked against
 # `validateAddress` in the 4032 resolvers; do not "align" the two.
 input GraphQLInputUserAddress {
-	street: String!
-	postalCode: String!
-	city: String!
-	province: String!
-	label: String
-	position: GraphQLInputUserAddressPosition
+  street: String!
+  postalCode: String!
+  city: String!
+  province: String!
+  label: String
+  position: GraphQLInputUserAddressPosition
 }
 
 input GraphQLInputUserAddressPosition {
-	coordinates: [Float!]!
+  coordinates: [Float!]!
 }
 
 input GraphQLInputUserPersonalData {
-	firstName: String!
-	lastName: String!
-	birth: GraphQLInputUserBirth
-	contacts: GraphQLInputUserContacts
+  firstName: String!
+  lastName: String!
+  birth: GraphQLInputUserBirth
+  contacts: GraphQLInputUserContacts
 }
 
 # `Date` in, `DateTime` out. The input takes `YYYY-MM-DD` — what an `<input type="date">` produces — and
 # the query answers a full ISO-8601 timestamp. Both are mapped to `string` in codegen.ts.
 input GraphQLInputUserBirth {
-	date: Date!
+  date: Date!
 }
 
 input GraphQLInputUserContacts {
-	mobile: String
-	landline: String
-	email: String
+  mobile: String
+  landline: String
+  email: String
 }
 
 scalar DateTime

@@ -8,12 +8,12 @@ import { isServerFnRequest, startInstance } from '@/start'
  * plainly than a `Request` built to be missing one.
  */
 const ctxFor = (handlerType: 'serverFn' | 'router', headers: Record<string, string> = {}) => ({
-	handlerType,
-	request: {
-		url: 'https://marketplace.test/_serverFn/whatever',
-		headers: { get: (name: string) => headers[name] ?? null }
-	},
-	next: () => NEXT
+  handlerType,
+  request: {
+    url: 'https://marketplace.test/_serverFn/whatever',
+    headers: { get: (name: string) => headers[name] ?? null }
+  },
+  next: () => NEXT
 })
 
 const NEXT = Symbol('next')
@@ -26,9 +26,9 @@ type Ctx = ReturnType<typeof ctxFor>
  * the middleware was built with the filter rather than merely built.
  */
 const runCsrf = async (ctx: Ctx) => {
-	const middleware = (await startInstance.getOptions()).requestMiddleware?.[0]
+  const middleware = (await startInstance.getOptions()).requestMiddleware?.[0]
 
-	return (middleware as unknown as { options: { server: (ctx: Ctx) => Promise<unknown> } }).options.server(ctx)
+  return (middleware as unknown as { options: { server: (ctx: Ctx) => Promise<unknown> } }).options.server(ctx)
 }
 
 /*
@@ -39,41 +39,41 @@ const runCsrf = async (ctx: Ctx) => {
  * this suite would notice.
  */
 describe('start entry', () => {
-	// The predicate on its own. It is the framework's default filter, reproduced: server functions are
-	// RPC endpoints and are checked; a router request is an ordinary navigation and is not.
-	it('selects server functions and lets router requests past', () => {
-		expect(isServerFnRequest({ handlerType: 'serverFn' })).toBe(true)
-		expect(isServerFnRequest({ handlerType: 'router' })).toBe(false)
-	})
+  // The predicate on its own. It is the framework's default filter, reproduced: server functions are
+  // RPC endpoints and are checked; a router request is an ordinary navigation and is not.
+  it('selects server functions and lets router requests past', () => {
+    expect(isServerFnRequest({ handlerType: 'serverFn' })).toBe(true)
+    expect(isServerFnRequest({ handlerType: 'router' })).toBe(false)
+  })
 
-	it('declares exactly one request middleware', async () => {
-		expect((await startInstance.getOptions()).requestMiddleware).toHaveLength(1)
-	})
+  it('declares exactly one request middleware', async () => {
+    expect((await startInstance.getOptions()).requestMiddleware).toHaveLength(1)
+  })
 
-	/*
-	 * The filter reaching the middleware, and not merely existing.
-	 *
-	 * This request carries no `Sec-Fetch-Site`, no `Origin` and no `Referer`, which is the shape the CSRF
-	 * check refuses when it cannot establish an origin. It is waved through anyway because it is a router
-	 * request and the filter returns before the check runs — so a middleware built without the filter
-	 * answers 403 here, and that is the whole of the difference this assertion is watching for.
-	 */
-	it('does not run the origin check on a router request', async () => {
-		expect(await runCsrf(ctxFor('router'))).toBe(NEXT)
-	})
+  /*
+   * The filter reaching the middleware, and not merely existing.
+   *
+   * This request carries no `Sec-Fetch-Site`, no `Origin` and no `Referer`, which is the shape the CSRF
+   * check refuses when it cannot establish an origin. It is waved through anyway because it is a router
+   * request and the filter returns before the check runs — so a middleware built without the filter
+   * answers 403 here, and that is the whole of the difference this assertion is watching for.
+   */
+  it('does not run the origin check on a router request', async () => {
+    expect(await runCsrf(ctxFor('router'))).toBe(NEXT)
+  })
 
-	// The other side of the same wiring: the filter admits a server function, and the check then does its
-	// job on one whose Origin is not this site's.
-	it('refuses a cross-origin server function call', async () => {
-		const response = await runCsrf(ctxFor('serverFn', { Origin: 'https://attacker.test' }))
+  // The other side of the same wiring: the filter admits a server function, and the check then does its
+  // job on one whose Origin is not this site's.
+  it('refuses a cross-origin server function call', async () => {
+    const response = await runCsrf(ctxFor('serverFn', { Origin: 'https://attacker.test' }))
 
-		expect(response).toBeInstanceOf(Response)
-		expect((response as Response).status).toBe(403)
-	})
+    expect(response).toBeInstanceOf(Response)
+    expect((response as Response).status).toBe(403)
+  })
 
-	// And admits the same call made from this site, which is what keeps the guard from being a blanket
-	// refusal that no test would tell apart from a working one.
-	it('allows a same-origin server function call', async () => {
-		expect(await runCsrf(ctxFor('serverFn', { Origin: 'https://marketplace.test' }))).toBe(NEXT)
-	})
+  // And admits the same call made from this site, which is what keeps the guard from being a blanket
+  // refusal that no test would tell apart from a working one.
+  it('allows a same-origin server function call', async () => {
+    expect(await runCsrf(ctxFor('serverFn', { Origin: 'https://marketplace.test' }))).toBe(NEXT)
+  })
 })

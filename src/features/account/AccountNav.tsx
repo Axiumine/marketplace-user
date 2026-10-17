@@ -26,35 +26,35 @@ const LINK = 'rounded-box px-3 py-2 text-sm text-slate-600 hover:bg-slate-100'
 const LINK_ACTIVE = 'rounded-box px-3 py-2 text-sm bg-palette-bg text-palette-white hover:bg-palette-bg'
 
 export const AccountNav = () => {
-	const logout = useLogout()
+  const logout = useLogout()
 
-	return (
-		<nav aria-label="Account" className="flex flex-wrap items-center gap-1">
-			<Link to="/account" activeOptions={{ exact: true }} className={LINK} activeProps={{ className: LINK_ACTIVE }}>
-				Profile
-			</Link>
+  return (
+    <nav aria-label="Account" className="flex flex-wrap items-center gap-1">
+      <Link to="/account" activeOptions={{ exact: true }} className={LINK} activeProps={{ className: LINK_ACTIVE }}>
+        Profile
+      </Link>
 
-			<Link to="/account/addresses" className={LINK} activeProps={{ className: LINK_ACTIVE }}>
-				Addresses
-			</Link>
+      <Link to="/account/addresses" className={LINK} activeProps={{ className: LINK_ACTIVE }}>
+        Addresses
+      </Link>
 
-			<Link to="/account/password" className={LINK} activeProps={{ className: LINK_ACTIVE }}>
-				Password
-			</Link>
+      <Link to="/account/password" className={LINK} activeProps={{ className: LINK_ACTIVE }}>
+        Password
+      </Link>
 
-			{/*
-			 * Last of the four, and deliberately not styled as a danger control here. The screen behind it is
-			 * where the consequences are stated and where the tick lives; a red link in the navigation would
-			 * make the *route* look like the destructive act, and a customer who wants to read what closing
-			 * does should be able to walk in and back out again.
-			 */}
-			<Link to="/account/close" className={LINK} activeProps={{ className: LINK_ACTIVE }}>
-				Close account
-			</Link>
+      {/*
+       * Last of the four, and deliberately not styled as a danger control here. The screen behind it is
+       * where the consequences are stated and where the tick lives; a red link in the navigation would
+       * make the *route* look like the destructive act, and a customer who wants to read what closing
+       * does should be able to walk in and back out again.
+       */}
+      <Link to="/account/close" className={LINK} activeProps={{ className: LINK_ACTIVE }}>
+        Close account
+      </Link>
 
-			<button type="button" onClick={() => void logout()} className={`${LINK} ml-auto underline`}>
-				Sign out
-			</button>
-		</nav>
-	)
+      <button type="button" onClick={() => void logout()} className={`${LINK} ml-auto underline`}>
+        Sign out
+      </button>
+    </nav>
+  )
 }

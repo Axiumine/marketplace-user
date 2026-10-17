@@ -46,23 +46,23 @@ import { env } from '@/env'
  * nothing and walks plain object bags, so the subpath export pulls exactly one file into the bundle.
  */
 if (env.sentryDsn !== '') {
-	Sentry.init({
-		dsn: env.sentryDsn,
-		environment: env.sentryEnvironment,
-		dataCollection: {
-			userInfo: false,
-			cookies: false,
-			httpHeaders: { request: false, response: false },
-			httpBodies: [],
-			urlQueryParams: false,
-			graphQL: { document: false, variables: false },
-			genAI: { inputs: false, outputs: false },
-			databaseQueryData: false,
-			stackFrameVariables: false,
-			frameContextLines: 7
-		},
-		beforeSend: sentryBeforeSend,
-		beforeSendTransaction: sentryBeforeSend,
-		tracesSampleRate: 0.1
-	})
+  Sentry.init({
+    dsn: env.sentryDsn,
+    environment: env.sentryEnvironment,
+    dataCollection: {
+      userInfo: false,
+      cookies: false,
+      httpHeaders: { request: false, response: false },
+      httpBodies: [],
+      urlQueryParams: false,
+      graphQL: { document: false, variables: false },
+      genAI: { inputs: false, outputs: false },
+      databaseQueryData: false,
+      stackFrameVariables: false,
+      frameContextLines: 7
+    },
+    beforeSend: sentryBeforeSend,
+    beforeSendTransaction: sentryBeforeSend,
+    tracesSampleRate: 0.1
+  })
 }

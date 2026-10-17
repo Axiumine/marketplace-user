@@ -10,14 +10,14 @@ import { CloseAccount } from '@/features/account/CloseAccount'
  * above it should be on the same page.
  */
 const AccountClose = () => (
-	<section aria-label="Close my account">
-		<h2 className="text-lg font-medium text-palette-bg">Close my account</h2>
-		<p className="mt-1 mb-4 text-sm text-slate-600">
-			Read what this does before you tick the box. It can be undone for thirty days, and not after them.
-		</p>
+  <section aria-label="Close my account">
+    <h2 className="text-lg font-medium text-palette-bg">Close my account</h2>
+    <p className="mt-1 mb-4 text-sm text-slate-600">
+      Read what this does before you tick the box. It can be undone for thirty days, and not after them.
+    </p>
 
-		<CloseAccount />
-	</section>
+    <CloseAccount />
+  </section>
 )
 
 export const accountCloseRouteOptions = { component: AccountClose }

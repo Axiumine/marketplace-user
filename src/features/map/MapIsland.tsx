@@ -26,17 +26,17 @@ import type { ShopMapProps } from './ShopMap'
 const ShopMapLazy = lazy(async () => import('./ShopMap'))
 
 const Placeholder = () => (
-	<div
-		style={{ height: 'var(--map-height)' }}
-		className="w-full animate-pulse rounded-box border border-slate-200 bg-white"
-		aria-hidden="true"
-	/>
+  <div
+    style={{ height: 'var(--map-height)' }}
+    className="w-full animate-pulse rounded-box border border-slate-200 bg-white"
+    aria-hidden="true"
+  />
 )
 
 export const MapIsland = (props: ShopMapProps) => (
-	<ClientOnly fallback={<Placeholder />}>
-		<Suspense fallback={<Placeholder />}>
-			<ShopMapLazy {...props} />
-		</Suspense>
-	</ClientOnly>
+  <ClientOnly fallback={<Placeholder />}>
+    <Suspense fallback={<Placeholder />}>
+      <ShopMapLazy {...props} />
+    </Suspense>
+  </ClientOnly>
 )

@@ -15,9 +15,9 @@ import { collectIndexPaths, sitemapIndexXml, xmlResponse } from '@/lib/sitemap'
  * failure mode where a sitemap comes back as HTML and every crawler silently discards it.
  */
 export const Route = createFileRoute('/sitemap.xml')({
-	server: {
-		handlers: {
-			GET: async () => xmlResponse(sitemapIndexXml(await collectIndexPaths(createSsrClient())))
-		}
-	}
+  server: {
+    handlers: {
+      GET: async () => xmlResponse(sitemapIndexXml(await collectIndexPaths(createSsrClient())))
+    }
+  }
 })

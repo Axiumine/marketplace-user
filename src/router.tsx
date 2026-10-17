@@ -20,7 +20,7 @@ import { routeTree } from './routeTree.gen'
  * directly.
  */
 export interface RouterContext {
-	readonly gql: Client
+  readonly gql: Client
 }
 
 /**
@@ -46,15 +46,15 @@ export interface RouterContext {
  * loop — `/` renders for a visitor, `/login` under a broken guard need not.
  */
 const createClient = (signal?: AbortSignal): Client =>
-	typeof document === 'undefined'
-		? createSsrClient()
-		: createGraphQLClient({
-				onSessionLost: () => {
-					clearSession()
-					window.location.assign('/')
-				},
-				signal
-			})
+  typeof document === 'undefined'
+    ? createSsrClient()
+    : createGraphQLClient({
+        onSessionLost: () => {
+          clearSession()
+          window.location.assign('/')
+        },
+        signal
+      })
 
 /**
  * ⚠️ Called **per request** during server rendering. Anything constructed in here is per-request state
@@ -74,24 +74,24 @@ const createClient = (signal?: AbortSignal): Client =>
  * `renderRoute`, passes a per-test `AbortController`'s signal so that listener does not outlive the test.
  */
 export const getRouter = (signal?: AbortSignal) => {
-	const gql = createClient(signal)
+  const gql = createClient(signal)
 
-	return createRouter({
-		routeTree,
-		context: { gql },
-		defaultPreload: 'intent',
-		defaultPreloadStaleTime: 0,
-		// A 404 has to be a real 404 for a crawler. `notFound()` thrown from a loader lands here, and the
-		// server answers 404 with this markup rather than 200 with an empty page — a "soft 404" is indexed,
-		// which is strictly worse than the miss.
-		defaultNotFoundComponent: NotFound,
-		defaultErrorComponent: RouteError,
-		scrollRestoration: true
-	})
+  return createRouter({
+    routeTree,
+    context: { gql },
+    defaultPreload: 'intent',
+    defaultPreloadStaleTime: 0,
+    // A 404 has to be a real 404 for a crawler. `notFound()` thrown from a loader lands here, and the
+    // server answers 404 with this markup rather than 200 with an empty page — a "soft 404" is indexed,
+    // which is strictly worse than the miss.
+    defaultNotFoundComponent: NotFound,
+    defaultErrorComponent: RouteError,
+    scrollRestoration: true
+  })
 }
 
 declare module '@tanstack/react-router' {
-	interface Register {
-		router: ReturnType<typeof getRouter>
-	}
+  interface Register {
+    router: ReturnType<typeof getRouter>
+  }
 }

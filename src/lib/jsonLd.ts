@@ -22,22 +22,22 @@ import { absoluteUrl, SITE_NAME, siteRootUrl } from '@/lib/seo'
 export type JsonLd = Record<string, unknown>
 
 export interface JsonLdAddress {
-	readonly street: string
-	readonly postalCode: string
-	readonly city: string
-	readonly province: string
+  readonly street: string
+  readonly postalCode: string
+  readonly city: string
+  readonly province: string
 }
 
 export interface JsonLdPosition {
-	/** GeoJSON order: `[longitude, latitude]`. schema.org wants them the other way round. */
-	readonly coordinates: readonly number[]
+  /** GeoJSON order: `[longitude, latitude]`. schema.org wants them the other way round. */
+  readonly coordinates: readonly number[]
 }
 
 export interface JsonLdCompany {
-	readonly publicName: string
-	readonly slug: string
-	readonly description?: string | null
-	readonly address: JsonLdAddress & { readonly position?: JsonLdPosition | null }
+  readonly publicName: string
+  readonly slug: string
+  readonly description?: string | null
+  readonly address: JsonLdAddress & { readonly position?: JsonLdPosition | null }
 }
 
 /**
@@ -50,7 +50,7 @@ export interface JsonLdCompany {
  * conservative serialiser does: it costs nothing and it removes any argument about entity handling.
  */
 export const serializeJsonLd = (data: JsonLd): string =>
-	JSON.stringify(data).replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/&/g, '\\u0026')
+  JSON.stringify(data).replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/&/g, '\\u0026')
 
 /**
  * The `head().scripts` entries for one or more JSON-LD blocks.
@@ -63,46 +63,46 @@ export const serializeJsonLd = (data: JsonLd): string =>
  * `BreadcrumbList` emits two `<script>` tags, which is what every consumer expects to find.
  */
 export const jsonLdScripts = (...blocks: readonly JsonLd[]) =>
-	blocks.map((block) => ({ type: 'application/ld+json', children: serializeJsonLd(block) }))
+  blocks.map((block) => ({ type: 'application/ld+json', children: serializeJsonLd(block) }))
 
 /** `Store` is a `LocalBusiness` with a storefront — the closest schema.org type to a shop here. */
 export const storeJsonLd = (company: JsonLdCompany): JsonLd => {
-	const data: JsonLd = {
-		'@context': 'https://schema.org',
-		'@type': 'Store',
-		name: company.publicName,
-		url: absoluteUrl(`/shop/${company.slug}`),
-		address: {
-			'@type': 'PostalAddress',
-			streetAddress: company.address.street,
-			postalCode: company.address.postalCode,
-			addressLocality: company.address.city,
-			addressRegion: company.address.province,
-			addressCountry: 'IT'
-		}
-	}
+  const data: JsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Store',
+    name: company.publicName,
+    url: absoluteUrl(`/shop/${company.slug}`),
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: company.address.street,
+      postalCode: company.address.postalCode,
+      addressLocality: company.address.city,
+      addressRegion: company.address.province,
+      addressCountry: 'IT'
+    }
+  }
 
-	if (company.description !== undefined && company.description !== null && company.description !== '') {
-		data.description = company.description
-	}
+  if (company.description !== undefined && company.description !== null && company.description !== '') {
+    data.description = company.description
+  }
 
-	// ⚠️ GeoJSON is `[lng, lat]`; schema.org's `latitude`/`longitude` are named fields. Reading the tuple
-	// in the wrong order puts a shop in the Southern Ocean, and nothing in the page looks wrong
-	// — only the map pin in the search result does.
-	const coordinates = company.address.position?.coordinates
-	if (coordinates !== undefined && coordinates.length === 2) {
-		data.geo = { '@type': 'GeoCoordinates', longitude: coordinates[0], latitude: coordinates[1] }
-	}
+  // ⚠️ GeoJSON is `[lng, lat]`; schema.org's `latitude`/`longitude` are named fields. Reading the tuple
+  // in the wrong order puts a shop in the Southern Ocean, and nothing in the page looks wrong
+  // — only the map pin in the search result does.
+  const coordinates = company.address.position?.coordinates
+  if (coordinates !== undefined && coordinates.length === 2) {
+    data.geo = { '@type': 'GeoCoordinates', longitude: coordinates[0], latitude: coordinates[1] }
+  }
 
-	return data
+  return data
 }
 
 export interface JsonLdItem {
-	readonly name: string
-	readonly description: string
-	readonly slug: string
-	readonly companySlug: string
-	readonly companyPublicName: string
+  readonly name: string
+  readonly description: string
+  readonly slug: string
+  readonly companySlug: string
+  readonly companyPublicName: string
 }
 
 /**
@@ -114,29 +114,29 @@ export interface JsonLdItem {
  * page does not show — and there is no future state of the platform in which it would show one.
  */
 export const productJsonLd = (item: JsonLdItem): JsonLd => ({
-	'@context': 'https://schema.org',
-	'@type': 'Product',
-	name: item.name,
-	description: item.description,
-	url: absoluteUrl(`/shop/${item.companySlug}/item/${item.slug}`),
-	brand: { '@type': 'Organization', name: item.companyPublicName }
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  name: item.name,
+  description: item.description,
+  url: absoluteUrl(`/shop/${item.companySlug}/item/${item.slug}`),
+  brand: { '@type': 'Organization', name: item.companyPublicName }
 })
 
 export interface Crumb {
-	readonly name: string
-	readonly path: string
+  readonly name: string
+  readonly path: string
 }
 
 /** `position` is 1-based in the spec, and a 0-based list is silently ignored rather than rejected. */
 export const breadcrumbJsonLd = (crumbs: readonly Crumb[]): JsonLd => ({
-	'@context': 'https://schema.org',
-	'@type': 'BreadcrumbList',
-	itemListElement: crumbs.map((crumb, index) => ({
-		'@type': 'ListItem',
-		position: index + 1,
-		name: crumb.name,
-		item: absoluteUrl(crumb.path)
-	}))
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: crumbs.map((crumb, index) => ({
+    '@type': 'ListItem',
+    position: index + 1,
+    name: crumb.name,
+    item: absoluteUrl(crumb.path)
+  }))
 })
 
 /**
@@ -147,13 +147,13 @@ export const breadcrumbJsonLd = (crumbs: readonly Crumb[]): JsonLd => ({
  * first twenty results.
  */
 export const itemListJsonLd = (paths: readonly string[], offset = 0): JsonLd => ({
-	'@context': 'https://schema.org',
-	'@type': 'ItemList',
-	itemListElement: paths.map((path, index) => ({
-		'@type': 'ListItem',
-		position: offset + index + 1,
-		url: absoluteUrl(path)
-	}))
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  itemListElement: paths.map((path, index) => ({
+    '@type': 'ListItem',
+    position: offset + index + 1,
+    url: absoluteUrl(path)
+  }))
 })
 
 /**
@@ -164,13 +164,13 @@ export const itemListJsonLd = (paths: readonly string[], offset = 0): JsonLd => 
  * — or the whole action is dropped without a warning.
  */
 export const websiteJsonLd = (): JsonLd => ({
-	'@context': 'https://schema.org',
-	'@type': 'WebSite',
-	name: SITE_NAME,
-	url: siteRootUrl(),
-	potentialAction: {
-		'@type': 'SearchAction',
-		target: { '@type': 'EntryPoint', urlTemplate: `${absoluteUrl('/search')}?q={search_term_string}` },
-		'query-input': 'required name=search_term_string'
-	}
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: SITE_NAME,
+  url: siteRootUrl(),
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: { '@type': 'EntryPoint', urlTemplate: `${absoluteUrl('/search')}?q={search_term_string}` },
+    'query-input': 'required name=search_term_string'
+  }
 })

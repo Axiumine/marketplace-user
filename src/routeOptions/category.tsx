@@ -17,63 +17,63 @@ import { assertCanonicalCategoryUrl, categoryHead, CategoryView, loadCategory } 
 const route = getRouteApi('/category/$slug/')
 
 const searchSchema = z.object({
-	page: z.coerce.number().int().min(1).catch(1).optional()
+  page: z.coerce.number().int().min(1).catch(1).optional()
 })
 
 export type CategorySearch = z.infer<typeof searchSchema>
 
 const loader = async ({
-	context,
-	params,
-	deps
+  context,
+  params,
+  deps
 }: {
-	context: RouterContext
-	params: { slug: string }
-	deps: { page: number }
+  context: RouterContext
+  params: { slug: string }
+  deps: { page: number }
 }): Promise<CategoryLoaderResult> => {
-	const result = await loadCategory({ context, slug: params.slug, page: deps.page })
-	if (result === undefined) throw notFound()
+  const result = await loadCategory({ context, slug: params.slug, page: deps.page })
+  if (result === undefined) throw notFound()
 
-	assertCanonicalCategoryUrl(result, categoryPath(params.slug))
+  assertCanonicalCategoryUrl(result, categoryPath(params.slug))
 
-	return result
+  return result
 }
 
 const head = ({ loaderData }: { loaderData?: CategoryLoaderResult }) => categoryHead(loaderData)
 
 const Category = () => {
-	const result = route.useLoaderData()
+  const result = route.useLoaderData()
 
-	return (
-		<CategoryView result={result}>
-			{/* The subcategories are links, above the items. A top-level category is a hub page and its
-			    value to a crawler is what it links out to; burying that under 24 item cards puts it below
-			    the point most crawls stop reading. */}
-			{result.children.length > 0 && (
-				<nav aria-label="Subcategories" className="mt-6">
-					<ul className="flex flex-wrap gap-2">
-						{result.children.map((child) => (
-							<li key={child._id}>
-								<Link
-									to="/category/$slug/$childSlug"
-									params={{ slug: result.category.slug, childSlug: child.slug }}
-									className="inline-block rounded-box border border-slate-300 px-3 py-1 text-sm text-slate-700"
-								>
-									{child.name}
-								</Link>
-							</li>
-						))}
-					</ul>
-				</nav>
-			)}
-		</CategoryView>
-	)
+  return (
+    <CategoryView result={result}>
+      {/* The subcategories are links, above the items. A top-level category is a hub page and its
+          value to a crawler is what it links out to; burying that under 24 item cards puts it below
+          the point most crawls stop reading. */}
+      {result.children.length > 0 && (
+        <nav aria-label="Subcategories" className="mt-6">
+          <ul className="flex flex-wrap gap-2">
+            {result.children.map((child) => (
+              <li key={child._id}>
+                <Link
+                  to="/category/$slug/$childSlug"
+                  params={{ slug: result.category.slug, childSlug: child.slug }}
+                  className="inline-block rounded-box border border-slate-300 px-3 py-1 text-sm text-slate-700"
+                >
+                  {child.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )}
+    </CategoryView>
+  )
 }
 
 export const categoryRouteOptions = {
-	validateSearch: searchSchema,
-	loaderDeps: ({ search }: { search: CategorySearch }) => ({ page: pageNumber(search.page) }),
-	loader,
-	head,
-	component: Category
+  validateSearch: searchSchema,
+  loaderDeps: ({ search }: { search: CategorySearch }) => ({ page: pageNumber(search.page) }),
+  loader,
+  head,
+  component: Category
 }

@@ -28,32 +28,32 @@ import { headFor } from '@/lib/seo'
  * different ways.
  */
 const head = () =>
-	headFor({
-		title: 'Your account',
-		description: 'Manage your details and delivery addresses.',
-		path: '/account',
-		noIndex: true
-	})
+  headFor({
+    title: 'Your account',
+    description: 'Manage your details and delivery addresses.',
+    path: '/account',
+    noIndex: true
+  })
 
 const Account = () => (
-	<div className="mx-auto max-w-3xl px-4 py-8">
-		<h1 className="text-2xl font-semibold text-palette-bg">Your account</h1>
+  <div className="mx-auto max-w-3xl px-4 py-8">
+    <h1 className="text-2xl font-semibold text-palette-bg">Your account</h1>
 
-		<div className="mt-4 border-b border-slate-200 pb-3">
-			<AccountNav />
-		</div>
+    <div className="mt-4 border-b border-slate-200 pb-3">
+      <AccountNav />
+    </div>
 
-		{/*
-		 * The gate is *inside* the layout, not around it: the navigation and the heading render while the
-		 * account is still loading, so the page has a shape from the first frame instead of appearing all
-		 * at once. It also means sign-out stays reachable even if `me` is failing.
-		 */}
-		<div className="mt-6">
-			<AccountGate>
-				<Outlet />
-			</AccountGate>
-		</div>
-	</div>
+    {/*
+     * The gate is *inside* the layout, not around it: the navigation and the heading render while the
+     * account is still loading, so the page has a shape from the first frame instead of appearing all
+     * at once. It also means sign-out stays reachable even if `me` is failing.
+     */}
+    <div className="mt-6">
+      <AccountGate>
+        <Outlet />
+      </AccountGate>
+    </div>
+  </div>
 )
 
 export const accountRouteOptions = { ssr: false as const, head, component: Account }

@@ -11,28 +11,28 @@
 # one type, and a document could then be written that type-checks while no single server can answer it.
 
 schema {
-	query: QueriesApi
-	mutation: MutationsApi
+  query: QueriesApi
+  mutation: MutationsApi
 }
 
 type QueriesApi {
-	helloRefresh: Hello2Type!
+  helloRefresh: Hello2Type!
 }
 
 type Hello2Type {
-	txt: String!
+  txt: String!
 }
 
 type MutationsApi {
-	"""
-	refresh token
-	"""
-	refresh: RefreshType!
+  """
+  refresh token
+  """
+  refresh: RefreshType!
 }
 
 # `status` false with a non-empty `accessToken` never happens, but both are checked at the call site
 # anyway — a refresh that answers a blank token is a session that is over, whatever the flag says.
 type RefreshType {
-	status: Boolean!
-	accessToken: String!
+  status: Boolean!
+  accessToken: String!
 }

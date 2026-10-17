@@ -46,14 +46,14 @@ const absentAsInvalidDate = (iso: string | null | undefined): string | number =>
  * because one field is.
  */
 export const formatDate = (iso: string | null | undefined): string => {
-	const date = new Date(absentAsInvalidDate(iso))
-	return Number.isNaN(date.getTime()) ? '—' : DATE.format(date)
+  const date = new Date(absentAsInvalidDate(iso))
+  return Number.isNaN(date.getTime()) ? '—' : DATE.format(date)
 }
 
 /** `YYYY-MM-DD`, which is what an `<input type="date">` reads and writes. Not localised on purpose. */
 export const toDateInputValue = (iso: string | null | undefined): string => {
-	const date = new Date(absentAsInvalidDate(iso))
-	return Number.isNaN(date.getTime()) ? '' : date.toISOString().slice(0, 10)
+  const date = new Date(absentAsInvalidDate(iso))
+  return Number.isNaN(date.getTime()) ? '' : date.toISOString().slice(0, 10)
 }
 
 const METRES = new Intl.NumberFormat(LOCALE, { maximumFractionDigits: 0 })
@@ -67,11 +67,11 @@ const KILOMETRES = new Intl.NumberFormat(LOCALE, { minimumFractionDigits: 1, max
  * distance is claiming the shop is where the customer is standing.
  */
 export const formatDistance = (metres: number | null | undefined): string | null => {
-	// `isFiniteNumber` alone, not preceded by a null/undefined pair: `Number.isFinite` does not coerce,
-	// so both of those fail it already and the pair was a branch no input could distinguish.
-	if (!isFiniteNumber(metres)) return null
+  // `isFiniteNumber` alone, not preceded by a null/undefined pair: `Number.isFinite` does not coerce,
+  // so both of those fail it already and the pair was a branch no input could distinguish.
+  if (!isFiniteNumber(metres)) return null
 
-	return metres < 1000 ? `${METRES.format(metres)} m` : `${KILOMETRES.format(metres / 1000)} km`
+  return metres < 1000 ? `${METRES.format(metres)} m` : `${KILOMETRES.format(metres / 1000)} km`
 }
 
 /** `1,234` — thousands separated, for result counts. */
@@ -85,4 +85,4 @@ export const formatCount = (value: number): string => METRES.format(value)
  * understates, so a customer told "500 shops" when there are 40 000 concludes the site is empty.
  */
 export const formatTotal = (total: number, totalIsExact: boolean): string =>
-	totalIsExact ? formatCount(total) : `${formatCount(total)}+`
+  totalIsExact ? formatCount(total) : `${formatCount(total)}+`

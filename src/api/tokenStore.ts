@@ -20,9 +20,9 @@ let accessToken: string | null = null
 export const getAccessToken = (): string | null => accessToken
 
 export const setAccessToken = (token: string): void => {
-	accessToken = token
+  accessToken = token
 }
 
 export const clearAccessToken = (): void => {
-	accessToken = null
+  accessToken = null
 }

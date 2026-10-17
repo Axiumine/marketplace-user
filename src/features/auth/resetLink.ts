@@ -20,10 +20,10 @@
  * moment it contained a `%`.
  */
 export interface ResetCredential {
-	/** The address the link was sent to, decoded. Submitted to the mutation, never rendered. */
-	readonly email: string
-	/** The one-time hash, exactly as the mail wrote it. Submitted to the mutation, never rendered. */
-	readonly hash: string
+  /** The address the link was sent to, decoded. Submitted to the mutation, never rendered. */
+  readonly email: string
+  /** The one-time hash, exactly as the mail wrote it. Submitted to the mutation, never rendered. */
+  readonly hash: string
 }
 
 /** What `window.location.hash` holds when the fragment is one this app wrote: `#` then the pair. */
@@ -38,11 +38,11 @@ const PREFIX = '#/'
  * the caller already refuses an empty half.
  */
 const decodeOrEmpty = (value: string): string => {
-	try {
-		return decodeURIComponent(value)
-	} catch {
-		return ''
-	}
+  try {
+    return decodeURIComponent(value)
+  } catch {
+    return ''
+  }
 }
 
 /**
@@ -53,21 +53,21 @@ const decodeOrEmpty = (value: string): string => {
  * mangled address would say more about the parser than about what to do next.
  */
 export const readResetCredential = (fragment: string): ResetCredential | undefined => {
-	if (!fragment.startsWith(PREFIX)) return undefined
+  if (!fragment.startsWith(PREFIX)) return undefined
 
-	const pair = fragment.slice(PREFIX.length)
-	const separator = pair.indexOf('/')
+  const pair = fragment.slice(PREFIX.length)
+  const separator = pair.indexOf('/')
 
-	// Exactly one separator. `-1` is a fragment with no hash at all, and `slice` would read that as an
-	// offset from the end and hand back a plausible-looking pair built from a link that has none.
-	if (separator === -1 || pair.includes('/', separator + 1)) return undefined
+  // Exactly one separator. `-1` is a fragment with no hash at all, and `slice` would read that as an
+  // offset from the end and hand back a plausible-looking pair built from a link that has none.
+  if (separator === -1 || pair.includes('/', separator + 1)) return undefined
 
-	const email = decodeOrEmpty(pair.slice(0, separator))
-	const hash = pair.slice(separator + 1)
+  const email = decodeOrEmpty(pair.slice(0, separator))
+  const hash = pair.slice(separator + 1)
 
-	// An empty half is a link that lost a segment somewhere, or an address that would not decode. Neither
-	// is worth a round trip: the server answers both with the same flat 403 a spent hash gets.
-	if (email === '' || hash === '') return undefined
+  // An empty half is a link that lost a segment somewhere, or an address that would not decode. Neither
+  // is worth a round trip: the server answers both with the same flat 403 a spent hash gets.
+  if (email === '' || hash === '') return undefined
 
-	return { email, hash }
+  return { email, hash }
 }
