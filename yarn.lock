@@ -4485,9 +4485,9 @@ seroval-plugins@^1.6.7:
   integrity sha512-kiDK/Tb8IWZ61WEU8pA2PDmAuw37gKph9Y77OZlD56mg0Y2g0Bg7gZ1HeHhs5d40w+nRoUq/wj08V26ilbez9g==
 
 seroval@^1.6.7:
-  version "1.6.9"
-  resolved "https://registry.npmjs.org/seroval/-/seroval-1.6.9.tgz#f6cdae92cf2fdeee19c6097e3b2089913f96f3dc"
-  integrity sha512-UeEzHwAK+yl0YLbsvROV1t5yMYEwZZ0CfKYxDvUgS2fO9Vxdf8djqVIB+OuVpuawRNPqw68LE1Du/GMsW2ZPqA==
+  version "1.8.1"
+  resolved "https://registry.yarnpkg.com/seroval/-/seroval-1.8.1.tgz#3ca6d1c9c0b34a3ad530dc15e36c70864fe4a89a"
+  integrity sha512-7z9x1flFYfZBz+LfDkXNfm5UIhZJ/97ASaV8Q1wctoVkeqVfv+tLPsWebeMXBNw6XprvwxDE5wC5Ylqmr+iSrA==
 
 set-function-length@^1.2.2:
   version "1.2.2"
