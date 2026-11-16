@@ -65,6 +65,12 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
+    // Node 26 defines its own experimental Web Storage `globalThis.localStorage`, which is `undefined` (with a
+    // warning) unless `--localstorage-file` is given. Vitest keeps a global that already exists instead of
+    // replacing it with jsdom's, so a test that read `localStorage.length` threw. Switching the Node feature
+    // off lets jsdom's storage through. It has to be an argument of the worker, not a `process.env` entry:
+    // the global is created when the worker starts.
+    execArgv: ['--no-experimental-webstorage'],
     // Dates on the customer screens are formatted through `Intl`, which reads the ambient zone.
     // Without a fixed one the same assertion passes on a machine an hour ahead of UTC and fails in
     // UTC — and the failure is an hour, which reads as a bug in the formatter rather than as a
