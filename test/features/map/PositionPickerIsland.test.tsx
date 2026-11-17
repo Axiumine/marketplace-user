@@ -75,7 +75,8 @@ describe('PositionPickerIsland', () => {
   it('holds the map’s final height open before the map is there', async () => {
     const { container } = render(<PositionPickerIsland onPick={vi.fn()} />)
 
-    expect(placeholderOf(container)).toHaveStyle({ height: 'var(--map-pick-height)' })
+    // The declaration, not the computed value: jsdom 31 resolves var(), and the property lives in CSS jsdom never loads.
+    expect(placeholderOf(container)).toHaveAttribute('style', expect.stringContaining('height: var(--map-pick-height)'))
 
     await flush()
   })

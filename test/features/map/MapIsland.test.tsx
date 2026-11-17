@@ -73,7 +73,8 @@ describe('MapIsland', () => {
   it('holds the map’s final height open before the map is there', async () => {
     const { container } = render(<MapIsland center={CENTER} zoom={12} />)
 
-    expect(placeholderOf(container)).toHaveStyle({ height: 'var(--map-height)' })
+    // The declaration, not the computed value: jsdom 31 resolves var(), and the property lives in CSS jsdom never loads.
+    expect(placeholderOf(container)).toHaveAttribute('style', expect.stringContaining('height: var(--map-height)'))
 
     await flush()
   })
