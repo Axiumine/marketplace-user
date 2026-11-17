@@ -311,7 +311,11 @@ describe('ShopMap', () => {
   it('renders a box of the map’s height for MapLibre to mount into', () => {
     const { container } = mount()
 
-    expect(container.querySelector('div.relative > div')).toHaveStyle({ height: 'var(--map-height)' })
+    // The declaration, not the computed value: jsdom 31 resolves var(), and the property lives in CSS jsdom never loads.
+    expect(container.querySelector('div.relative > div')).toHaveAttribute(
+      'style',
+      expect.stringContaining('height: var(--map-height)')
+    )
   })
 
   /*

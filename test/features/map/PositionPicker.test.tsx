@@ -424,7 +424,8 @@ describe('PositionPicker markup', () => {
   it('holds its height open from the first paint', () => {
     const { container } = mount()
 
-    expect(container.firstChild).toHaveStyle({ height: 'var(--map-pick-height)' })
+    // The declaration, not the computed value: jsdom 31 resolves var(), and the property lives in CSS jsdom never loads.
+    expect(container.firstChild).toHaveAttribute('style', expect.stringContaining('height: var(--map-pick-height)'))
   })
 
   it('matches the snapshot', () => {
