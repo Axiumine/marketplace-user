@@ -38,9 +38,6 @@ reports/
 # TLS certs for the https dev server. Never committed — the key is a private key.
 certs/
 
-# GitNexus index storage. The committed part is .gitnexusrc at the repo root.
-.gitnexus/
-
 # Qodana — scan results (SARIF + report), written by .githooks/pre-commit and pre-push.
 # They pass --results-dir .qodana/results so the SARIF is readable from the repo root
 # after a failed gate, rather than under ~/.cache/JetBrains/Qodana/<project-hash>/.

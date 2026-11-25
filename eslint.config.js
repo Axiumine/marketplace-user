@@ -51,7 +51,6 @@ export default [
       'coverage/**',
       '.stryker-tmp/**',
       'reports/**',
-      '.gitnexus/**',
       '.qodana/**',
       'src/gql/**',
       'src/routeTree.gen.ts'
