@@ -226,6 +226,23 @@ describe('ResetRequestForm on failure', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Error while communicating with the server')
   })
 
+  // A message about the last attempt, left above the next one, reads as the verdict on a request still in flight.
+  it('withdraws the last failure as soon as the next attempt starts', async () => {
+    const { user, stub } = mount({
+      UserResetPwd: [{ errors: [graphQLError('Too many requests')], status: 429 }, { pending: true }]
+    })
+
+    await ask(user)
+    await screen.findByRole('alert')
+    // Not `ask` again: the field kept the address, and typing would append a second copy to it.
+    await user.click(screen.getByRole('button', { name: 'Send reset link' }))
+
+    await waitFor(() => {
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    })
+    expect(stub.calls).toHaveLength(2)
+  })
+
   /*
    * ⚠️ The server verifies Turnstile before anything else, so this refusal has already spent the token —
    * every retry would be rejected as a Cloudflare duplicate until this runs. See `useTurnstileToken`.
