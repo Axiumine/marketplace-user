@@ -3,7 +3,7 @@
 Customer app, `User` tier. Public indexed site **and** private account area, one codebase.
 
 **Read parent first** — [`../CLAUDE.md`](https://github.com/Axiumine/fullstack-marketplace-blueprint/blob/main/CLAUDE.md)
-One of fifteen sub-repos; almost nothing here is changeable on its own.
+One of sixteen sub-repos; almost nothing here is changeable on its own.
 
 | Need | File |
 |---|---|
