@@ -312,6 +312,24 @@ describe('ResetConfirmForm on refusal', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Error while communicating with the server')
   })
 
+  // A message about the last attempt, left above the next one, reads as the verdict on a write still in flight.
+  it('withdraws the last failure as soon as the next attempt starts', async () => {
+    const { user, stub } = await mount({
+      UserUpdatePwd: [{ errors: [graphQLError('Invalid request')], status: 403 }, { pending: true }]
+    })
+
+    await fillIn(user)
+    await submit(user)
+    await screen.findByRole('alert')
+    await submit(user)
+
+    await waitFor(() => {
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    })
+    expect(screen.queryByRole('link', { name: 'Ask for a new one' })).not.toBeInTheDocument()
+    expect(stub.calls).toHaveLength(2)
+  })
+
   /*
    * ⚠️ The server verifies Turnstile before anything else, so this refusal has already spent the token —
    * every retry would be rejected as a Cloudflare duplicate until this runs. See `useTurnstileToken`.

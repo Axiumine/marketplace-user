@@ -3,14 +3,13 @@
 Customer app, `User` tier. Public indexed site **and** private account area, one codebase.
 
 **Read parent first** — [`../CLAUDE.md`](https://github.com/Axiumine/fullstack-marketplace-blueprint/blob/main/CLAUDE.md)
-One of fifteen sub-repos; almost nothing here is changeable on its own.
+One of sixteen sub-repos; almost nothing here is changeable on its own.
 
 | Need | File |
 |---|---|
 | strategy, every rejected alternative, chunk numbers | [`README.md`](./README.md) |
 | route/endpoint tables, "things that bite", maps architecture, commands, full rationale | [`REPO.md`](./REPO.md) |
 | gate policy | [`COVERAGE.md`](./COVERAGE.md) |
-| GitNexus rules, registry name | [`AGENTS.md`](./AGENTS.md) |
 | anything cross-repo | parent `CLAUDE.md` |
 
 ⚠️ **Only server-rendered app on the platform.** Other two frontends are SPAs. Anything that reads as
@@ -49,11 +48,5 @@ ceremony below is there because a request renders on a shared Node process befor
 - ⚠️ **`osv-scanner.toml` ignores `GHSA-vfj7-8cjw-p6xm` (`braces`) until 2027-01-15** under ADR-057: no patched
   release exists and it is reachable only through devDependencies. The entry expires on purpose, so the Scorecard
   Vulnerabilities check fails again after that date and that failure is the review. Delete the entry when a patched `braces` exists.
-- Git rules — branch first, never commit on `main`, no remote, push-on-request — are the parent's and
+- Git rules — branch first, never commit on `main`, push-on-request — are the parent's and
   apply here unchanged.
-
-## GitNexus
-
-Run `impact({target, repo})` before editing a symbol and `detect_changes()` before committing —
-`repo:` is mandatory and must be a `marketplace*` registry name. Full GitNexus rules, resources and CLI
-skill map: [`AGENTS.md`](./AGENTS.md) (registry name **marketplace-user**).

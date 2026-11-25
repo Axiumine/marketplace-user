@@ -210,6 +210,23 @@ describe('RegisterForm on failure', () => {
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
   })
 
+  // A message about the last attempt, left above the next one, reads as the verdict on a request still in flight.
+  it('withdraws the last failure as soon as the next attempt starts', async () => {
+    const { user, stub } = mount({
+      UserRegister: [{ errors: [graphQLError('Registration is closed')], status: 403 }, { pending: true }]
+    })
+
+    await fillIn(user)
+    await submit(user)
+    await screen.findByRole('alert')
+    await submit(user)
+
+    await waitFor(() => {
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    })
+    expect(stub.calls).toHaveLength(2)
+  })
+
   /*
    * ⚠️ The server verifies Turnstile before anything else, so this refusal has already spent the token —
    * every retry would be rejected as a Cloudflare duplicate until this runs. See `useTurnstileToken`.

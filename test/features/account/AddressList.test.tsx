@@ -206,6 +206,23 @@ describe('AddressList default address', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent('That change did not go through. Try again.')
   })
+
+  // A message about the last change, left above the next one, reads as the verdict on a write still in flight.
+  it('withdraws the last failure as soon as the next change starts', async () => {
+    const { user, stub } = await mount(FULL_ME, {
+      UserDefaultAddressSet: [{ errors: [graphQLError('Nope')], status: 400 }, { pending: true }]
+    })
+    const promote = within(rowOf('5 Oak Street')).getByRole('button', { name: 'Make default' })
+
+    await user.click(promote)
+    await screen.findByRole('alert')
+    await user.click(promote)
+
+    await waitFor(() => {
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    })
+    expect(written(stub)).toHaveLength(2)
+  })
 })
 
 describe('AddressList deleting', () => {
@@ -244,6 +261,18 @@ describe('AddressList deleting', () => {
 
     expect(within(rowOf('5 Oak Street')).getByRole('button', { name: 'Delete' })).toBeInTheDocument()
     expect(written(stub)).toHaveLength(0)
+  })
+
+  // The second click spends the confirmation. Left armed, the same button sends the delete again on every
+  // press, and a refused one never returns the row to its ordinary two-click state.
+  it('puts the question away once the delete is sent', async () => {
+    const { user } = await mount(FULL_ME, { UserAddressDel: { pending: true } })
+
+    await user.click(within(rowOf('5 Oak Street')).getByRole('button', { name: 'Delete' }))
+    await user.click(within(rowOf('5 Oak Street')).getByRole('button', { name: 'Delete for good' }))
+
+    expect(screen.queryByRole('button', { name: 'Delete for good' })).not.toBeInTheDocument()
+    expect(within(rowOf('5 Oak Street')).getByRole('button', { name: 'Delete' })).toBeInTheDocument()
   })
 
   // The confirmation is per address, not a mode the whole list enters — otherwise a second click meant

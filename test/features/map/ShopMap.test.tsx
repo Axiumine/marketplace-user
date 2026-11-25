@@ -548,6 +548,35 @@ describe('ShopMap and the viewport query', () => {
   })
 
   /*
+   * ⚠️ The count above cannot tell a debounce from four delayed queries: four identical bounding boxes are
+   * one request to urql's cache. This one watches the clock instead. Each move restarts the quarter second,
+   * so nothing leaves while the first move's window has expired and the second's is still open.
+   */
+  it('restarts the quarter second on every move, rather than queueing a query per move', async () => {
+    vi.useFakeTimers()
+
+    try {
+      const { map, stub } = mount()
+      const advance = async (ms: number) => {
+        await act(() => vi.advanceTimersByTimeAsync(ms))
+      }
+
+      await fire(map, 'load')
+      await advance(100)
+      await fire(map, 'moveend')
+      await advance(200)
+
+      expect(stub.calls).toHaveLength(0)
+
+      await advance(50)
+
+      expect(stub.calls).toHaveLength(1)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  /*
    * ⚠️ The bounds move before the second query, and they have to. urql's document cache answers an
    * identical query from memory without touching `fetch`, so a test that panned to nowhere would count one
    * call and read as a broken debounce — while a real pan always changes the bbox.

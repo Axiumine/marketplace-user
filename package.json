@@ -52,13 +52,13 @@
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
-		"@graphql-codegen/cli": "^7.2.0",
-		"@graphql-codegen/client-preset": "^6.1.0",
-		"@stryker-mutator/core": "^9.6.1",
-		"@stryker-mutator/vitest-runner": "^9.6.1",
+		"@graphql-codegen/cli": "^8.0.0",
+		"@graphql-codegen/client-preset": "^7.0.0",
+		"@stryker-mutator/core": "^10.1.1",
+		"@stryker-mutator/vitest-runner": "^10.1.1",
 		"@tailwindcss/vite": "^4.3.5",
 		"@testing-library/dom": "^10.4.1",
-		"@testing-library/jest-dom": "^7.0.0",
+		"@testing-library/jest-dom": "^8.0.0",
 		"@testing-library/react": "^16.3.2",
 		"@testing-library/user-event": "^14.6.9",
 		"@types/node": "^26.6.6",
@@ -67,7 +67,7 @@
 		"@typescript-eslint/eslint-plugin": "^8.72.2",
 		"@typescript-eslint/parser": "^8.72.2",
 		"@vitejs/plugin-react": "^6.3.0",
-		"@vitest/coverage-v8": "^4.1.10",
+		"@vitest/coverage-v8": "^5.1.1",
 		"eslint": "^10.14.0",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-react-hooks": "^7.1.0",
@@ -80,7 +80,7 @@
 		"tailwindcss": "^4.3.3",
 		"typescript": "^6.0.3",
 		"vite": "^8.3.8",
-		"vitest": "^4.1.10"
+		"vitest": "^5.1.1"
 	},
 	"resolutions": {
 		"js-yaml": "^4.3.2",

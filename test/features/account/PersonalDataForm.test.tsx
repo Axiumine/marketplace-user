@@ -396,6 +396,22 @@ describe('PersonalDataForm result', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('That date is in the future')
   })
 
+  // A verdict on the last save, left on screen during the next one, reads as the verdict on the write in flight.
+  it('withdraws the last verdict as soon as the next save starts', async () => {
+    const { user, stub } = await mount(FULL_ME, {
+      UserPersonalDataUpdate: [{ data: { userPersonalDataUpdate: true } }, { pending: true }]
+    })
+
+    await save(user)
+    await screen.findByRole('status')
+    await save(user)
+
+    await waitFor(() => {
+      expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    })
+    expect(stub.calls.filter((call) => call.operationName === 'UserPersonalDataUpdate')).toHaveLength(2)
+  })
+
   it('says what it is doing while it waits', async () => {
     const { user } = await mount(FULL_ME, { UserPersonalDataUpdate: { pending: true } })
 

@@ -564,6 +564,23 @@ describe('AddressForm result', () => {
     expect(await screen.findByRole('alert')).toBeInTheDocument()
     expect(onDone).not.toHaveBeenCalled()
   })
+
+  // A message about the last attempt, left above the next one, reads as the verdict on a write still in flight.
+  it('withdraws the last failure as soon as the next attempt starts', async () => {
+    const { user, stub } = mount({
+      replies: { UserAddressAdd: [{ errors: [graphQLError('Nope')], status: 400 }, { pending: true }] }
+    })
+
+    await fillIn(user)
+    await submit(user, 'Add address')
+    await screen.findByRole('alert')
+    await submit(user, 'Add address')
+
+    await waitFor(() => {
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    })
+    expect(stub.calls.filter((call) => call.operationName === 'UserAddressAdd')).toHaveLength(2)
+  })
 })
 
 describe('AddressForm cancelling', () => {
