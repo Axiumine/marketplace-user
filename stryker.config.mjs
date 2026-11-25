@@ -1,3 +1,5 @@
+import { availableParallelism } from 'node:os'
+
 /**
  * Mutation testing gate — 100, the same as the seven backend services, marketplace-common and the two
  * sibling frontends.
@@ -24,8 +26,11 @@ export default {
    * so 100 at any concurrency is consistent with a gate that has quietly stopped checking. Compare the
    * timeout *set* between two runs instead: same files, same lines, same mutators means the workers were
    * not starved. And expect swap: jsdom workers cost ~570 MB each.
+   *
+   * ⚠️ On CI, one worker per core: a GitHub-hosted `ubuntu-latest` runner has 4 vCPU, 28 workers starve it,
+   * and a starved worker is counted as a kill.
    */
-  concurrency: 28,
+  concurrency: process.env.CI ? availableParallelism() : 28,
   timeoutMS: 60000,
   thresholds: { high: 100, low: 95, break: 100 },
   // The sandbox is a file-by-file copy of the repo, and `copyFile` refuses a symlink that points at a

@@ -48,5 +48,5 @@ ceremony below is there because a request renders on a shared Node process befor
 - ⚠️ **`osv-scanner.toml` ignores `GHSA-vfj7-8cjw-p6xm` (`braces`) until 2027-01-15** under ADR-057: no patched
   release exists and it is reachable only through devDependencies. The entry expires on purpose, so the Scorecard
   Vulnerabilities check fails again after that date and that failure is the review. Delete the entry when a patched `braces` exists.
-- Git rules — branch first, never commit on `main`, no remote, push-on-request — are the parent's and
+- Git rules — branch first, never commit on `main`, push-on-request — are the parent's and
   apply here unchanged.
